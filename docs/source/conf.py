@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../../tensorflow-yolov3'))
 # -- Project information -----------------------------------------------------
 
 project = 'rdt-reader'
-copyright = '2019, Kashyap Jois'
+copyright = '2019, IPRD Group'
 author = 'Kashyap Jois'
 
 # The full version, including alpha/beta/rc tags
