@@ -8,7 +8,8 @@ if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
 set SOURCEDIR=.
-set BUILDDIR=_build
+set BUILDDIR=../../rdt-reader-docs
+set PDF=../manual.pdf
 
 if "%1" == "" goto help
 
