@@ -24,7 +24,9 @@ External dependency
         
         git clone https://github.com/kashyapj2793/tensorflow-yolov3.git
 
-3. For data annotation you can use any tool that you like. We used VOTT https://github.com/Microsoft/VoTT/releases version 1.7.2
+3. The models directory must be in tensorflow-yolov3
+
+4. For data annotation you can use any tool that you like. We used VOTT https://github.com/Microsoft/VoTT/releases version 1.7.2
 
 Data Format
 ------------
@@ -41,8 +43,8 @@ Set-up enviroment
 
     pip install -r requirements.txt
 
-Quick start
------------
+Using service with pretrained models
+------------------------------------
 
 .. code-block:: unix
 
