@@ -7,9 +7,10 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
-set SOURCEDIR=.
-set BUILDDIR=../../rdt-reader-docs
-set PDF=../manual.pdf
+set SOURCEDIR=source
+set BUILDDIR= ../../rdt-reader-docs
+set PDFBUILDDIR   = ../../tmp
+set PDF           = ../manual.pdf
 
 if "%1" == "" goto help
 
