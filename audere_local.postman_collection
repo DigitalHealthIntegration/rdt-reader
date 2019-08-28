@@ -1,0 +1,62 @@
+{
+	"info": {
+		"_postman_id": "4a3ef819-4232-4cba-ae5f-86d68329d469",
+		"name": "audere",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "rdt_service",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "metadata",
+							"value": "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"False\"}",
+							"contentType": "application/json",
+							"type": "text"
+						},
+						{
+							"key": "image",
+							"contentType": "image/jpeg",
+							"type": "file",
+							"src": "/C:/Users/developer/Downloads/IMG_20190812_190749.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://0.0.0.0:9000/align",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "9000",
+					"path": [
+						"align"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
