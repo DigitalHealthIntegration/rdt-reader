@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>train_blue_red module &#8212; rdt-reader 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-train_blue_red">
+<span id="train-blue-red-module"></span><span id="trainline"></span><h1>train_blue_red module<a class="headerlink" href="#module-train_blue_red" title="Permalink to this headline">¶</a></h1>
+<p>Train a CNN to detect presence of red and blue line on an RDT and also give the normalized y-axis location.</p>
+<p class="rubric">Example</p>
+<p>$ python tarin_blue_red.py</p>
+<dl class="function">
+<dt id="train_blue_red.key2Target">
+<code class="sig-prename descclassname">train_blue_red.</code><code class="sig-name descname">key2Target</code><span class="sig-paren">(</span><em class="sig-param">keypoints</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#train_blue_red.key2Target" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function converts keypoints returned after data augmentation to numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keypoints</strong> (<em>imgaug.augmentables.kps.KeypointsOnImage</em>) – Keypoints on the image</p></li>
+<li><p><strong>name</strong> (<em>list</em>) – File names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Images in list
+list: Targets
+list: File names</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="train_blue_red.loadData">
+<code class="sig-prename descclassname">train_blue_red.</code><code class="sig-name descname">loadData</code><span class="sig-paren">(</span><em class="sig-param">noBatchSamples</em>, <em class="sig-param">batchIdx</em>, <em class="sig-param">duplicativeFactor=10</em>, <em class="sig-param">rareData='redonly.txt'</em>, <em class="sig-param">rootPathCentreLabel='./dataset/labels'</em>, <em class="sig-param">rootPathCroppedImages='./dataset/images_lineDetector'</em><span class="sig-paren">)</span><a class="headerlink" href="#train_blue_red.loadData" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads data from the directory of labels, it works with the yolo data format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>noBatchSamples</strong> (<em>int</em>) – Number of samples per batch</p></li>
+<li><p><strong>batchIdx</strong> (<em>int</em>) – Batch number</p></li>
+<li><p><strong>duplicativeFactor</strong> (<em>int</em>) – Number of times to oversample rare date</p></li>
+<li><p><strong>rareData</strong> (<em>str</em>) – Filenames of rare data samples</p></li>
+<li><p><strong>rootPathCentreLabel</strong> (<em>str</em>) – Directory with labels in yolo format</p></li>
+<li><p><strong>rootPathCroppedImages</strong> (<em>str</em>) – Directory with images, image name and label name should be same eg: 1.jpg 1.txt</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Images in list
+list: Targets
+list: File names</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="train_blue_red.lossReg">
+<code class="sig-prename descclassname">train_blue_red.</code><code class="sig-name descname">lossReg</code><span class="sig-paren">(</span><em class="sig-param">y_true</em>, <em class="sig-param">y_pred</em><span class="sig-paren">)</span><a class="headerlink" href="#train_blue_red.lossReg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom loss function to penalize A type versus B type written for keras.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="train_blue_red.returnAugmentationObj">
+<code class="sig-prename descclassname">train_blue_red.</code><code class="sig-name descname">returnAugmentationObj</code><span class="sig-paren">(</span><em class="sig-param">percentageOfChance=0.7</em><span class="sig-paren">)</span><a class="headerlink" href="#train_blue_red.returnAugmentationObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns an augementation pipeline which can be used to augment training data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>percentageOfChance</strong> (<em>float</em>) – Percentage of chance , eg: if it is 0.5, 50% of the images will go through the pipeline</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Image augmentor</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">imgaug.augmenters.meta.Sequential</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="train_blue_red.returnModel">
+<code class="sig-prename descclassname">train_blue_red.</code><code class="sig-name descname">returnModel</code><span class="sig-paren">(</span><em class="sig-param">loadWeights</em>, <em class="sig-param">weightsFile='./red_blue.hdf5'</em><span class="sig-paren">)</span><a class="headerlink" href="#train_blue_red.returnModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a keras model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loadWeights</strong> (<em>bool</em>) – Load weights specified in the weightsFile param</p></li>
+<li><p><strong>weightsFile</strong> (<em>str</em>) – Path to weights</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Neural Network</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">keras.model.Model</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">rdt-reader</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="includeme.html">includereadme</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Kashyap Jois.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/train_blue_red.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
