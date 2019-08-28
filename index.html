@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to RDT-Reader &#8212; rdt-reader 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="&lt;no title&gt;" href="includeme.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="hide-header section" id="welcome-to-rdt-reader">
+<h1>Welcome to RDT-Reader<a class="headerlink" href="#welcome-to-rdt-reader" title="Permalink to this headline">¶</a></h1>
+<img alt="_images/iprdlogo.gif" class="align-center" src="_images/iprdlogo.gif" />
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="external-dependency">
+<h2>External dependency<a class="headerlink" href="#external-dependency" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p>Enable git LFS so that the models can be downloaded.</p></li>
+<li><p>After cloning the repo, run the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">kashyapj2793</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">-</span><span class="n">yolov3</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+</li>
+<li><p>For data annotation you can use any tool that you like. We used VOTT <a class="reference external" href="https://github.com/Microsoft/VoTT/releases">https://github.com/Microsoft/VoTT/releases</a> version 1.7.2</p></li>
+</ol>
+</div>
+<div class="section" id="data-format">
+<h2>Data Format<a class="headerlink" href="#data-format" title="Permalink to this headline">¶</a></h2>
+<p>Two data formats are used, the first one listed below is to train the object detection model and the second for the red and blue line detection.</p>
+<ol class="arabic simple">
+<li><p>You can find an example of it here <a class="reference external" href="https://raw.githubusercontent.com/YunYang1994/tensorflow-yolov3/master/data/dataset/voc_train.txt">https://raw.githubusercontent.com/YunYang1994/tensorflow-yolov3/master/data/dataset/voc_train.txt</a> and in the <strong>tensorflow-yolov3/data/dataset/rdt_train.txt</strong></p></li>
+<li><p>You can find an example of it <strong>dataset/labels/</strong> . Each file consists of annotations for an image with the same base file name.</p></li>
+</ol>
+</div>
+<div class="section" id="set-up-enviroment">
+<h2>Set-up enviroment<a class="headerlink" href="#set-up-enviroment" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>pip install -r requirements.txt
+</pre></div>
+</div>
+</div>
+<div class="section" id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>python flasker.py
+</pre></div>
+</div>
+<p>A local flask server will be setup running on localhost:9000.</p>
+<p>You can hit this server as described in the documentation <a class="reference external" href="https://drive.google.com/open?id=1Tbz2k5p9v9xEIhrNy9WP4w5mPTyPjVOPRIxeHn87r74">here</a>.</p>
+<p>There is a saved postman collection (audere_local.postman_collection) in the root directory which can be used to test the API with Postman. Please change the image file to a file that resides on your system.</p>
+</div>
+<div class="section" id="train-object-recognition-model">
+<h2>Train Object recognition model<a class="headerlink" href="#train-object-recognition-model" title="Permalink to this headline">¶</a></h2>
+<p>For detailed instructions please follow the README <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3">https://github.com/kashyapj2793/tensorflow-yolov3</a> . Edit the <strong>tensorflow-yolov3/core/config.py</strong> file first and set the absolute paths correctly.</p>
+<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>cd tensorflow
+python train.py
+</pre></div>
+</div>
+<p>You will find models being saved in the <strong>tensorflow-yolov3/checkpoint</strong> directory.</p>
+</div>
+<div class="section" id="freeze-object-recognition-model-for-inference">
+<h2>Freeze Object recognition model for inference<a class="headerlink" href="#freeze-object-recognition-model-for-inference" title="Permalink to this headline">¶</a></h2>
+<p>Use the script <strong>tensorflow-yolov3/freeze_yolo_tf.py</strong> . Please change the paths to select the newly trained model and new export directory.</p>
+</div>
+<div class="section" id="train-red-line-detection-model">
+<h2>Train red-line detection model<a class="headerlink" href="#train-red-line-detection-model" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>cd ..
+python train_blue_red.py
+</pre></div>
+</div>
+<p>You can change the name and location of the saved model from within the script.</p>
+</div>
+<div class="section" id="freeze-red-line-detection-model-for-inference">
+<h2>Freeze red-line detection model for inference<a class="headerlink" href="#freeze-red-line-detection-model-for-inference" title="Permalink to this headline">¶</a></h2>
+<p>Use the script <a class="reference internal" href="rsts/freeze_line_detection.html#freezeline"><span class="std std-ref">freeze_line_detection module</span></a> . Please change the paths to select the newly trained model and new export directory.</p>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">rdt-reader</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="includeme.html" title="next chapter">&lt;no title&gt;</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Kashyap Jois.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>flasker module &#8212; rdt-reader 0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-flasker">
+<span id="flasker-module"></span><span id="flasker"></span><h1>flasker module<a class="headerlink" href="#module-flasker" title="Permalink to this headline">¶</a></h1>
+<p>Flask server
+.. rubric:: Example</p>
+<p>$ python flasker.py</p>
+<dl class="class">
+<dt id="flasker.FluServer">
+<em class="property">class </em><code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">FluServer</code><a class="headerlink" href="#flasker.FluServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="flasker.FluServer.callLineDetector">
+<code class="sig-name descname">callLineDetector</code><span class="sig-paren">(</span><em class="sig-param">image</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.FluServer.callLineDetector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flasker.FluServer.callyolo">
+<code class="sig-name descname">callyolo</code><span class="sig-paren">(</span><em class="sig-param">image</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.FluServer.callyolo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flasker.FluServer.ret_inf_lat">
+<code class="sig-name descname">ret_inf_lat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#flasker.FluServer.ret_inf_lat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the last TFS(EI) inf time delta.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.align">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">align</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#flasker.align" title="Permalink to this definition">¶</a></dt>
+<dd><p>API endpoint to Run the entire service and give appropriate response.</p>
+<p class="rubric">Example</p>
+<p>Sample Request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;UUID&quot;</span><span class="p">:</span><span class="s2">&quot;a43f9681-a7ff-43f8-a1a6-f777e9362654&quot;</span><span class="p">,</span><span class="s2">&quot;Quality_parameters&quot;</span><span class="p">:{</span><span class="s2">&quot;brightness&quot;</span><span class="p">:</span><span class="s2">&quot;10&quot;</span><span class="p">},</span><span class="s2">&quot;RDT_Type&quot;</span><span class="p">:</span><span class="s2">&quot;Flu_Audere&quot;</span><span class="p">,</span><span class="s2">&quot;Include_Proof&quot;</span><span class="p">:</span><span class="s2">&quot;False&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Response codes</p>
+<blockquote>
+<div><p>0=&gt; No Flu detected</p>
+<p>1=&gt; Type A Flu detected</p>
+<p>2=&gt; Type B Flu detected</p>
+<p>3=&gt; Both type A and B detected</p>
+<p>Negative values indicate error conditions</p>
+<p>-1=&gt; Invalid(No Control Line detected)</p>
+<p>-2=&gt; No RDT found in image</p>
+</div></blockquote>
+<p class="rubric">Example</p>
+<p>Sample API response:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;UUID&quot;</span><span class="p">:</span><span class="s2">&quot;a43f9681-a7ff-43f8-a1a6-f777e9362654&quot;</span><span class="p">,</span><span class="n">rc</span><span class="s2">&quot;:0,&quot;</span><span class="n">msg</span><span class="s2">&quot;:&quot;</span><span class="n">No</span> <span class="n">Flu</span><span class="s2">&quot;,&quot;</span><span class="n">Include_Proof</span><span class="s2">&quot;:&quot;</span><span class="kc">False</span><span class="s2">&quot;}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.angle_with_yaxis">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">angle_with_yaxis</code><span class="sig-paren">(</span><em class="sig-param">p1</em>, <em class="sig-param">p2</em>, <em class="sig-param">img</em>, <em class="sig-param">centers</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.angle_with_yaxis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute angle by which image should be rotated,scale factor and returns a translated image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p1</strong> (<em>numpy.array</em>) – X,Y of top pattern 1</p></li>
+<li><p><strong>p2</strong> (<em>numpy.array</em>) – X,Y of bottom arrow 2</p></li>
+<li><p><strong>img</strong> (<em>numpy.ndarray</em>) – Image with channels last format</p></li>
+<li><p><strong>centers</strong> (<em>list</em>) – Centers of red and blue line (Used for debugging only)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>3-element list containing</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>angle</strong> (<em>numpy.float</em>): Angle to rotate Clock wise</p></li>
+<li><p><strong>image</strong> (<em>numpy.ndarray</em>): Translated image</p></li>
+<li><p><strong>centers</strong> (<em>list</em>): List of transformed centers (Used for debugging only)</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.euclidianDistance">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">euclidianDistance</code><span class="sig-paren">(</span><em class="sig-param">p1</em>, <em class="sig-param">p2</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.euclidianDistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute euclidian distance between p1 and p2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p1</strong> (<em>numpy.array</em>) – X,Y of point 1</p></li>
+<li><p><strong>p2</strong> (<em>numpy.array</em>) – X,Y of point 2</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Distance between two points</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.generateRDTcrop">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">generateRDTcrop</code><span class="sig-paren">(</span><em class="sig-param">boxes</em>, <em class="sig-param">im0</em>, <em class="sig-param">targets</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.generateRDTcrop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate RDT cropped image from object detection output</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>boxes</strong> (<em>numpy.ndarray</em>) – Bounding boxes of objects detected and the confidence score</p></li>
+<li><p><strong>im0</strong> (<em>numpy.ndarray</em>) – Input image</p></li>
+<li><p><strong>targets</strong> (<em>dict</em>) – Centers of red and blue line (Used for debugging only)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Response with RDT crop if found</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.postProcessDetections">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">postProcessDetections</code><span class="sig-paren">(</span><em class="sig-param">labels</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.postProcessDetections" title="Permalink to this definition">¶</a></dt>
+<dd><p>PostProcess object detection output</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>labels</strong> (<em>numpy.ndarray</em>) – Bounding boxes of objects detected and the confidence score</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Post processed detections</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.reduceByConfidence">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">reduceByConfidence</code><span class="sig-paren">(</span><em class="sig-param">dictBoxC</em>, <em class="sig-param">dictBoxL</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.reduceByConfidence" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function handles multple object detection by selecting the one with the highest score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dictBoxC</strong> (<em>dict</em>) – Objects detected and confidence</p></li>
+<li><p><strong>dictBoxL</strong> (<em>dict</em>) – Objects detected and bounding box</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Filtered list of Objects detected and bounding boxes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.returnCentre">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">returnCentre</code><span class="sig-paren">(</span><em class="sig-param">tlbr</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.returnCentre" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns centre of bounding box.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tlbr</strong> (<em>list</em>) – list of values in str [topleft_x,topleft_y,bottomright_x,bottomright_y]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Centre cordinates of bounding box</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.returnROI">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">returnROI</code><span class="sig-paren">(</span><em class="sig-param">img</em>, <em class="sig-param">centers</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.returnROI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return cropped RDT</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.ndarray</em>) – Image with channels last format</p></li>
+<li><p><strong>centers</strong> (<em>list</em>) – Centers of red and blue line (Used for debugging only)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>2-element tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>image</strong> (<em>numpy.ndarray</em>): RDT image</p></li>
+<li><p><strong>centers</strong> (<em>list</em>): List of transformed centers (Used for debugging only)</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="flasker.rotate_bound">
+<code class="sig-prename descclassname">flasker.</code><code class="sig-name descname">rotate_bound</code><span class="sig-paren">(</span><em class="sig-param">image</em>, <em class="sig-param">angle</em>, <em class="sig-param">centers</em><span class="sig-paren">)</span><a class="headerlink" href="#flasker.rotate_bound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return cropped RDT</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>numpy.ndarray</em>) – Image with channels last format</p></li>
+<li><p><strong>angle</strong> (<em>numpy.float</em>) – Angle to rotate image clockwise</p></li>
+<li><p><strong>centers</strong> (<em>list</em>) – Centers of red and blue line (Used for debugging only)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>2-element tuple containing</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>image</strong> (<em>numpy.ndarray</em>): Rotated image</p></li>
+<li><p><strong>centers</strong> (<em>list</em>): List of transformed centers (Used for debugging only)</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">rdt-reader</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Kashyap Jois.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rsts/flasker.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
