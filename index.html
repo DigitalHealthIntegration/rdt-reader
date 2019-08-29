@@ -40,14 +40,13 @@
 <ol class="arabic simple">
 <li><p>Enable git LFS so that the models can be downloaded. <a class="reference external" href="https://help.github.com/en/articles/installing-git-large-file-storage">Refer</a></p></li>
 </ol>
-<ol class="arabic" start="2">
-<li><p>Clone this repo into &lt;rdt-reader&gt;</p></li>
-<li><p>Now Clone the following repo into &lt;rdt-reader&gt;/tensorflow-yolov3</p>
+<ol class="arabic">
+<li><p>Clone this repo into &lt;rdt-reader&gt; .</p>
 <blockquote>
-<div><p>git clone <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3.git">https://github.com/kashyapj2793/tensorflow-yolov3.git</a></p>
+<div><p><cite>git clone –recurse-submodules https://github.com/DigitalHealthIntegration/rdt-reader.git</cite></p>
 </div></blockquote>
 </li>
-<li><p>Check there should be a models sub folder in tensorflow-yolov3</p></li>
+<li><p>Move the tensorflow-yolov3-models/models sub folder in tensorflow-yolov3</p></li>
 <li><p>For data annotation you can use any tool that you like. We used <a class="reference external" href="https://github.com/Microsoft/VoTT/releases">VOTT</a> version 1.7.2</p></li>
 </ol>
 <div class="section" id="data-format">
@@ -62,7 +61,8 @@
 </div>
 <div class="section" id="set-up-enviroment">
 <h3>Set-up enviroment<a class="headerlink" href="#set-up-enviroment" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="o">&lt;</span><span class="n">envname</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="o">&lt;</span><span class="n">envname</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </div>

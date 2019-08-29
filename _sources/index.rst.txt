@@ -19,19 +19,17 @@ Welcome to RDT-Reader
 Quickstart
 ==========
 
-1. Enable git LFS so that the models can be downloaded. Refer_
+#. Enable git LFS so that the models can be downloaded. Refer_
 
 .. _Refer: https://help.github.com/en/articles/installing-git-large-file-storage
 
-2. Clone this repo into <rdt-reader>
+#. Clone this repo into <rdt-reader> .  
 
-3. Now Clone the following repo into <rdt-reader>/tensorflow-yolov3
-        
-        git clone https://github.com/kashyapj2793/tensorflow-yolov3.git
+        `git clone --recurse-submodules https://github.com/DigitalHealthIntegration/rdt-reader.git`
 
-4. Check there should be a models sub folder in tensorflow-yolov3
+#. Move the tensorflow-yolov3-models/models sub folder in tensorflow-yolov3
 
-5. For data annotation you can use any tool that you like. We used VOTT_ version 1.7.2
+#. For data annotation you can use any tool that you like. We used VOTT_ version 1.7.2
 
 .. _VOTT: https://github.com/Microsoft/VoTT/releases
 
@@ -56,7 +54,8 @@ Set-up enviroment
 -----------------
 .. code-block:: 
 
-    pip install -r requirements.txt
+    conda create --name <envname> --file requirements.txt
+    conda activate <envname>
 
 Using service with pretrained models
 ------------------------------------
