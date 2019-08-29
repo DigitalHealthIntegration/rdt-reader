@@ -32,42 +32,43 @@
             
   <div class="hide-header section" id="welcome-to-rdt-reader">
 <h1>Welcome to RDT-Reader<a class="headerlink" href="#welcome-to-rdt-reader" title="Permalink to this headline">¶</a></h1>
-<img alt="_images/iprdlogo.gif" class="align-center" src="_images/iprdlogo.gif" />
+<a class="reference internal image-reference" href="_images/iprdlogo.gif"><img alt="IPRD Group" class="align-right" src="_images/iprdlogo.gif" style="width: 246.0px; height: 57.5px;" /></a>
 <div class="toctree-wrapper compound">
 </div>
-</div>
 <div class="section" id="quickstart">
-<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="external-dependency">
-<h2>External dependency<a class="headerlink" href="#external-dependency" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic">
-<li><p>Enable git LFS so that the models can be downloaded.</p></li>
-<li><p>After cloning the repo, run the command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">kashyapj2793</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">-</span><span class="n">yolov3</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-</li>
-<li><p>The models directory must be in tensorflow-yolov3</p></li>
-<li><p>For data annotation you can use any tool that you like. We used VOTT <a class="reference external" href="https://github.com/Microsoft/VoTT/releases">https://github.com/Microsoft/VoTT/releases</a> version 1.7.2</p></li>
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Enable git LFS so that the models can be downloaded. <a class="reference external" href="https://help.github.com/en/articles/installing-git-large-file-storage">Refer</a></p></li>
 </ol>
-</div>
+<ol class="arabic" start="2">
+<li><p>Clone this repo into &lt;rdt-reader&gt;</p></li>
+<li><p>Now Clone the following repo into &lt;rdt-reader&gt;/tensorflow-yolov3</p>
+<blockquote>
+<div><p>git clone <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3.git">https://github.com/kashyapj2793/tensorflow-yolov3.git</a></p>
+</div></blockquote>
+</li>
+<li><p>Check there should be a models sub folder in tensorflow-yolov3</p></li>
+<li><p>For data annotation you can use any tool that you like. We used <a class="reference external" href="https://github.com/Microsoft/VoTT/releases">VOTT</a> version 1.7.2</p></li>
+</ol>
 <div class="section" id="data-format">
-<h2>Data Format<a class="headerlink" href="#data-format" title="Permalink to this headline">¶</a></h2>
+<h3>Data Format<a class="headerlink" href="#data-format" title="Permalink to this headline">¶</a></h3>
 <p>Two data formats are used, the first one listed below is to train the object detection model and the second for the red and blue line detection.</p>
 <ol class="arabic simple">
-<li><p>You can find an example of it here <a class="reference external" href="https://raw.githubusercontent.com/YunYang1994/tensorflow-yolov3/master/data/dataset/voc_train.txt">https://raw.githubusercontent.com/YunYang1994/tensorflow-yolov3/master/data/dataset/voc_train.txt</a> and in the <strong>tensorflow-yolov3/data/dataset/rdt_train.txt</strong></p></li>
-<li><p>You can find an example of it <strong>dataset/labels/</strong> . Each file consists of annotations for an image with the same base file name.</p></li>
+<li><p><a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3/blob/master/data/dataset/rdt_train.txtMakesureyouchangethepathinthisfilebeforetraining.">Example</a></p></li>
+</ol>
+<ol class="arabic simple" start="2">
+<li><p>You can find an example of the <a class="reference external" href="https://github.com/DigitalHealthIntegration/rdt-reader/tree/master/dataset/labels">annotations</a> in the labels folder, each file contains annotations for an image with the same base file name in this <a class="reference external" href="https://github.com/DigitalHealthIntegration/rdt-reader/tree/master/dataset/images_yolo">folder</a>.</p></li>
 </ol>
 </div>
 <div class="section" id="set-up-enviroment">
-<h2>Set-up enviroment<a class="headerlink" href="#set-up-enviroment" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>pip install -r requirements.txt
+<h3>Set-up enviroment<a class="headerlink" href="#set-up-enviroment" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="using-service-with-pretrained-models">
-<h2>Using service with pretrained models<a class="headerlink" href="#using-service-with-pretrained-models" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>python flasker.py
+<h3>Using service with pretrained models<a class="headerlink" href="#using-service-with-pretrained-models" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">flasker</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
 <p>A local flask server will be setup running on localhost:9000.</p>
@@ -75,38 +76,39 @@
 <p>There is a saved postman collection (audere_local.postman_collection) in the root directory which can be used to test the API with Postman. Please change the image file to a file that resides on your system.</p>
 </div>
 <div class="section" id="train-object-recognition-model">
-<h2>Train Object recognition model<a class="headerlink" href="#train-object-recognition-model" title="Permalink to this headline">¶</a></h2>
-<p>For detailed instructions please follow the README <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3">https://github.com/kashyapj2793/tensorflow-yolov3</a> . Edit the <strong>tensorflow-yolov3/core/config.py</strong> file first and set the absolute paths correctly.</p>
-<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>cd tensorflow
-python train.py
+<h3>Train Object recognition model<a class="headerlink" href="#train-object-recognition-model" title="Permalink to this headline">¶</a></h3>
+<p>For detailed instructions please follow the <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3/blob/master/README.md">README</a> . Edit the <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3/blob/master/core/config.py">config</a> file first and set the absolute paths correctly.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">tensorflow</span>
+<span class="n">python</span> <span class="n">train</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
-<p>You will find models being saved in the <strong>tensorflow-yolov3/checkpoint</strong> directory.</p>
+<p>You will find models being saved in the <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3/tree/master/checkpoint">checkpoint</a> directory.</p>
 </div>
 <div class="section" id="freeze-object-recognition-model-for-inference">
-<h2>Freeze Object recognition model for inference<a class="headerlink" href="#freeze-object-recognition-model-for-inference" title="Permalink to this headline">¶</a></h2>
-<p>Use the script <strong>tensorflow-yolov3/freeze_yolo_tf.py</strong> . Please change the paths to select the newly trained model and new export directory.</p>
+<h3>Freeze Object recognition model for inference<a class="headerlink" href="#freeze-object-recognition-model-for-inference" title="Permalink to this headline">¶</a></h3>
+<p>Run the <a class="reference external" href="https://github.com/kashyapj2793/tensorflow-yolov3/blob/master/freeze_yolo_tf.py">script</a> . Please change the paths to select the newly trained model and new export directory.</p>
 </div>
 <div class="section" id="train-red-line-detection-model">
-<h2>Train red-line detection model<a class="headerlink" href="#train-red-line-detection-model" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-unix notranslate"><div class="highlight"><pre><span></span>cd ..
-python train_blue_red.py
+<h3>Train red-line detection model<a class="headerlink" href="#train-red-line-detection-model" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">..</span>
+<span class="n">python</span> <span class="n">train_blue_red</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
 <p>You can change the name and location of the saved model from within the script.</p>
 </div>
 <div class="section" id="freeze-red-line-detection-model-for-inference">
-<h2>Freeze red-line detection model for inference<a class="headerlink" href="#freeze-red-line-detection-model-for-inference" title="Permalink to this headline">¶</a></h2>
+<h3>Freeze red-line detection model for inference<a class="headerlink" href="#freeze-red-line-detection-model-for-inference" title="Permalink to this headline">¶</a></h3>
 <p>Use the script <a class="reference internal" href="freeze_line_detection.html#freezeline"><span class="std std-ref">freeze_line_detection module</span></a> . Please change the paths to select the newly trained model and new export directory.</p>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
+</div>
 </div>
 
 
