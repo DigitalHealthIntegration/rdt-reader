@@ -1,13 +1,16 @@
 .. rst-class:: hide-header
 
 .. rst-class:: hide-header
+
+.. image:: _static/iprdlogo.gif
+   :scale: 15%
+   :alt: IPRD Group
+   :align: right
+
+
 *********************
 Welcome to RDT-Reader
 *********************
-.. image:: _static/iprdlogo.gif
-   :scale: 25%
-   :alt: IPRD Group
-   :align: right
 
 .. toctree::
    :maxdepth: 2
