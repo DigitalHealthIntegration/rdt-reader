@@ -6,7 +6,9 @@ Welcome to RDT-Reader
 ======================
 
 .. image:: _static/iprdlogo.gif
-    :align: center
+   :width: 200px
+   :alt: IPRD Group
+   :align: right
 
 .. toctree::
    :maxdepth: 2
@@ -14,19 +16,17 @@ Welcome to RDT-Reader
 Quickstart
 ==========
 
+1. Enable git LFS so that the models can be downloaded. Refer https://help.github.com/en/articles/installing-git-large-file-storage
 
-External dependency
--------------------
+2. Clone this repo into <rdt-reader>
 
-1. Enable git LFS so that the models can be downloaded.
-
-2. After cloning the repo, run the command::
+3. Now Clone the following repo into <rdt-reader>/tensorflow-yolov3
         
         git clone https://github.com/kashyapj2793/tensorflow-yolov3.git
 
-3. The models directory must be in tensorflow-yolov3
+4. Check there should be a models sub folder in tensorflow-yolov3
 
-4. For data annotation you can use any tool that you like. We used VOTT https://github.com/Microsoft/VoTT/releases version 1.7.2
+5. For data annotation you can use any tool that you like. We used VOTT https://github.com/Microsoft/VoTT/releases version 1.7.2
 
 Data Format
 ------------
@@ -35,7 +35,7 @@ Two data formats are used, the first one listed below is to train the object det
 
 1. You can find an example of it here https://raw.githubusercontent.com/YunYang1994/tensorflow-yolov3/master/data/dataset/voc_train.txt and in the **tensorflow-yolov3/data/dataset/rdt_train.txt**
 
-2. You can find an example of it **dataset/labels/** . Each file consists of annotations for an image with the same base file name.
+2. You can find an example of it in **dataset/labels/** folder . Each file consists of annotations for an image with the same base file name.
 
 Set-up enviroment
 -----------------
