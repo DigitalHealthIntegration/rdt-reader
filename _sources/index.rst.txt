@@ -58,7 +58,7 @@ Set-up python enviroment
 -----------------
     .. code-block:: 
 
-        conda create --name <envname> --file requirements.txt
+        conda create --name <envname> --file requirements.txt python=3.6
         conda activate <envname>
 
 Using service with pretrained models
