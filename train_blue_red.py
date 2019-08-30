@@ -3,7 +3,7 @@
 
 Example:
 
-        $ python tarin_blue_red.py
+        $ python train_blue_red.py
 
 """
 import os
@@ -156,8 +156,8 @@ def returnAugmentationObj(percentageOfChance=0.7):
     seq = iaa.Sequential(
         [
             sometimes(iaa.Affine(
-                translate_percent={"x": (-0.05, 0.05), "y": (-0.03, 0.03)}, # translate by -20 to +20 percent (per axis)
-                rotate=(-5, 5) # rotate by -45 to +45 degrees
+                translate_percent={"x": (-0.05, 0.05), "y": (-0.03, 0.03)}, # translate by -x to +x percent (per axis)
+                rotate=(-5, 5) # rotate by -x to +x degrees
             )),
             # execute 0 to 2 of the following (less important) augmenters per image
             # don't execute all of them, as that would often be way too strong
@@ -170,7 +170,7 @@ def returnAugmentationObj(percentageOfChance=0.7):
                     ]),
                     iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)), # sharpen images
                     iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)), # emboss images
-                    iaa.Add((-8, 8), per_channel=0.5), # change brightness of images (by -10 to 10 of original value)
+                    iaa.Add((-8, 8), per_channel=0.5), # change brightness of images (by -x to x of original value)
                     iaa.AddToHueAndSaturation((-12, 12)), # change hue and saturation
                     iaa.GammaContrast((0.2,1.8)),
                     sometimes(iaa.PerspectiveTransform(scale=(0.01, 0.016))) # Add perscpective transform
@@ -182,7 +182,7 @@ def returnAugmentationObj(percentageOfChance=0.7):
 
 
 def lossReg(y_true,y_pred):
-    """Custom loss function to penalize A type versus B type written for keras.
+    """Custom loss function to penalize A type virus versus B type written for keras.
     """
     mask=K.ones_like(y_true)
     l=K.square(y_pred-y_true)
