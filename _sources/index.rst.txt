@@ -2,11 +2,6 @@
 
 .. rst-class:: hide-header
 
-.. image:: _static/iprdlogo.gif
-   :scale: 15%
-   :alt: IPRD Group
-   :align: right
-
 
 *********************
 Welcome to RDT-Reader
@@ -33,7 +28,9 @@ Quickstart
 
     4. For data annotation you can use any tool that you like. We used VOTT_ version 1.7.2
 
-    5. Install anaconda to recreate the python enviroment.
+    5. Install Anaconda 3 to recreate the python enviroment _link .
+
+    .. _link : https://www.anaconda.com/distribution/
 
     .. _VOTT: https://github.com/Microsoft/VoTT/releases
 
@@ -79,7 +76,9 @@ Using service with pretrained models
 Train Object recognition model
 ------------------------------
 
-    For detailed instructions please follow the README_ . Edit the config_ file first and set the absolute paths correctly.
+    For detailed instructions please follow the README_ . Edit the config_ file first and set the absolute paths correctly. There is a sample dataset_ in the repo with a few images to train both models. Make sure to change the absolute paths in the annotations.
+
+    .. _dataset: https://github.com/DigitalHealthIntegration/rdt-reader/tree/master/dataset
 
     .. _README: https://github.com/kashyapj2793/tensorflow-yolov3/blob/master/README.md
 
@@ -88,7 +87,7 @@ Train Object recognition model
 
     .. code-block:: 
 
-        cd tensorflow
+        cd tensorflow-yolov3
         python train.py
 
     You will find models being saved in the checkpoint_ directory. 
@@ -108,7 +107,6 @@ Train red-line detection model
 
     .. code-block:: 
 
-        cd ..
         python train_blue_red.py
 
     You can change the name and location of the saved model from within the script. 
