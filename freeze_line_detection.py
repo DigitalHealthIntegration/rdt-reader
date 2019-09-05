@@ -24,9 +24,8 @@ export_path = './tensorflow-yolov3/models/Flu_audere_line/1'
 if __name__ == "__main__":
 
     keras.losses.lossReg = train_blue_red.lossReg
-
     tf.keras.backend.set_learning_phase(0) # Ignore dropout at inference
-    model = tf.keras.models.load_model(modelToLoad,custom_objects={'loss_reg':keras.losses.lossReg })
+    model = tf.keras.models.load_model(modelToLoad,custom_objects={'lossReg':keras.losses.lossReg })
 
     inputs = tf.saved_model.utils.build_tensor_info(model.inputs[0])
 
