@@ -89,7 +89,9 @@ class YOLO:
                                     np.reshape(pred_lbbox, (-1, 5 + self.num_classes))], axis=0)
         bboxes = utils.postprocess_boxes(pred_bbox, (org_h, org_w), self.input_size, self.score_threshold)
         bboxes = utils.nms(bboxes, self.iou_threshold)
-        
+        _image = utils.draw_bbox(org_image, bboxes, show_label=True)
+        cv.imwrite("yolopred.jpg", _image)
+
 
         return bboxes 
 
