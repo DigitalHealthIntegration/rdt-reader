@@ -3,7 +3,7 @@
 
 Example:
 
-        $ python train_blue_red.py
+        $ python train_blue_red.py --transfer_learning True
 
 """
 import os
@@ -25,11 +25,25 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import random
 from keras.constraints import max_norm
 from keras.optimizers import Adam
-
-
+from keras.applications.inception_v3 import InceptionV3,preprocess_input
+import argparse
+parser = argparse.ArgumentParser(description='Train a CNN to detect presence of red and blue line on an RDT and also give the normalized y-axis location.')
+parser.add_argument('--transfer', default="false",
+                    help='Set boolean to true to train a transfer learning model',type=str)
 font = cv2.FONT_HERSHEY_SIMPLEX
+args=parser.parse_args()
 
-def loadData(noBatchSamples,batchIdx,duplicativeFactor=10,rareData="redonly.txt",rootPathCentreLabel="./dataset/labels",rootPathCroppedImages = "./dataset/images_lineDetector"):
+if args.transfer =="true" or args.transfer =="True":
+    useTransferLearning = True
+else:
+    useTransferLearning = False
+
+if useTransferLearning:
+    print("\n\nCurrently using transfer learning...\n\n")
+else:
+    print("\n\nCurrently using custom model...\n\n")
+
+def loadData(noBatchSamples,batchIdx,duplicativeFactor=30,rareData="redonly.txt",rootPathCentreLabel="./obj/labels",rootPathCroppedImages = "./obj/images"):
     """This function loads data from the directory of labels, it works with the yolo data format.
         
         Args:
@@ -51,6 +65,7 @@ def loadData(noBatchSamples,batchIdx,duplicativeFactor=10,rareData="redonly.txt"
     y_train=[]
     X_train=[]
     name=[]
+    test_data=[]
     f = open(rareData)
     lines = f.readlines()
     lines = [x.strip() for x in lines]
@@ -83,13 +98,12 @@ def loadData(noBatchSamples,batchIdx,duplicativeFactor=10,rareData="redonly.txt"
                 y_train.append(y)
                 X_train.append(img)
                 name.append(element)
-
-    combined = list(zip(X_train, y_train,name))
-    random.Random(23).shuffle(combined)
-
-    X_train[:], y_train[:],name[:] = zip(*combined)
+        else:
+            test_data.append(element)
+    with open("test_data.txt","w") as fout:
+        fout.write("\n".join(test_data))
     X_train=np.array(X_train)  
-
+    print("Training + validation:",len(X_train))
     return X_train,y_train,name #np.zeros((128, 32, 32, 3), dtype=np.uint8) + (batch_idx % 255)
 
 
@@ -136,7 +150,7 @@ def key2Target(keypoints,name):
     return np.array(y_test_regression),np.array(y_test_categorical)
 
 
-def returnAugmentationObj(percentageOfChance=0.7):
+def returnAugmentationObj(percentageOfChance=0.9):
     """This function returns an augementation pipeline which can be used to augment training data.
         
         Args:
@@ -156,7 +170,7 @@ def returnAugmentationObj(percentageOfChance=0.7):
     seq = iaa.Sequential(
         [
             sometimes(iaa.Affine(
-                translate_percent={"x": (-0.05, 0.05), "y": (-0.03, 0.03)}, # translate by -x to +x percent (per axis)
+                translate_percent={"x": (-0.06, 0.06), "y": (-0.04, 0.04)}, # translate by -x to +x percent (per axis)
                 rotate=(-5, 5) # rotate by -x to +x degrees
             )),
             # execute 0 to 2 of the following (less important) augmenters per image
@@ -164,14 +178,14 @@ def returnAugmentationObj(percentageOfChance=0.7):
             iaa.SomeOf((0, 2),
                 [
                     iaa.OneOf([
-                        iaa.GaussianBlur((0, 3.0)), # blur images with a sigma between 0 and 3.0
-                        iaa.AverageBlur(k=(2, 7)), # blur image using local means with kernel sizes between 2 and 7
-                        iaa.MedianBlur(k=(3, 11)), # blur image using local medians with kernel sizes between 2 and 7
+                        iaa.GaussianBlur((0, 4.0)), # blur images with a sigma between 0 and 3.0
+                        iaa.AverageBlur(k=(2, 8)), # blur image using local means with kernel sizes between 2 and 7
+                        iaa.MedianBlur(k=(3, 13)), # blur image using local medians with kernel sizes between 2 and 7
                     ]),
                     iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)), # sharpen images
                     iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)), # emboss images
-                    iaa.Add((-8, 8), per_channel=0.5), # change brightness of images (by -x to x of original value)
-                    iaa.AddToHueAndSaturation((-12, 12)), # change hue and saturation
+                    iaa.Add((-9, 9), per_channel=0.5), # change brightness of images (by -x to x of original value)
+                    iaa.AddToHueAndSaturation((-15, 15)), # change hue and saturation
                     iaa.GammaContrast((0.2,1.8)),
                     sometimes(iaa.PerspectiveTransform(scale=(0.01, 0.016))) # Add perscpective transform
                 ],
@@ -186,7 +200,8 @@ def lossReg(y_true,y_pred):
     """
     mask=K.ones_like(y_true)
     l=K.square(y_pred-y_true)
-    mask =tf.scalar_mul(100,tf.to_float (tf.math.logical_or(tf.math.logical_and(tf.math.greater(y_true[:,0],y_true[:,1]),tf.math.less(y_pred[:,0],y_pred[:,1])),tf.math.logical_and(tf.math.less(y_true[:,0],y_true[:,1]),tf.math.greater(y_pred[:,0],y_pred[:,1])))))
+    penalty = tf.constant([10.0])
+    mask =tf.add(penalty,tf.to_float (tf.math.logical_or(tf.math.logical_and(tf.math.greater(y_true[:,0],y_true[:,1]),tf.math.less(y_pred[:,0],y_pred[:,1])),tf.math.logical_and(tf.math.less(y_true[:,0],y_true[:,1]),tf.math.greater(y_pred[:,0],y_pred[:,1])))))
     mask = tf.stack([K.ones_like(y_true[:,0]),mask],axis=1)
     return K.mean(tf.math.multiply(l,mask),axis=-1)
        
@@ -203,45 +218,40 @@ def returnModel(loadWeights,weightsFile="./red_blue.hdf5"):
     """
     x = Input(shape=(500, 100,3))
 
-    conv1=Conv2D(8, (3,3), padding='valid',kernel_constraint=max_norm(2))(x)
+    conv1=Conv2D(8, (3,3), padding='valid')(x)
     batchnorm1 = BatchNormalization()(conv1)
     act1 = ReLU()(batchnorm1)
-    drop1 = Dropout(0.1)(act1)
+    
 
-    conv2=Conv2D(8, (3,3), padding='valid',kernel_constraint=max_norm(2))(drop1)
+    conv2=Conv2D(8, (3,3), padding='valid')(act1)
     batchnorm2 = BatchNormalization()(conv2)
     act2 = ReLU()(batchnorm2)
-    drop2 = Dropout(0.1)(act2)
-    maxpool2 = MaxPooling2D((2,2))(drop2)
+    maxpool2 = MaxPooling2D((2,2))(act2)
 
-    conv3=Conv2D(16, (3,3), padding='valid',kernel_constraint=max_norm(2))(maxpool2)
+    conv3=Conv2D(16, (3,3), padding='valid')(maxpool2)
     batchnorm3 = BatchNormalization()(conv3)
     act3 = ReLU()(batchnorm3)
-    drop3 = Dropout(0.1)(act3)
 
-    conv4=Conv2D(16, (3,3), padding='valid',kernel_constraint=max_norm(2))(drop3)
+    conv4=Conv2D(16, (3,3), padding='valid')(act3)
     batchnorm4 = BatchNormalization()(conv4)
     act4 = ReLU()(batchnorm4)
-    drop4 = Dropout(0.1)(act4)
-    maxpool3 = MaxPooling2D((2,2))(drop4)
+    maxpool3 = MaxPooling2D((2,2))(act4)
 
     flat1 = Flatten()(maxpool3)
-    D1 = Dense(256,kernel_constraint=max_norm(2))(flat1)
+    D1 = Dense(256)(flat1)
     batchnorm5 = BatchNormalization()(D1)
     act5 = ReLU()(batchnorm5)
-    drop5 = Dropout(0.5)(act5)
 
-    D2 = Dense(128,kernel_constraint=max_norm(2))(drop5)
+    D2 = Dense(128,kernel_constraint=max_norm(2))(act5)
     batchnorm6 = BatchNormalization()(D2)
     act6 = ReLU()(batchnorm6)
-    drop6 = Dropout(0.5)(act6)
 
 
-    D_soft = Dense(2,kernel_constraint=max_norm(3))(drop6)
+    D_soft = Dense(2)(act6)
     batchnorm7 = BatchNormalization()(D_soft)
     out1 = Activation('sigmoid',name="cat_kash")(batchnorm7)
 
-    D_sigmoid = Dense(2,kernel_constraint=max_norm(3))(drop6)
+    D_sigmoid = Dense(2)(act6)
     batchnorm8 = BatchNormalization()(D_sigmoid)
     out2 = Activation('sigmoid',name="reg_kash")(batchnorm8)
 
@@ -253,21 +263,63 @@ def returnModel(loadWeights,weightsFile="./red_blue.hdf5"):
     return model
 
 
+def modelTransferLearning(loadWeights,weightsFile="./red_blue_transf.hdf5"):
+    """This function returns a keras model with a pretrained Inception v3 being fine tuned and used as the feature extractor.
+        
+        Args:
+            loadWeights (bool) : Load weights specified in the weightsFile param
+            weightsFile (str) : Path to weights
+        
+        Returns:
+            :class:`keras.model.Model` : Neural Network 
+
+    """
+    base_model = InceptionV3(weights='imagenet', include_top=False)
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    D1 = Dense(256)(x)
+    batchnorm5 = BatchNormalization()(D1)
+    act5 = ReLU()(batchnorm5)
+    D2 = Dense(128)(act5)
+    batchnorm6 = BatchNormalization()(D2)
+    act6 = ReLU()(batchnorm6) 
+    D_soft = Dense(2)(act6)
+    batchnorm7 = BatchNormalization()(D_soft)
+    out1 = Activation('sigmoid',name="cat_kash")(batchnorm7)
+
+    D_sigmoid = Dense(2)(act6)
+    batchnorm8 = BatchNormalization()(D_sigmoid)
+    out2 = Activation('sigmoid',name="reg_kash")(batchnorm8)
+
+    model = Model(inputs=base_model.input, outputs=[out1,out2])
+    for layer in model.layers[:249]:
+        layer.trainable = False
+    for layer in model.layers[249:]:
+        layer.trainable = True
+    if (loadWeights):
+        model.load_weights(weightsFile,by_name=True)
+    return model
+
+
+
+
 if __name__ == "__main__":
     config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} ) # Correctly put number of GPU and CPU
     sess = tf.Session(config=config) 
     
     SeqAug = returnAugmentationObj()
-    
-    model = returnModel(True)
-
+    if useTransferLearning:
+        model = modelTransferLearning(True,"red_blue_transf.hdf5")
+    else:
+        model = returnModel(True,"red_blue_cust.hdf5")
+        
     filepath="weights-latest_model_YCrCb_test.hdf5" # Name and path of weights to save
     
     checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min') # Checkpoint call back to save best model on validation set
 
     lrd=ReduceLROnPlateau(monitor='val_loss', factor=0.9, patience=10, verbose=1, mode='auto', min_delta=0.00001, cooldown=5, min_lr=0.00000000000000000001) # Callback to control learning rate on plateau condition 
     
-    X,Y,name = loadData(3,0) # Load all data in one batch, 3 since sample data has only 3
+    X,Y,name = loadData(540,0) # Load all data in one batch, 3 since sample data has only 3
 
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.33333, random_state=42) # Split data into training and testing 
 
@@ -278,7 +330,7 @@ if __name__ == "__main__":
     model.compile(optimizer=optimizer, loss={"cat_kash":"binary_crossentropy","reg_kash":lossReg}, metrics={"cat_kash":'accuracy',"reg_kash":"mse"}) # Compile model for training
 
 
-    for iterationOut in range(1): # increase for more iterations
+    for iterationOut in range(5): # increase for more iterations
         for iterationIn in range(5): # increase for more number of iterations
             xx_tr=[]
             yy_reg_tr=[]
@@ -286,13 +338,16 @@ if __name__ == "__main__":
             xx_te=[]
             yy_reg_te=[]
             yy_cat_te=[]
-            for i in range(4): # increase for more augmented data
+            for i in range(5): # increase for more augmented data
                 images_aug_tr, keypoints_aug_tr = SeqAug(images=X_train,keypoints=y_train)  
                 images_aug_te, keypoints_aug_te = SeqAug(images=X_test,keypoints=y_test)
                 tar_train_reg,tar_train_cat=key2Target(keypoints_aug_tr,name)
                 tar_test_reg,tar_test_cat=key2Target(keypoints_aug_te,name)
                 for ind,im in enumerate(images_aug_tr):
                     im=im[1000:1500,:,:] # Crop out only test area
+                if(useTransferLearning):
+                    xx_tr.append(preprocess_input(im))
+                else:
                     im = im/255.0
                     im = np.array(im,dtype=np.float32)
                     yuv_im = cv2.cvtColor(im, cv2.COLOR_RGB2YCrCb)
@@ -313,10 +368,13 @@ if __name__ == "__main__":
                     yy_cat_tr.append(ii)
                 for ind,im in enumerate(images_aug_te):
                     im=im[1000:1500,:,:] # Crop out only test area
-                    im = im/255.0
-                    im = np.array(im,dtype=np.float32)
-                    yuv_im = cv2.cvtColor(im, cv2.COLOR_RGB2YCrCb)
-                    xx_te.append(yuv_im)
+                    if(useTransferLearning):
+                        xx_te.append(preprocess_input(im))
+                    else:
+                        im = im/255.0
+                        im = np.array(im,dtype=np.float32)
+                        yuv_im = cv2.cvtColor(im, cv2.COLOR_RGB2YCrCb)
+                        xx_te.append(yuv_im)
                 for ii in tar_test_reg:
                     yy_reg_te.append(ii)
                 for ind,ii in enumerate(tar_test_cat):
@@ -337,5 +395,5 @@ if __name__ == "__main__":
             xxx_te=np.array(xx_te)
             yyy_reg_te=np.array(yy_reg_te)
             yyy_cat_te=np.array(yy_cat_te)
-            model.fit(xxx, [yyy_cat,yyy_reg], validation_data=(xxx_te, [yyy_cat_te,yyy_reg_te]), epochs=20,batch_size=1,callbacks=callbacks_list) # Change batch size as per available resources
+            model.fit(xxx, [yyy_cat,yyy_reg], validation_data=(xxx_te, [yyy_cat_te,yyy_reg_te]), epochs=35,batch_size=4,callbacks=callbacks_list) # Change batch size as per available resources
             
