@@ -351,17 +351,17 @@ def generateRDTcrop(boxes,im0,targets):
         
         # Translate image and compute angle to rotate and scale factor
         angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis(x1y1,x2y2,im0,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]])
-                
+        cv2.imwrite("translated.jpg",im0)
         # Resize image
 
         resizedImage = cv2.resize(im0, (int(im0.shape[1]*scale_percent),int(im0.shape[0]*scale_percent)))
-        
+        cv2.imwrite("resized.jpg",resizedImage)
         [cx_A,cy_A,cx_B,cy_B,cx_C,cy_C] = [cx_A*scale_percent,cy_A*scale_percent,cx_B*scale_percent,cy_B*scale_percent,cx_C*scale_percent,cy_C*scale_percent]
 
         # Rotate image
 
         rotatedImage,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=rotate_bound(resizedImage,angleToRotate,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]])
-
+        cv2.imwrite("rotated.jpg",rotatedImage)
         # Pad image if the lowest dimension is less than 2000
         if rotatedImage.shape[0]<=2000:
             pad = (2000-rotatedImage.shape[0])/2
@@ -381,7 +381,8 @@ def generateRDTcrop(boxes,im0,targets):
             
         # Generate RDT cropped image
         processed,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=returnROI(rotatedImage,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]])
-        
+        cv2.imwrite("rdt_crop.jpg",processed)
+
         return [{"message":"success"},processed]
     else:
         return [{"message":"Failure"},False]
@@ -502,7 +503,7 @@ def align():
             except IndexError:
                 if prob[0]>0.5:
                     cv2.circle(outImage,(50,points[0]), 3, (0,0,255), 5)
-            cv2.imwrite("out.jpg",outImage)
+            cv2.imwrite("out.jpg",outImage[1000:1500,:,:])
         else:
             message="No rdt found"
             rc = -2
