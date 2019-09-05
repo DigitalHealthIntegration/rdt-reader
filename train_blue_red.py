@@ -345,13 +345,13 @@ if __name__ == "__main__":
                 tar_test_reg,tar_test_cat=key2Target(keypoints_aug_te,name)
                 for ind,im in enumerate(images_aug_tr):
                     im=im[1000:1500,:,:] # Crop out only test area
-                if(useTransferLearning):
-                    xx_tr.append(preprocess_input(im))
-                else:
-                    im = im/255.0
-                    im = np.array(im,dtype=np.float32)
-                    yuv_im = cv2.cvtColor(im, cv2.COLOR_RGB2YCrCb)
-                    xx_tr.append(yuv_im)
+                    if(useTransferLearning):
+                        xx_tr.append(preprocess_input(im))
+                    else:
+                        im = im/255.0
+                        im = np.array(im,dtype=np.float32)
+                        yuv_im = cv2.cvtColor(im, cv2.COLOR_RGB2YCrCb)
+                        xx_tr.append(yuv_im)
                 for ii in tar_train_reg:
                     yy_reg_tr.append(ii)
                 for ind,ii in enumerate(tar_train_cat):
