@@ -26,9 +26,11 @@ Quickstart
 
     3. Move the tensorflow-yolov3-models/models sub folder in tensorflow-yolov3/
 
-    4. For data annotation you can use any tool that you like. We used VOTT_ version 1.7.2
+    4. Extract the folder obj.tar for the dataset used to train the line detection model
 
-    5. Install Anaconda 3 to recreate the python enviroment _link .
+    5. For data annotation you can use any tool that you like. We used VOTT_ version 1.7.2
+
+    6. Install Anaconda 3 to recreate the python enviroment _link .
 
     .. _link : https://www.anaconda.com/distribution/
 
