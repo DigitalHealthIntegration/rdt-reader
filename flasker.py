@@ -468,41 +468,23 @@ def align():
         if resp["message"]=="success": 
             cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
             st=time.time()
-            prob,points,outImage = serv.callLineDetector(roi)
+            outImage,virus_type,blue_detection = serv.callLineDetector(roi)
             et=time.time()
             t2=t1+et-st
-            prob = prob[0]
-            points = points[0]
-            print(prob,points)
             try:
-                if prob[0]>0.8:
+                if blue_detection>0 and virus_type==0:
                     rc=0
-                    cv2.circle(outImage,(50,points[0]), 3, (255,0,0), 5)
-                else:
+                elif blue_detection ==0:
                     message="No control line found"
                     rc=-1
-                if prob[1]>0.6:    
-                    if prob[1]<0.99:
-                        message="Flu"
-                        tmp_point=points[1] 
-                        cv2.circle(outImage,(50,int(tmp_point)), 3, (0,0,255), 5)
-                        if(tmp_point<points[0]):
-                            rc = 1
-                            message="Atype"
-                        else:
-                            message="Btype"
-                            rc = 2
-                    else:
-                        if(points[1]<points[0]):
-                            rc = 1
-                            message="Atype"
-                        else:
-                            message="Btype"
-                            rc = 2
-                        cv2.circle(outImage,(50,int(points[1])), 3, (0,0,255), 5)
+                elif virus_type==1:
+                    rc = 1
+                    message="Atype"
+                elif virus_type==2:
+                    message="Btype"
+                    rc = 2
             except IndexError:
-                if prob[0]>0.5:
-                    cv2.circle(outImage,(50,points[0]), 3, (0,0,255), 5)
+                pass
             cv2.imwrite("out.jpg",outImage[1000:1500,:,:])
         else:
             message="No rdt found"

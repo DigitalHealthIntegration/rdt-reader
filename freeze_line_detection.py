@@ -13,7 +13,7 @@ import keras.backend as K
 import tensorflow as tf
 import keras
 import random
-import keras.losses
+import keras.metrics
 import train_blue_red
 
 
@@ -22,15 +22,13 @@ export_path = './tensorflow-yolov3/models/Flu_audere_line/1'
 
 
 if __name__ == "__main__":
-
-    keras.losses.lossReg = train_blue_red.lossReg
+    keras.metrics.recall_m = train_blue_red.recall_m
+    keras.metrics.precision_m = train_blue_red.precision_m
+    keras.metrics.f1_m = train_blue_red.f1_m
     tf.keras.backend.set_learning_phase(0) # Ignore dropout at inference
-    model = tf.keras.models.load_model(modelToLoad,custom_objects={'lossReg':keras.losses.lossReg })
+    model = tf.keras.models.load_model(modelToLoad,custom_objects={"f1_m":keras.metrics.f1_m,"precision_m":keras.metrics.precision_m,"recall_m":keras.metrics.recall_m})
 
     inputs = tf.saved_model.utils.build_tensor_info(model.inputs[0])
-
-    pred_softmax = tf.saved_model.utils.build_tensor_info(model.outputs[0])
-    pred_multiply = tf.saved_model.utils.build_tensor_info(model.outputs[1])
 
 
     # Fetch the Keras session and save the model
@@ -42,4 +40,4 @@ if __name__ == "__main__":
             sess,
             export_path,
             inputs={'input_image': model.inputs[0]},
-            outputs={"softmax":model.outputs[0],"multiply":model.outputs[1]})
+            outputs={"predictions":model.outputs[0]})
