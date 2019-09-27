@@ -63,10 +63,15 @@ Data Format
     .. _folder: https://github.com/DigitalHealthIntegration/rdt-reader/tree/master/dataset/images_yolo
 
 Set-up python enviroment
------------------
+------------------------
     .. code-block:: 
 
-        conda create --name <envname> --file spec-file.txt python=3.6
+        conda create --name <envname> --file spec-file.txt python=3.6 (for windows 64-bit)
+
+                                        OR
+
+        conda create --name <envname> --file spec-file_linux.txt python=3.6 (for linux 64-bit)
+        
         conda activate <envname>
 
 Using service with pretrained models
