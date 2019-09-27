@@ -89,7 +89,7 @@ def euclidianDistance(p1,p2):
     return np.linalg.norm(p2-p1)
 
 
-def angle_with_yaxis(p1,p2,img,centers):
+def angle_with_yaxis(p1,p2,img,centers,featsPres):
     """Compute angle by which image should be rotated,scale factor and returns a translated image
         
         Args:
@@ -109,19 +109,7 @@ def angle_with_yaxis(p1,p2,img,centers):
 
     """
     cent=[p1[0]+(p2[0]-p1[0])/2,p1[1]+(p2[1]-p1[1])/2]
-    centimg=[img.shape[1]/2,img.shape[0]/2]
-    transxRight=int(centimg[0]-cent[0])
-    transyDown=int(centimg[1]-cent[1])
-    tranformedCenters=[0,0,0,0,0,0]
-    for ind,cents in enumerate(centers):
-#         print(ind)
-        cents[0] = cents[0]+transxRight
-        cents[1] = cents[1]+transyDown
-        tranformedCenters[2*ind]=cents[0]
-        tranformedCenters[2*ind+1]=cents[1]
-    num_rows, num_cols = img.shape[:2]
-    translation_matrix = np.float32([ [1,0,transxRight], [0,1,transyDown] ])
-    img_translation = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
+
     quad=1
     angleToRotateCW=0
     if(p2[0]==p1[0]):
@@ -158,7 +146,38 @@ def angle_with_yaxis(p1,p2,img,centers):
     elif ang==0 and (p1[1]-p2[1])>0:
         angleToRotateCW=180
 
-    fy=1220.0/ydist # scale computed from reference image
+    angleradian = (90-angleToRotateCW)*math.pi/180
+
+
+
+    if featsPres==2:
+        hyp =750
+        cent[1]=cent[1]-hyp*math.sin(angleradian)
+        cent[0]=cent[0]-hyp*math.cos(angleradian)
+    elif featsPres==1:
+        hyp = 155.0
+        cent[1]=cent[1]+hyp*math.sin(angleradian)
+        cent[0]=cent[0]+hyp*math.cos(angleradian)
+
+    centimg=[img.shape[1]/2,img.shape[0]/2]
+    transxRight=int(centimg[0]-cent[0])
+    transyDown=int(centimg[1]-cent[1])
+    tranformedCenters=[0,0,0,0,0,0]
+    for ind,cents in enumerate(centers):
+#         print(ind)
+        cents[0] = cents[0]+transxRight
+        cents[1] = cents[1]+transyDown
+        tranformedCenters[2*ind]=cents[0]
+        tranformedCenters[2*ind+1]=cents[1]
+    num_rows, num_cols = img.shape[:2]
+    translation_matrix = np.float32([ [1,0,transxRight], [0,1,transyDown] ])
+    img_translation = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
+    if featsPres==0:
+        fy=1220.0/ydist # scale computed from reference image
+    elif featsPres==1:
+        fy=900.0/ydist
+    elif featsPres==2:
+        fy=311.0/ydist
     return angleToRotateCW,img_translation,fy,quad,tranformedCenters
 #     print(ang,quad)
 
@@ -301,7 +320,8 @@ def postProcessDetections(labels):
         # print(e)
         pass
     try:
-        result["1"]=[(int(reducedL["1"][0]),int(reducedL["1"][1])),(int(reducedL["1"][2]),int(reducedL["1"][3]))]
+        centreTest = returnCentre(reducedL["1"])
+        result["1"] = centreTest #[(int(reducedL["1"][0]),int(reducedL["1"][1])),(int(reducedL["1"][2]),int(reducedL["1"][3]))]
     except Exception as e:
         # print(e)
         pass
@@ -323,10 +343,20 @@ def generateRDTcrop(boxes,im0,targets):
     """  
     
     res=postProcessDetections(boxes)
-    if (("2" in res.keys()) and ("0" in res.keys())) or (("2" in res.keys()) and ("0" in res.keys()) and "1" in res.keys()):
-        x1y1 = np.array([int(res["0"][0]),int(res["0"][1])])
-        x2y2 = np.array([int(res["2"][0]),int(res["2"][1])])
-
+    featsPres = 0
+    if (("2" in res.keys()) and ("0" in res.keys())) or (("2" in res.keys()) and ("1" in res.keys())) or (("1" in res.keys()) and ("0" in res.keys())):
+        if (("2" in res.keys()) and ("0" in res.keys())):
+            featsPres = 0
+            x1y1 = np.array([int(res["0"][0]),int(res["0"][1])])
+            x2y2 = np.array([int(res["2"][0]),int(res["2"][1])])
+        elif (("1" in res.keys()) and ("0" in res.keys())):
+            featsPres = 1
+            x1y1 = np.array([int(res["0"][0]),int(res["0"][1])])
+            x2y2 = np.array([int(res["1"][0]),int(res["1"][1])])
+        elif (("2" in res.keys()) and ("1" in res.keys())):
+            featsPres = 2
+            x1y1 = np.array([int(res["1"][0]),int(res["1"][1])])
+            x2y2 = np.array([int(res["2"][0]),int(res["2"][1])])
         try:
             cx,cy,w,h=[float(x) for x in targets["2"].split()]
             cx_C = im0.shape[1]*cx
@@ -350,7 +380,7 @@ def generateRDTcrop(boxes,im0,targets):
             cy_B=0
         
         # Translate image and compute angle to rotate and scale factor
-        angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis(x1y1,x2y2,im0,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]])
+        angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis(x1y1,x2y2,im0,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]],featsPres)
         cv2.imwrite("translated.jpg",im0)
         # Resize image
 
@@ -407,6 +437,42 @@ class FluServer:
     def ret_inf_lat(self):
         '''Returns the last TFS(EI) inf time delta.'''
         return str(self.__yolo.grpc_delta+self.__lineDetector)
+
+
+
+def runPipeline(img,serverObj):
+    boxes = serverObj.callyolo(img)
+    im0 = np.copy(img)
+    im0 = utils.draw_bbox(im0, boxes, show_label=True)
+    resp,roi = generateRDTcrop(boxes,img,[])
+    rc = -4
+    if resp["message"]=="success": 
+        cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
+        outImage,virus_type,blue_detection = serverObj.callLineDetector(roi)
+        print(virus_type,blue_detection)
+        try:
+            if blue_detection>0 and virus_type==0:
+                rc=0
+            elif blue_detection ==0:
+                message="No control line found"
+                rc=-1
+            elif virus_type==1:
+                rc = 1
+                message="Atype"
+            elif virus_type==2:
+                message="Btype"
+                rc = 2
+            elif virus_type==3:
+                message="A+Btype"
+                rc = 3
+                
+        except IndexError:
+            pass
+        cv2.imwrite("out.jpg",outImage[1000:1500,:,:])
+    else:
+        message="No rdt found"
+        rc = -2
+    return rc
 
 
 
@@ -483,6 +549,9 @@ def align():
                 elif virus_type==2:
                     message="Btype"
                     rc = 2
+                elif virus_type==3:
+                    message="A+Btype"
+                    rc = 3
             except IndexError:
                 pass
             cv2.imwrite("out.jpg",outImage[1000:1500,:,:])
