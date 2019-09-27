@@ -158,6 +158,7 @@ class LineDetector:
             img = cv.resize(img,(100,2000))
 #             print(img.shape)
         img_inp = img[1000:1500,:,:]
+        img_no_sclae = np.copy(img_inp)
         img_inp = img_inp/255.0
         img_inp = np.array(img_inp,dtype=np.float32)
         img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2RGB)
@@ -165,7 +166,10 @@ class LineDetector:
         for i in range(96):
             st = i*5
             end = st+20
+            # print(end-st)
             shred_img = img_inp[st:end,:,:]
+            shred_img_write = img_no_sclae[st:end,:,:]
+            cv.imwrite("./shred/"+str(i)+".jpg",shred_img_write)
             shred_img = shred_img[np.newaxis]
             preds = self.predictorFn({"input_image": shred_img})
             preds=list(preds["predictions"][0])
@@ -175,7 +179,7 @@ class LineDetector:
                 y.append(1)
             elif preds.index(max(preds))==2:
                 y.append(2)
-        
+        print("sliding window predictions :",y)
         y_avg = self.slidingMaxpool(y,3,1)
         return y_avg
 
@@ -193,20 +197,31 @@ class LineDetector:
                 numpy.ndarray: Image cropped
         """
         blue_detected = 0
+        red_detected = 0
         virus_type = 0
+        cntFromBlue=0
         predictions = self.shredImage(image)
         windowSize = 500/len(predictions)
         for indexLoc,p in enumerate(predictions):
+            if blue_detected==1:
+                cntFromBlue+=1
             if p==2:
                 pass
-            elif p==1:
+            elif p==1 and indexLoc<80:
+                print("red",indexLoc)
                 if blue_detected==0:
                     virus_type = 1
+                    red_detected = 1
                 else:
-                    virus_type = 2
+                    # print("here")
+                    if red_detected==0:
+                        virus_type = 2
+                    elif cntFromBlue<30:
+                        virus_type = 3
                 image = cv.circle(image,(50,int(indexLoc*windowSize+1010)),5, (0,0,255), 5)
-            elif p==0:
-                blue_detected+=1
+            elif p==0 and indexLoc>20:
+                print("blue",indexLoc)
+                blue_detected=1
                 image = cv.circle(image,(50,int(indexLoc*windowSize+1010)),5, (255,0,0), 5)
         return [image,virus_type,blue_detected]
 
