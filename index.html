@@ -52,6 +52,12 @@
 <li><p>For data annotation you can use any tool that you like. We used <a class="reference external" href="https://github.com/Microsoft/VoTT/releases">VOTT</a> version 1.7.2</p></li>
 <li><p>Install Anaconda 3 to recreate the python enviroment _link .</p></li>
 </ol>
+<p>PS: If you come across an error such as Import Error: libGL.so not found then follow the steps below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">update</span>
+
+<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">libgl1</span><span class="o">-</span><span class="n">mesa</span><span class="o">-</span><span class="n">glx</span>
+</pre></div>
+</div>
 </div></blockquote>
 </div>
 <div class="section" id="data-format">
@@ -69,7 +75,12 @@
 <div class="section" id="set-up-python-enviroment">
 <h2>Set-up python enviroment<a class="headerlink" href="#set-up-python-enviroment" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="o">&lt;</span><span class="n">envname</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">file</span> <span class="n">spec</span><span class="o">-</span><span class="n">file</span><span class="o">.</span><span class="n">txt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.6</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="o">&lt;</span><span class="n">envname</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">file</span> <span class="n">spec</span><span class="o">-</span><span class="n">file</span><span class="o">.</span><span class="n">txt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.6</span> <span class="p">(</span><span class="k">for</span> <span class="n">windows</span> <span class="mi">64</span><span class="o">-</span><span class="n">bit</span><span class="p">)</span>
+
+                                <span class="n">OR</span>
+
+<span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="o">&lt;</span><span class="n">envname</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">file</span> <span class="n">spec</span><span class="o">-</span><span class="n">file_linux</span><span class="o">.</span><span class="n">txt</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.6</span> <span class="p">(</span><span class="k">for</span> <span class="n">linux</span> <span class="mi">64</span><span class="o">-</span><span class="n">bit</span><span class="p">)</span>
+
 <span class="n">conda</span> <span class="n">activate</span> <span class="o">&lt;</span><span class="n">envname</span><span class="o">&gt;</span>
 </pre></div>
 </div>
