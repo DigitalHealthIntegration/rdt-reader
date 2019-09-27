@@ -36,6 +36,15 @@ Quickstart
 
     .. _VOTT: https://github.com/Microsoft/VoTT/releases
 
+    PS: If you come across an error such as Import Error: libGL.so not found then follow the steps below:
+
+    .. code-block:: 
+        
+        sudo apt update
+
+        sudo apt install libgl1-mesa-glx
+
+
 Data Format
 ------------
 
