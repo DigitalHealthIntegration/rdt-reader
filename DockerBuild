@@ -1,0 +1,7 @@
+#!/bin/bash
+set -euo pipefail
+
+SELF_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+cd "$SELF_DIR"
+
+docker image build -f ./Dockerfile -t iprd-rdt-reader .
