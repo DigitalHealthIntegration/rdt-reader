@@ -19,12 +19,7 @@ void init() {
 		mRdtStatus->mTimestamp = 0;
 		mRdtStatus->mHeight = 0;
 		mRdtStatus->mWidth = 0;
-		mRdtStatus->mRdtInterface.mBrightness = -1;
-		mRdtStatus->mRdtInterface.mSharpness = -1;
-		mRdtStatus->mRdtInterface.mPerspectiveDistortion = - 1.0;
-		mRdtStatus->mRdtInterface.mScale = -1;
-		mRdtStatus->mRdtInterface.mTimestamp = 0;
-		setDefaultStatus(&mRdtStatus->mRdtInterface.mAcceptanceStatus);
+		SetDefaultRdtInterface(&mRdtStatus->mRdtInterface);
 		mRdtStatus->mMaxROIPoint = 10;
 		mRdtStatus->mRoiPoint = (CvPoint*) malloc(mRdtStatus->mMaxROIPoint * sizeof(CvPoint));
 	}else {
@@ -40,7 +35,9 @@ RdtInterface update(void* ptr) {
 	}
 	mFrameNumber++;
 	RdtInterface r;
-	setDefaultStatus(&r.mAcceptanceStatus);
+	SetDefaultRdtInterface(&r);
+	r.mAcceptanceStatus = mRdtStatus->mRdtInterface.mAcceptanceStatus;
+
 	r.mTimestamp = mFrameNumber;
 	return r;
 }
@@ -58,6 +55,15 @@ void setDefaultStatus(AcceptanceStatus *as){
 	as->displacementX = NOT_COMPUTED;
 	as->displacementY = NOT_COMPUTED;
 	as->bRDTFound = false;
+}
+
+void SetDefaultRdtInterface(RdtInterface* rdtInt) {
+	rdtInt->mBrightness = -1;
+	rdtInt->mSharpness = -1;
+	rdtInt->mPerspectiveDistortion = -1.0;
+	rdtInt->mScale = -1;
+	rdtInt->mTimestamp = 0;
+	setDefaultStatus(&rdtInt->mAcceptanceStatus);
 }
 
 void freeMemory() {

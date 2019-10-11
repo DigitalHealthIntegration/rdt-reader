@@ -40,6 +40,7 @@ bool coarseROIFinder();
 bool computeROIRectangle();
 bool computeBlurr();
 bool computeBrightness();
+void SetDefaultRdtInterface(RdtInterface *rdtInterface);
 
 #endif // !__RDTPROCESSING__H
 
