@@ -93,13 +93,18 @@ bool computeROIRectangle() {
 	return true;
 }
 
-bool computeBlurr() {
-
+bool computeBlurr(Mat input) {
+	Mat laplacian;
+	Laplacian(input,laplacian, CV_16S, 3, 1, 0, BORDER_REFLECT101);
+	cv::Scalar mean, stddev; //0:1st channel, 1:2nd channel and 2:3rd channel
+	meanStdDev(laplacian, mean, stddev, cv::Mat());
+	mRdtStatus->mSharpness = stddev.val[0] * stddev.val[0];
 	return true;
 }
 
-bool computeBrightness() {
-
+bool computeBrightness(Mat input) {
+	cv:Scalar tempVal = cv::mean(input);
+	mRdtStatus->mBrightness = tempVal.val[0];
 	return true;
 }
 
