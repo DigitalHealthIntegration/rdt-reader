@@ -23,6 +23,11 @@ from flask import Flask, Response
 from requests_toolbelt import MultipartEncoder
 import base64
 import time
+import os.path
+from os import path
+
+
+
 
 app = Flask(__name__)
 
@@ -383,7 +388,9 @@ def generateRDTcrop(boxes,im0,targets):
         angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis(x1y1,x2y2,im0,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]],featsPres)
         cv2.imwrite("translated.jpg",im0)
         # Resize image
-
+        print("scale",scale_percent)
+        if scale_percent > 5:
+             return [{"message":"Failure"},False]
         resizedImage = cv2.resize(im0, (int(im0.shape[1]*scale_percent),int(im0.shape[0]*scale_percent)))
         cv2.imwrite("resized.jpg",resizedImage)
         [cx_A,cy_A,cx_B,cy_B,cx_C,cy_C] = [cx_A*scale_percent,cy_A*scale_percent,cx_B*scale_percent,cy_B*scale_percent,cx_C*scale_percent,cy_C*scale_percent]
@@ -559,7 +566,7 @@ def align():
             message="No rdt found"
             rc = -2
         print("Time taken",t2)
-        if include_proof=="True":
+        if include_proof=="True" and path.exists('roi.jpg') :
             with open("roi.jpg", "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read())
         
