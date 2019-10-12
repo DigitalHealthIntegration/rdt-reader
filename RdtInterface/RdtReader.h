@@ -1,6 +1,5 @@
 #ifndef __RDTREADER__H
 #define __RDTREADER__H
-#include <stdint.h>
 
 #define NOT_COMPUTED -100
 #define TOO_HIGH  1
