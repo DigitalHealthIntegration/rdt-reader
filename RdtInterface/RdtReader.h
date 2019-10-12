@@ -6,13 +6,18 @@
 #define TOO_LOW -1
 #define GOOD 0
 
+class usRect{
+public:
+	usRect() :x(0), y(0), width(0), height(0) {}
+	unsigned short x, y;
+	unsigned short width, height;
+};
+
 class AcceptanceStatus {
 public:
 	AcceptanceStatus();
 	~AcceptanceStatus();
-	void setDefaultStatus(AcceptanceStatus *as);
 	bool getRdtFound();
-private:
 	short mSharpness;
 	short mScale;
 	short mBrightness;
@@ -21,6 +26,9 @@ private:
 	short mDisplacementY; //displacement of the RDT center.y from ideal
 	//	CvPoint mcenterOfRDT;
 	bool mRDTFound;// was an RDT found by the coarse finder
+	usRect mBoundingBox;
+private:
+	void setDefaultStatus();
 };
 
 

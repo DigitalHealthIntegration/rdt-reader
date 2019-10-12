@@ -24,20 +24,21 @@ public:
 	static RdtInterface* getInstance();
 	~RdtInterface();
 	void initialize();
-	void process(void* ptr);
+	AcceptanceStatus process(void* ptr);
 	void term();
 	AcceptanceStatus getAcceptanceStatus();
 private:
 	static RdtInterface *mRdtInterface;
 	void setDefaults();
 	RdtInterface();
-	bool checkForROI();
+	
 	void convertInputImageToGrey();
-	bool coarseROIFinder();
+	
 	bool computeROIRectangle();
-	bool computeBlurr();
-	bool computeBrightness();
 
+	bool computeBlur(AcceptanceStatus& status);
+	bool computeBrightness(AcceptanceStatus& status);
+	bool computeDistortion(AcceptanceStatus& status);
 
 	int64_t  mTimestamp;
 	AcceptanceStatus mAcceptanceStatus;
@@ -53,18 +54,6 @@ private:
 	int32_t mMaxROIPoint;
 	CvRect mROIRectangle;
 };
-
-
-void setDefaultStatus(AcceptanceStatus *as);
-void freeMemory();
-int64_t getTime();
-bool checkForROI();
-void convertInputImageToGrey();
-bool coarseROIFinder();
-bool computeROIRectangle();
-bool computeBlurr();
-bool computeBrightness();
-void SetDefaultRdtInterface(RdtInterface *rdtInterface);
 
 #endif // !__RDTPROCESSING__H
 
