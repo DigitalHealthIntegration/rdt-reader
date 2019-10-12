@@ -7,13 +7,14 @@
 
 int main(void) {
 	
+	RdtInterface*r = RdtInterface::getInstance();
 	init();
 	for (int i = 0; i < 10; i++) {
 		update(NULL);
-		printf("%llu\n", mRdtStatus->mTimestamp);
+		printf("%d\n", r->getAcceptanceStatus().getRdtFound()?1:0);
 		//sleep(100);
 	}
-	term();
+//	term();
 	getchar();
 	return 0;
 }
