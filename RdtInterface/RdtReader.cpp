@@ -160,7 +160,8 @@ void RdtInterface::setConfig(Config c) {
 }
 
 
-bool init(){
+bool RdtInterface::init(Config c){
+	RdtInterface::getInstance()->setConfig(c);
     RdtInterface::getInstance()->initialize();
     return true;
 }

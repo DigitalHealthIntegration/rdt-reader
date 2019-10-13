@@ -8,9 +8,10 @@
 int main(void) {
 	
 	RdtInterface*r = RdtInterface::getInstance();
-	init();
+	Config c;
+	r->init(c);
 	for (int i = 0; i < 10; i++) {
-		update(NULL);
+		r->process(NULL);
 		printf("%d\n", r->getAcceptanceStatus().getRdtFound()?1:0);
 		//sleep(100);
 	}

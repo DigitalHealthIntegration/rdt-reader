@@ -25,16 +25,15 @@ public:
 	AcceptanceStatus process(void* ptr);
 	void term();
 	AcceptanceStatus getAcceptanceStatus();
-	void setConfig(Config c);
+	bool init(Config c);
+
 private:
 	static RdtInterface *mRdtInterface;
 	void setDefaults();
 	RdtInterface();
-	
+	void setConfig(Config c);
 	void convertInputImageToGrey();
-	
 	bool computeROIRectangle();
-
 	bool computeBlur(AcceptanceStatus& status);
 	bool computeBrightness(AcceptanceStatus& status);
 	bool computeDistortion(AcceptanceStatus& status);
