@@ -32,9 +32,33 @@ private:
 	void setDefaultStatus();
 };
 
+class Config{
+public:
+	Config() {
+		mMaxScale = 1100;
+		mMinScale = 700;
+		mXMin = 100;
+		mXMax = 500;
+		mYMin = 50;
+		mYMax = 650;
+		mMinSharpness = 500.0f;
+		mMaxBrightness = 210.0f;
+		mMinBrightness = 160.0f;
+	}
 
-bool init(void);
-AcceptanceStatus update(void* ptr);
-void term(void);
+	short mMaxScale;
+	short mMinScale;
+	short mXMin;
+	short mXMax;
+	short mYMin;
+	short mYMax;
+	float mMinSharpness;
+	float mMaxBrightness;
+	float mMinBrightness;
+};
+
+//bool init(Config conf);
+//AcceptanceStatus update(void* ptr);
+//void term(void);
 
 #endif //__RDTREADER__H

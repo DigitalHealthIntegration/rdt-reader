@@ -1,20 +1,5 @@
 #include "RdtProcessing.h"
 
-#define SCALE_MAX 1100
-#define SCALE_MIN 700
-
-#define X_MIN 100
-#define X_MAX 500
-
-#define Y_MIN 50
-#define Y_MAX 650
-
-#define SHARP_MIN 500.0f
-#define BRIGHT_MAX 210.0f
-#define BRIGHT_MIN 160.0f
-
-
-
 AcceptanceStatus::AcceptanceStatus() {
     setDefaultStatus();
 }
@@ -66,11 +51,9 @@ void RdtInterface::initialize() {
     setDefaults();
 }
 
-
 void RdtInterface::convertInputImageToGrey() {
 	/// Convert the image to grayscale
 //	cv::imwrite("./img.png", mInputImage);
-
 	if(mInputImage.channels() == 3) {
 		cvtColor(mInputImage, mGreyInput, CV_BGR2GRAY);
 	}else if(mInputImage.channels() == 4) {
@@ -78,54 +61,37 @@ void RdtInterface::convertInputImageToGrey() {
 	}
 }
 
-bool RdtInterface::computeDistortion(AcceptanceStatus& status)
-{
-	if(mROIRectangle.width > SCALE_MAX)
-	{
+bool RdtInterface::computeDistortion(AcceptanceStatus& status){
+	if(mROIRectangle.width > mConf.mMaxScale){
 		status.mScale = TOO_HIGH;
 		return false;
-	}
-	else if (mROIRectangle.width < SCALE_MIN)
-	{
+	}else if (mROIRectangle.width < mConf.mMinScale){
 		status.mScale = TOO_LOW;
 		return false;
-	}
-	else status.mScale = GOOD;
+	}else status.mScale = GOOD;
 
-	if (mROIRectangle.x > X_MAX)
-	{
+	if (mROIRectangle.x > mConf.mXMax){
 		status.mDisplacementX = TOO_HIGH;
 		return false;
-	}
-	else if (mROIRectangle.x < X_MIN)
-	{
+	}else if (mROIRectangle.x < mConf.mXMin){
 		status.mDisplacementX = TOO_LOW;
 		return false;
-	}
-	else status.mDisplacementX = GOOD;
+	}else status.mDisplacementX = GOOD;
 
-	if (mROIRectangle.y > Y_MAX)
-	{
+	if (mROIRectangle.y > mConf.mYMax){
 		status.mDisplacementY = TOO_HIGH;
 		return false;
-	}
-	else if (mROIRectangle.y < Y_MIN)
-	{
+	}else if (mROIRectangle.y < mConf.mYMin){
 		status.mDisplacementY = TOO_LOW;
 		return false;
-	}
-	else status.mDisplacementY = GOOD;
-	
+	}else status.mDisplacementY = GOOD;
 	status.mPerspectiveDistortion= GOOD;
-	//Todo add logic for distortion 
-
 	return true;
 }
+
 bool RdtInterface::computeROIRectangle() {
 	//randomly return false
-
 	mROIRectangle = cvRect(150, 300, 900,45);
-	
 	return true;
 }
 
@@ -136,25 +102,20 @@ bool RdtInterface::computeBlur(AcceptanceStatus& status) {
 	cv::Scalar mean, stddev; //0:1st channel, 1:2nd channel and 2:3rd channel
 	meanStdDev(laplacian, mean, stddev, cv::Mat());
 	mSharpness = stddev.val[0] * stddev.val[0];
-
-	if (mSharpness < SHARP_MIN)
-	{
+	if (mSharpness < mConf.mMinSharpness){
 		status.mSharpness = TOO_LOW;
 		return false;
 	}
 	status.mSharpness = GOOD;
-
 	return true;
 }
 bool RdtInterface::computeBrightness(AcceptanceStatus& status) {
 	cv:Scalar tempVal = cv::mean(mGreyInput);
 	mBrightness = tempVal.val[0];
-	if (mBrightness > BRIGHT_MAX) {
+	if (mBrightness > mConf.mMaxBrightness) {
 		status.mBrightness = TOO_HIGH;
 		return false;
-	}
-	else if (mBrightness < BRIGHT_MIN)
-	{
+	}else if (mBrightness < mConf.mMinBrightness){
 		status.mBrightness = TOO_LOW;
 		return false;
 	}
@@ -168,20 +129,16 @@ AcceptanceStatus RdtInterface::process(void *imagePtr){
 		return ret;
 	cv::Mat* pInputImage = (cv::Mat*)imagePtr;
 	mInputImage = pInputImage->clone();
-
 	convertInputImageToGrey();
 	ret.mRDTFound=computeROIRectangle();
-	if (ret.mRDTFound)
-	{
+	if (ret.mRDTFound){
 		ret.mBoundingBox.x = mROIRectangle.x;
 		ret.mBoundingBox.y = mROIRectangle.y;
 		ret.mBoundingBox.width = mROIRectangle.width;
 		ret.mBoundingBox.height = mROIRectangle.height;
-	}
-	else return ret;
+	}else return ret;
 
-	if (!computeDistortion(ret))
-	{
+	if (!computeDistortion(ret)){
 		return ret;
 	}
 
@@ -197,6 +154,11 @@ AcceptanceStatus RdtInterface::process(void *imagePtr){
 void RdtInterface::term() {
 
 }
+
+void RdtInterface::setConfig(Config c) {
+	mConf = c;
+}
+
 
 bool init(){
     RdtInterface::getInstance()->initialize();

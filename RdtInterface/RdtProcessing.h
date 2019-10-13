@@ -17,8 +17,6 @@ using namespace cv;
 	printf("%s\n",x);\
 }
 
-
-
 class RdtInterface {
 public:
 	static RdtInterface* getInstance();
@@ -27,6 +25,7 @@ public:
 	AcceptanceStatus process(void* ptr);
 	void term();
 	AcceptanceStatus getAcceptanceStatus();
+	void setConfig(Config c);
 private:
 	static RdtInterface *mRdtInterface;
 	void setDefaults();
@@ -42,6 +41,7 @@ private:
 
 	int64_t  mTimestamp;
 	AcceptanceStatus mAcceptanceStatus;
+	Config mConf;
 	bool mIsAcceptable;
 	float mSharpness;
 	float mScale;
