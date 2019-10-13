@@ -1,6 +1,7 @@
 #ifndef __RDTREADER__H
 #define __RDTREADER__H
 
+
 #define NOT_COMPUTED -100
 #define TOO_HIGH  1
 #define TOO_LOW -1
@@ -33,7 +34,7 @@ private:
 
 
 bool init(void);
-void update(void* ptr);
+AcceptanceStatus update(void* ptr);
 void term(void);
 
-#endif __RDTREADER__H
+#endif //__RDTREADER__H

@@ -1,5 +1,20 @@
 #include "RdtProcessing.h"
 
+#define SCALE_MAX 1100
+#define SCALE_MIN 700
+
+#define X_MIN 100
+#define X_MAX 500
+
+#define Y_MIN 50
+#define Y_MAX 650
+
+#define SHARP_MIN 500.0f
+#define BRIGHT_MAX 210.0f
+#define BRIGHT_MIN 160.0f
+
+
+
 AcceptanceStatus::AcceptanceStatus() {
     setDefaultStatus();
 }
@@ -47,7 +62,6 @@ void RdtInterface::setDefaults() {
 	mScale = -1;
 	mTimestamp = 0;
 }
-
 void RdtInterface::initialize() {
     setDefaults();
 }
@@ -55,17 +69,14 @@ void RdtInterface::initialize() {
 
 void RdtInterface::convertInputImageToGrey() {
 	/// Convert the image to grayscale
-	cvtColor(mInputImage, mGreyInput, CV_BGR2GRAY);
+//	cv::imwrite("./img.png", mInputImage);
+
+	if(mInputImage.channels() == 3) {
+		cvtColor(mInputImage, mGreyInput, CV_BGR2GRAY);
+	}else if(mInputImage.channels() == 4) {
+		cvtColor(mInputImage, mGreyInput, CV_BGRA2GRAY);
+	}
 }
-
-#define SCALE_MAX 1100
-#define SCALE_MIN 700
-
-#define X_MIN 100
-#define X_MAX 500
-
-#define Y_MIN 50
-#define Y_MAX 650
 
 bool RdtInterface::computeDistortion(AcceptanceStatus& status)
 {
@@ -118,7 +129,6 @@ bool RdtInterface::computeROIRectangle() {
 	return true;
 }
 
-#define SHARP_MIN 500.0f
 
 bool RdtInterface::computeBlur(AcceptanceStatus& status) {
 	Mat laplacian;
@@ -136,8 +146,6 @@ bool RdtInterface::computeBlur(AcceptanceStatus& status) {
 
 	return true;
 }
-#define BRIGHT_MAX 210.0f
-#define BRIGHT_MIN 160.0f
 bool RdtInterface::computeBrightness(AcceptanceStatus& status) {
 	cv:Scalar tempVal = cv::mean(mGreyInput);
 	mBrightness = tempVal.val[0];
@@ -158,6 +166,9 @@ AcceptanceStatus RdtInterface::process(void *imagePtr){
 	AcceptanceStatus ret;
 	if (imagePtr == NULL)
 		return ret;
+	cv::Mat* pInputImage = (cv::Mat*)imagePtr;
+	mInputImage = pInputImage->clone();
+
 	convertInputImageToGrey();
 	ret.mRDTFound=computeROIRectangle();
 	if (ret.mRDTFound)
@@ -192,9 +203,9 @@ bool init(){
     return true;
 }
 
-void update(void *ptr){
-    RdtInterface::getInstance()->process(ptr);
-    return ;
+AcceptanceStatus update(void *ptr){
+	AcceptanceStatus ret = RdtInterface::getInstance()->process(ptr);
+    return ret; ;
 }
 void term() {
 	//RdtInterface::getInsta
