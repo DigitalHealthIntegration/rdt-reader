@@ -44,10 +44,10 @@ int main(int argc, char *argv[]) {
 
 		AcceptanceStatus ret = r->process(&cameraFrame);
 		Rect region_of_interest = Rect(ret.mBoundingBox.x, ret.mBoundingBox.y, ret.mBoundingBox.width, ret.mBoundingBox.height);
-		cv::rectangle(cameraFrame, region_of_interest, Scalar(143, 143, 143), 5);
+		cv::rectangle(cameraFrame, region_of_interest, Scalar(143, 143, 143), 3);
 
 		imshow(window_name, cameraFrame);
-
+		//imshow("ROI", r->mBlurrInputImage);
 		//if (!init) {
 		//	writeropened = vidWriter.open("out.mov", CV_FOURCC('M', 'J', 'P', 'G'), 3, cvSize(img.cols, img.rows), false);
 		//	createTrackbar("Threshold", window_name, &lowThreshold, max_lowThreshold, CannyThreshold);

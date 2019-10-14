@@ -8,7 +8,7 @@
 #include <opencv/highgui.h>
 #include <opencv/cxcore.h>
 #include <opencv2/imgproc/imgproc.hpp>
-#include "rdtReader.h"
+#include "RdtReader.h"
 
 using namespace cv;
 
@@ -24,13 +24,14 @@ public:
 private:
 	static RdtInterface *mRdtInterface;
 	void setDefaults();
-
 	RdtInterface();
+
 	void convertInputImageToGrey();
 	bool computeROIRectangle();
 	bool computeBlur(AcceptanceStatus& status);
 	bool computeBrightness(AcceptanceStatus& status);
 	bool computeDistortion(AcceptanceStatus& status);
+
 	int64_t  mTimestamp;
 	AcceptanceStatus mAcceptanceStatus;
 	Config mConf;
@@ -41,9 +42,8 @@ private:
 	float mPerspectiveDistortion;
 	Mat mInputImage;
 	Mat mGreyInput;
+	Mat mBlurrInputImage;
 	uint32_t mWidth, mHeight;
-	CvPoint *mRoiPoint;
-	int32_t mMaxROIPoint;
 	CvRect mROIRectangle;
 };
 

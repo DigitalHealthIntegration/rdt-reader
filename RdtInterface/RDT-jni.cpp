@@ -6,24 +6,17 @@
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_iprd_testapplication_MainActivity_update(JNIEnv *env, jobject thiz, jlong m) {
+Java_com_iprd_rdtcamera_MainActivity_update(JNIEnv *env, jobject thiz, jlong m) {
     char buff[100] = {0};
-    LOGD("update %ld",(long)m);
+//    LOGD("update %ld",(long)m);
     AcceptanceStatus acceptanceStatus;
     if (0 != m){
         acceptanceStatus = RdtInterface::getInstance()->process((void*)m);
     }
-    jclass ent_clazz = env->FindClass("com/iprd/testapplication/AcceptanceStatus");
-    LOGD("ent_clazz %ld",(long)ent_clazz);
+    jclass ent_clazz = env->FindClass("com/iprd/rdtcamera/AcceptanceStatus");
+//    LOGD("ent_clazz %ld",(long)ent_clazz);
     if (!ent_clazz) return NULL;
-#if  0
-    jobject result = env->NewObject(ent_clazz,0,1,2,3,4,5,6,7,8,true);
-    PRINTVAL("result","%ld",result);
-    if (!result || env->ExceptionCheck() != JNI_FALSE) {
-        env->ExceptionClear();
-        return NULL;
-    }
-#else
+
     // Get the IDs of the constructor and the _myEntityType field
     jmethodID ent_init = env->GetMethodID(ent_clazz, "<init>", "()V");
     jobject result = env->NewObject(ent_clazz, ent_init);
@@ -82,7 +75,6 @@ Java_com_iprd_testapplication_MainActivity_update(JNIEnv *env, jobject thiz, jlo
     if (!ent_init || !fidHeight) return NULL;
     //env->SetObjectField(result, fidmBrightness, reinterpret_cast<jobject>((short) 9));
     env->SetShortField(result,fidHeight,acceptanceStatus.mBoundingBox.height);
-#endif
 
     return  result;
 }
@@ -138,7 +130,7 @@ Config &getConfig(JNIEnv *env, jobject c, Config &getConfVal) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_iprd_testapplication_MainActivity_init(JNIEnv *env, jobject thiz, jobject c) {
+Java_com_iprd_rdtcamera_MainActivity_init(JNIEnv *env, jobject thiz, jobject c) {
     Config cVal;
     cVal = getConfig(env, c, cVal);
     RdtInterface::getInstance()->init(cVal);
@@ -146,7 +138,7 @@ Java_com_iprd_testapplication_MainActivity_init(JNIEnv *env, jobject thiz, jobje
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_iprd_testapplication_MainActivity_setConfig(JNIEnv *env, jobject thiz, jobject c) {
+Java_com_iprd_rdtcamera_MainActivity_setConfig(JNIEnv *env, jobject thiz, jobject c) {
     Config cVal;
     cVal = getConfig(env, c, cVal);
     RdtInterface::getInstance()->setConfig(cVal);

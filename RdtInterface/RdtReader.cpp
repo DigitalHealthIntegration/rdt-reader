@@ -51,7 +51,7 @@ void RdtInterface::setDefaults() {
 
 
 void RdtInterface::convertInputImageToGrey() {
-	LOGD("Width %d Height %d Channel %d ",mInputImage.cols,mInputImage.rows,mInputImage.channels());
+//	LOGD("Width %d Height %d Channel %d ",mInputImage.cols,mInputImage.rows,mInputImage.channels());
 	/// Convert the image to grayscale
 //	cv::imwrite("./img.png", mInputImage);
 	if(mInputImage.channels() == 3) {
@@ -92,17 +92,17 @@ bool RdtInterface::computeDistortion(AcceptanceStatus& status){
 bool RdtInterface::computeROIRectangle() {
 	//randomly return false
 	mROIRectangle = cvRect(150, 300, 900,45);
+	mBlurrInputImage = mGreyInput(mROIRectangle);
 	return true;
 }
 
-
 bool RdtInterface::computeBlur(AcceptanceStatus& status) {
 	Mat laplacian;
-	Laplacian(mGreyInput, laplacian, CV_16S, 3, 1, 0, BORDER_REFLECT101);
+	Laplacian(mBlurrInputImage, laplacian, CV_16S, 3, 1, 0, BORDER_REFLECT101);
 	cv::Scalar mean, stddev; //0:1st channel, 1:2nd channel and 2:3rd channel
 	meanStdDev(laplacian, mean, stddev, cv::Mat());
 	mSharpness = stddev.val[0] * stddev.val[0];
-	LOGD("mSharpness %f",mSharpness);
+	LOGD("mSharpness %f\n",mSharpness);
 	if (mSharpness < mConf.mMinSharpness){
 		status.mSharpness = TOO_LOW;
 		return false;
@@ -111,9 +111,9 @@ bool RdtInterface::computeBlur(AcceptanceStatus& status) {
 	return true;
 }
 bool RdtInterface::computeBrightness(AcceptanceStatus& status) {
-	cv:Scalar tempVal = cv::mean(mGreyInput);
+	cv:Scalar tempVal = cv::mean(mBlurrInputImage);
 	mBrightness = tempVal.val[0];
-    LOGD("mBrightness %f",mBrightness);
+    LOGD("mBrightness %f\n",mBrightness);
 	if (mBrightness > mConf.mMaxBrightness) {
 		status.mBrightness = TOO_HIGH;
 		return false;
@@ -126,7 +126,7 @@ bool RdtInterface::computeBrightness(AcceptanceStatus& status) {
 }
 
 AcceptanceStatus RdtInterface::process(void *imagePtr){
-	PRINTFLOW;
+//	PRINTFLOW;
 	AcceptanceStatus ret;
 	if (imagePtr == NULL)
 		return ret;
@@ -165,7 +165,7 @@ void RdtInterface::setConfig(Config c) {
 }
 
 bool RdtInterface::init(Config c){
-	PRINTFLOW;
+//	PRINTFLOW;
 	RdtInterface::getInstance()->setDefaults();
 	RdtInterface::getInstance()->setConfig(c);
     return true;
