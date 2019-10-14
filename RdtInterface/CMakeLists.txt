@@ -19,11 +19,13 @@ project(RDTFilterInt)
 
 SET(SOURCE
 main.cpp
+RdtUtil.cpp
 RdtReader.cpp
 )
 
 SET(HEADERS
 RdtProcessing.h
+RdtUtil.h
 RdtReader.h
 )
 
