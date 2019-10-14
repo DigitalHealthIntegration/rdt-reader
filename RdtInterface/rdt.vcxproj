@@ -125,10 +125,13 @@
   <ItemGroup>
     <ClCompile Include="RdtReader.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="RdtUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RdtProcessing.h" />
     <ClInclude Include="RdtReader.h" />
+    <ClInclude Include="RdtUtil.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

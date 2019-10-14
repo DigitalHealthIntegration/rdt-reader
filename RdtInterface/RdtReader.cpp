@@ -1,4 +1,5 @@
 #include "RdtProcessing.h"
+#include "RdtUtil.h"
 
 AcceptanceStatus::AcceptanceStatus() {
     setDefaultStatus();
@@ -47,11 +48,10 @@ void RdtInterface::setDefaults() {
 	mScale = -1;
 	mTimestamp = 0;
 }
-void RdtInterface::initialize() {
-    setDefaults();
-}
+
 
 void RdtInterface::convertInputImageToGrey() {
+	LOGD("Width %d Height %d Channel %d ",mInputImage.cols,mInputImage.rows,mInputImage.channels());
 	/// Convert the image to grayscale
 //	cv::imwrite("./img.png", mInputImage);
 	if(mInputImage.channels() == 3) {
@@ -102,6 +102,7 @@ bool RdtInterface::computeBlur(AcceptanceStatus& status) {
 	cv::Scalar mean, stddev; //0:1st channel, 1:2nd channel and 2:3rd channel
 	meanStdDev(laplacian, mean, stddev, cv::Mat());
 	mSharpness = stddev.val[0] * stddev.val[0];
+	LOGD("mSharpness %f",mSharpness);
 	if (mSharpness < mConf.mMinSharpness){
 		status.mSharpness = TOO_LOW;
 		return false;
@@ -112,6 +113,7 @@ bool RdtInterface::computeBlur(AcceptanceStatus& status) {
 bool RdtInterface::computeBrightness(AcceptanceStatus& status) {
 	cv:Scalar tempVal = cv::mean(mGreyInput);
 	mBrightness = tempVal.val[0];
+    LOGD("mBrightness %f",mBrightness);
 	if (mBrightness > mConf.mMaxBrightness) {
 		status.mBrightness = TOO_HIGH;
 		return false;
@@ -124,11 +126,14 @@ bool RdtInterface::computeBrightness(AcceptanceStatus& status) {
 }
 
 AcceptanceStatus RdtInterface::process(void *imagePtr){
+	PRINTFLOW;
 	AcceptanceStatus ret;
 	if (imagePtr == NULL)
 		return ret;
+
 	cv::Mat* pInputImage = (cv::Mat*)imagePtr;
 	mInputImage = pInputImage->clone();
+
 	convertInputImageToGrey();
 	ret.mRDTFound=computeROIRectangle();
 	if (ret.mRDTFound){
@@ -159,18 +164,10 @@ void RdtInterface::setConfig(Config c) {
 	mConf = c;
 }
 
-
 bool RdtInterface::init(Config c){
+	PRINTFLOW;
+	RdtInterface::getInstance()->setDefaults();
 	RdtInterface::getInstance()->setConfig(c);
-    RdtInterface::getInstance()->initialize();
     return true;
-}
-
-AcceptanceStatus update(void *ptr){
-	AcceptanceStatus ret = RdtInterface::getInstance()->process(ptr);
-    return ret; ;
-}
-void term() {
-	//RdtInterface::getInsta
 }
 

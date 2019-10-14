@@ -10,30 +10,27 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "rdtReader.h"
 
-
 using namespace cv;
 
 class RdtInterface {
 public:
 	static RdtInterface* getInstance();
 	~RdtInterface();
-	void initialize();
 	AcceptanceStatus process(void* ptr);
 	void term();
-	AcceptanceStatus getAcceptanceStatus();
 	bool init(Config c);
-
+    void setConfig(Config c);
+    AcceptanceStatus getAcceptanceStatus();
 private:
 	static RdtInterface *mRdtInterface;
 	void setDefaults();
+
 	RdtInterface();
-	void setConfig(Config c);
 	void convertInputImageToGrey();
 	bool computeROIRectangle();
 	bool computeBlur(AcceptanceStatus& status);
 	bool computeBrightness(AcceptanceStatus& status);
 	bool computeDistortion(AcceptanceStatus& status);
-
 	int64_t  mTimestamp;
 	AcceptanceStatus mAcceptanceStatus;
 	Config mConf;

@@ -25,7 +25,6 @@ public:
 	short mPerspectiveDistortion;
 	short mDisplacementX; //displacement of the RDT center.x from ideal
 	short mDisplacementY; //displacement of the RDT center.y from ideal
-	//	CvPoint mcenterOfRDT;
 	bool mRDTFound;// was an RDT found by the coarse finder
 	usRect mBoundingBox;
 private:
@@ -56,9 +55,5 @@ public:
 	float mMaxBrightness;
 	float mMinBrightness;
 };
-
-//bool init(Config conf);
-//AcceptanceStatus update(void* ptr);
-//void term(void);
 
 #endif //__RDTREADER__H
