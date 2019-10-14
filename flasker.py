@@ -384,7 +384,7 @@ def generateRDTcrop(boxes,im0,targets):
             cx_B=0
             cy_B=0
         
-        # Translate image and compute angle to rotate and scale factor
+        # Translate image and compute angle to rotate and scale factor.
         angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis(x1y1,x2y2,im0,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]],featsPres)
         cv2.imwrite("translated.jpg",im0)
         # Resize image
