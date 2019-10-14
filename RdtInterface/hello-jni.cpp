@@ -93,7 +93,15 @@ Java_com_iprd_testapplication_MainActivity_update(JNIEnv *env, jobject thiz, jlo
     /* Get OtherClass */
     jfieldID fidOtherClass = env->GetFieldID(ent_clazz, "mBoundingBox", "Lcom/iprd/testapplication/usRect;");
     LOGD("fidOtherClass %ld",(long)fidOtherClass);
-//    jobject boundingBox = (env)->GetObjectField(result, fidOtherClass);
+
+//TBD :: Set class memeber properly in class.
+    jobject oVal = (env)->GetObjectField( result, fidOtherClass);
+    LOGD("oVal %ld",(long)oVal);
+
+    jclass clsOtherClass = (env)->GetObjectClass(oVal);
+    LOGD("clsOtherClass %ld",(long)clsOtherClass);
+
+    //    jobject boundingBox = (env)->GetObjectField(result, fidOtherClass);
 //    LOGD("boundingBox %ld",(long)boundingBox);
 //    jclass boundingBoxClass = (env)->GetObjectClass(boundingBox);
 //    LOGD("boundingBoxClass %ld",(long)boundingBoxClass);
@@ -196,6 +204,5 @@ Java_com_iprd_testapplication_MainActivity_init(JNIEnv *env, jobject thiz, jobje
     getConfVal.mMinSharpness = imMinSharpness;
     LOGD("mMinSharpness: %f", imMinSharpness);
 
-    RdtInterface::getInstance()->setConfig(getConfVal);
-    RdtInterface::getInstance()->initialize();
+    RdtInterface::getInstance()->init(getConfVal);
 }

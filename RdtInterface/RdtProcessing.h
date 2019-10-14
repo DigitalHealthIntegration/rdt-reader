@@ -8,14 +8,10 @@
 #include <opencv/highgui.h>
 #include <opencv/cxcore.h>
 #include <opencv2/imgproc/imgproc.hpp>
-#include "RdtReader.h"
+#include "rdtReader.h"
 
 
 using namespace cv;
-
-#define LOGIT(x) {\
-	printf("%s\n",x);\
-}
 
 class RdtInterface {
 public:
