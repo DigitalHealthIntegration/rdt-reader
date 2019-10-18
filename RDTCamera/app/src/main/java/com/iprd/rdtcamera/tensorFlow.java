@@ -217,7 +217,7 @@ public class tensorFlow {
             int y1=roi[1];
             int x2=roi[2];
             int y2=roi[3];
-            SaveROIImage(greyMat, x1, y1, x2, y2);
+            //SaveROIImage(greyMat, x1, y1, x2, y2);
             ret.x = (int) (roi[0]/256.0f*width);
             ret.y = (int) (roi[1]/256.0f*height);
             ret.width = (int) (roi[2]/256.0f*width);
@@ -228,7 +228,7 @@ public class tensorFlow {
         return ret;
     }
 
-    private void SaveROIImage(Mat greyMat, int x1, int y1, int x2, int y2) {
+    public void SaveROIImage(Mat greyMat, int x1, int y1, int x2, int y2) {
         Mat tmp = new Mat();
         Imgproc.cvtColor(greyMat, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
         Imgproc.rectangle(tmp, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 1);
