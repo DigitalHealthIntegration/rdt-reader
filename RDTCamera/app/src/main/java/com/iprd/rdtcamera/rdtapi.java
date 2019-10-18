@@ -1,5 +1,6 @@
 package com.iprd.rdtcamera;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.util.Log;
 
@@ -16,6 +17,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import static android.util.Config.LOGD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
@@ -122,15 +125,27 @@ public class rdtapi {
         Rect roi = mTensorFlow.update(greyMat,rdtFound);
         mAcceptanceStatus.mRDTFound =  rdtFound[0].booleanValue();
         if(mAcceptanceStatus.mRDTFound) {
+
+            roi.width = (roi.width - roi.x);
+            roi.height = roi.height - roi.y ;
+
+            roi.x = Math.max(0,roi.x);
+            roi.y = Math.max(0,roi.y);
+            roi.width = Math.min(greyMat.cols(),roi.width);
+            roi.height = Math.min(greyMat.rows(),roi.height);
+
             mAcceptanceStatus.mBoundingBoxX = (short) roi.x;
             mAcceptanceStatus.mBoundingBoxY = (short) roi.y;
-            mAcceptanceStatus.mBoundingBoxWidth = (short) (roi.width - roi.x);
-            mAcceptanceStatus.mBoundingBoxHeight = (short) (roi.height - roi.y);
+            mAcceptanceStatus.mBoundingBoxWidth = (short) (roi.width);
+            mAcceptanceStatus.mBoundingBoxHeight = (short) (roi.height);
             mAcceptanceStatus.mRDTFound = rdtFound[0].booleanValue();
         }
 
         if(!rdtFound[0].booleanValue())return mAcceptanceStatus;
-        if (!computeDistortion())return mAcceptanceStatus;
+      //  if (!computeDistortion())return mAcceptanceStatus;
+        Log.d("........ROI "," "+roi.x +"x"+roi.y + "x" +roi.width + "x" +roi.height);
+        Log.d("greyMat "," " +greyMat.cols() + "x" +greyMat.height());
+
         Mat imageROI = greyMat.submat(roi);
         if(computeBlur(imageROI)){
             greyMat.release();
