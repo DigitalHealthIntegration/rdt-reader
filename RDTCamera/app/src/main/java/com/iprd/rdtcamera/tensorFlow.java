@@ -236,7 +236,7 @@ public class tensorFlow {
             ret.width = (int) (roi[2]/256.0f*width);
             ret.height = (int) (roi[3]/256.0f*height);
             rdt[0]=true;
-            SaveROIImage(inputmat, ret.x,ret.y,ret.width,ret.height);
+            //SaveROIImage(inputmat, ret.x,ret.y,ret.width,ret.height);
         }
         return ret;
     }

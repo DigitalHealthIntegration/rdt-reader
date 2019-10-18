@@ -55,6 +55,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -82,6 +83,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.Manifest.permission_group.CAMERA;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.floodFill;
 
@@ -130,6 +134,62 @@ public class MainActivity extends AppCompatActivity {
     private Handler mOnImageAvailableHandler;
     byte[] mtfliteBytes = null;
 
+    private boolean checkpermission(){
+        System.out.println("..>>"+ WRITE_EXTERNAL_STORAGE);
+        int res  = ContextCompat.checkSelfPermission(getApplicationContext(), CAMERA);
+        int res1 = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
+        int res2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
+        return res1 == PackageManager.PERMISSION_GRANTED && res == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED;
+    }
+    private void requestPermission(){
+        //ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE, CAMERA}, 200);
+        ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,CAMERA}, 200);
+        // ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        if(!checkpermission()){
+            requestPermission();
+        }
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        mRectView = findViewById(R.id.rdtRect);
+        mAcceptArray = new ArrayList<>();
+        mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)50,(short)50,(short)400,(short)50));
+        mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)100,(short)100,(short)500,(short)400));
+        assert mtextureView != null;
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        int width = displayMetrics.widthPixels;
+        self = this;
+        mtextureView = (AutoFitTextureView) findViewById(R.id.texture);
+        int orientation = getResources().getConfiguration().orientation;
+//        Size mPreviewSize= new Size(1280,720);
+//        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//            mtextureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+//        } else {
+//            mtextureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+//        }
+        assert mtextureView != null;
+        mWindowSize = new Size(displayMetrics.widthPixels,displayMetrics.heightPixels);
+        int vidWidth = Math.round(((float)displayMetrics.heightPixels) * (9.0f/16.0f));
+
+        mtextureView.setSurfaceTextureListener(textureListener);
+
+        Config c = new Config();
+        try {
+          //  c.mTfliteData = loadModelFile(getAssets(),"tflite.lite");
+            c.mTfliteB = ReadAssests();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mRdtApi = new rdtapi();
+        mRdtApi.init(c);
+    }
+
     byte[] ReadAssests() throws IOException {
         InputStream is=getAssets().open("tflite.lite");
         mtfliteBytes=new byte[is.available()];
@@ -177,50 +237,8 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        mRectView = findViewById(R.id.rdtRect);
-        mAcceptArray = new ArrayList<>();
-        mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)50,(short)50,(short)400,(short)50));
-        mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)100,(short)100,(short)500,(short)400));
-        assert mtextureView != null;
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int height = displayMetrics.heightPixels;
-        int width = displayMetrics.widthPixels;
-        self = this;
-        mtextureView = (AutoFitTextureView) findViewById(R.id.texture);
-        int orientation = getResources().getConfiguration().orientation;
-//        Size mPreviewSize= new Size(1280,720);
-//        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//            mtextureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-//        } else {
-//            mtextureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
-//        }
-        assert mtextureView != null;
-        mWindowSize = new Size(displayMetrics.widthPixels,displayMetrics.heightPixels);
-        int vidWidth = Math.round(((float)displayMetrics.heightPixels) * (9.0f/16.0f));
-
-        mtextureView.setSurfaceTextureListener(textureListener);
-
-        Config c = new Config();
-        try {
-          //  c.mTfliteData = loadModelFile(getAssets(),"tflite.lite");
-            c.mTfliteB = ReadAssests();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mRdtApi = new rdtapi();
-        mRdtApi.init(c);
-
-    }
-
-private void resizeView(StreamConfigurationMap map) {
+    private void resizeView(StreamConfigurationMap map) {
         if (map == null) {
             return;
         }
@@ -469,8 +487,8 @@ private void resizeView(StreamConfigurationMap map) {
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
 
             // Add permission for camera and let user grant the permission
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
                 return;
             }
             manager.openCamera(cameraId, stateCallback, mBackgroundHandler);

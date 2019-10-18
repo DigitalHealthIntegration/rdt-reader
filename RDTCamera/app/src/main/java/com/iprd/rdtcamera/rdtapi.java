@@ -138,7 +138,7 @@ public class rdtapi {
         Log.d("........ROI "," "+roi.x +"x"+roi.y + "x" +roi.width + "x" +roi.height);
 
         Mat imageROI = greyMat.submat(roi);
-        mTensorFlow.SaveROIImage(imageROI,0,0,imageROI.width(),imageROI.height());
+       // mTensorFlow.SaveROIImage(imageROI,0,0,imageROI.width(),imageROI.height());
 
         if(!computeBlur(imageROI)){
             greyMat.release();
