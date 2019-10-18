@@ -46,7 +46,7 @@ public class rdtapi {
         // Release resources
         laplacian.release();
         double sharpness =(float) std.get(0,0)[0]*std.get(0,0)[0];
-        Log.d("Sharpness","mSharpness " + sharpness);
+       // Log.d("Sharpness","mSharpness " + sharpness);
         if (sharpness < mConfig.mMinSharpness){
             mAcceptanceStatus.mSharpness = TOO_LOW;
             return false;
@@ -58,7 +58,7 @@ public class rdtapi {
     private boolean computeBrightness(Mat grey) {
         Scalar tempVal = mean(grey);
         double brightness = tempVal.val[0];
-        Log.d("Brightness","mBrightness "+brightness);
+        //Log.d("Brightness","mBrightness "+brightness);
         if (brightness > mConfig.mMaxBrightness) {
             mAcceptanceStatus.mBrightness = TOO_HIGH;
             return false;

@@ -70,7 +70,7 @@ public class tensorFlow {
 
     public int[] nonMaxSupression(ArrayList<HashMap<Float, Vector<Integer>>> Top,ArrayList<HashMap<Float, Vector<Integer>>>  Bottom){
         int topn=Math.min(Top.size(),Bottom.size());
-        Log.d("detection","done");
+        //Log.d("detection","done");
         int [] roi = new int[4];
         int [] x1y1x2y2Top = {256,256,0,0};
         int [] x1y1x2y2Bot= {256,256,0,0};
