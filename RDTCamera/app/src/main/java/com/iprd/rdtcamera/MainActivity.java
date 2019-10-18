@@ -511,27 +511,36 @@ private void resizeView(StreamConfigurationMap map) {
         return mAcceptArray.get(idx++);
     }
 
-
+    AcceptanceStatus prevStat;
+    long prevTime=0;
     private void repositionRect(AcceptanceStatus status){
-        if(mRectView == null)return;
-        if(!status.mRDTFound){
-            mRectView.setVisibility(View.INVISIBLE);
-            return;
-        }
-        mRectView.bringToFront();
-        Log.d("ROI","Bounds "+status.mBoundingBoxX+"x"+status.mBoundingBoxY+" Position "+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
 
-        Point boundsRatio = new Point(status.mBoundingBoxWidth*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),status.mBoundingBoxHeight*1.0/CAMERA2_PREVIEW_SIZE.getHeight()),
-                positionRatio = new Point(status.mBoundingBoxX*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),status.mBoundingBoxY*1.0/CAMERA2_PREVIEW_SIZE.getHeight());
+        if(mRectView == null)return;
+        if(status.mRDTFound){
+            prevTime = System.currentTimeMillis();
+            prevStat = status;
+        }else {
+            long curr = System.currentTimeMillis();
+            if ((curr - prevTime) > 5000) { //5 sec of timeout
+                Log.d("TimeDiff","curr " + curr + "prev " + prevTime +" = " +(curr - prevTime) );
+                mRectView.setVisibility(View.INVISIBLE);
+                return;
+            }
+        }
+
+        mRectView.bringToFront();
+//        Log.d("ROI","Bounds "+status.mBoundingBoxX+"x"+status.mBoundingBoxY+" Position "+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
+        Point boundsRatio = new Point(prevStat.mBoundingBoxWidth*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxHeight*1.0/CAMERA2_PREVIEW_SIZE.getHeight()),
+                positionRatio = new Point(prevStat.mBoundingBoxX*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxY*1.0/CAMERA2_PREVIEW_SIZE.getHeight());
         Size boxBounds = new Size((int) Math.round(boundsRatio.x*mWindowSize.getWidth()),(int) Math.round(boundsRatio.y*mWindowSize.getHeight())),
                 boxPosition=new Size((int) Math.round(positionRatio.x*mWindowSize.getWidth()) , (int)Math.round(positionRatio.y*mWindowSize.getHeight()));
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
         /*lp.width = boxBounds.getWidth();
         lp.height=boxBounds.getHeight();
         lp.setMargins(boxPosition.getWidth(),boxPosition.getHeight(),0,0);*/
-        lp.width = status.mBoundingBoxWidth;
-        lp.height=status.mBoundingBoxHeight;
-        lp.setMargins(status.mBoundingBoxX,status.mBoundingBoxY,0,0);
+        lp.width = prevStat.mBoundingBoxWidth;
+        lp.height=prevStat.mBoundingBoxHeight;
+        lp.setMargins(prevStat.mBoundingBoxX,status.mBoundingBoxY,0,0);
         Log.d("Box","Bounds "+lp.width+"x"+lp.height+" Position "+boxPosition.getWidth()+"x"+boxPosition.getHeight());
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
