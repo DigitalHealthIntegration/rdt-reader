@@ -1,6 +1,8 @@
 package com.iprd.rdtcamera;
 
 
+import java.nio.MappedByteBuffer;
+
 class Config{
     Config() {
         mMaxScale = 1100;
@@ -22,6 +24,7 @@ class Config{
     float mMinSharpness;
     float mMaxBrightness;
     float mMinBrightness;
+    byte[] mTfliteB;
 }
 
 class AcceptanceStatus {

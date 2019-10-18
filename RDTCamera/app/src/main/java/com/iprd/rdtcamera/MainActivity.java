@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
@@ -59,13 +61,17 @@ import org.opencv.core.Mat;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -122,6 +128,15 @@ public class MainActivity extends AppCompatActivity {
     rdtapi mRdtApi;
     private HandlerThread mOnImageAvailableThread;
     private Handler mOnImageAvailableHandler;
+    byte[] mtfliteBytes = null;
+
+    byte[] ReadAssests() throws IOException {
+        InputStream is=getAssets().open("tflite.lite");
+        mtfliteBytes=new byte[is.available()];
+        is.read( mtfliteBytes);
+        is.close();
+        return mtfliteBytes;
+    }
 
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
@@ -162,7 +177,6 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -194,6 +208,13 @@ public class MainActivity extends AppCompatActivity {
         mtextureView.setSurfaceTextureListener(textureListener);
 
         Config c = new Config();
+        try {
+          //  c.mTfliteData = loadModelFile(getAssets(),"tflite.lite");
+            c.mTfliteB = ReadAssests();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         mRdtApi = new rdtapi();
         mRdtApi.init(c);
 

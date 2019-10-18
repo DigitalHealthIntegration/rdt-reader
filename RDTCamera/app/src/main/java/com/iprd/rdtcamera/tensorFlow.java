@@ -17,6 +17,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,9 +32,20 @@ public class tensorFlow {
     Interpreter mTflite;
     static int mImageCount = 0;
 
-    tensorFlow(){
-        File modelFile = new File("/mnt/sdcard/mgd/tflite.lite");
-        mTflite = new Interpreter(modelFile);
+    tensorFlow(byte[] bytes){
+        //File modelFile = new File("/mnt/sdcard/mgd/tflite.lite");
+        //mTflite = new Interpreter(modelFile);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+        byteBuffer.order(ByteOrder.nativeOrder());
+        byteBuffer.put(bytes);
+        try {
+            mTflite = new Interpreter(byteBuffer, new Interpreter.Options());
+            if (mTflite != null) {
+                Log.d("Loaded model File", "length = ");
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     class ScoreComparator implements Comparator<HashMap<Float,Vector<Integer>>> {
@@ -47,7 +60,7 @@ public class tensorFlow {
         }
     }
     int[] cxcy2xy(float cx,float cy,float w,float h){
-        int [] xy =new int[4];
+        int [] xy = new int[4];
         xy[0]= (int) (cx-w/2);
         xy[1]= (int) (cy-h/2);
         xy[2]= (int) (cx+w/2);

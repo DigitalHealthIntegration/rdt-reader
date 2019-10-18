@@ -101,7 +101,7 @@ public class rdtapi {
 
     public void init(Config c) {
         mConfig = c;
-        mTensorFlow = new tensorFlow();
+        mTensorFlow = new tensorFlow(mConfig.mTfliteB);
     }
 
     public AcceptanceStatus update(Bitmap capFrame) {
