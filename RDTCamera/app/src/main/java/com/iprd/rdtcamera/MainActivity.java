@@ -521,11 +521,11 @@ private void resizeView(StreamConfigurationMap map) {
             prevStat = status;
         }else {
             long curr = System.currentTimeMillis();
-            if ((curr - prevTime) > 5000) { //5 sec of timeout
-                Log.d("TimeDiff","curr " + curr + "prev " + prevTime +" = " +(curr - prevTime) );
+//            if ((curr - prevTime) > 5000) { //5 sec of timeout
+//                Log.d("TimeDiff","curr " + curr + "prev " + prevTime +" = " +(curr - prevTime) );
                 mRectView.setVisibility(View.INVISIBLE);
                 return;
-            }
+//            }
         }
 
         mRectView.bringToFront();
