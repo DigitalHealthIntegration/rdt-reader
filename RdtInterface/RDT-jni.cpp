@@ -8,31 +8,29 @@ extern "C"
 JNIEXPORT jobject JNICALL
 Java_com_iprd_rdtcamera_MainActivity_update(JNIEnv *env, jobject thiz, jlong m) {
     char buff[100] = {0};
-//    LOGD("update %ld",(long)m);
+hi 
     AcceptanceStatus acceptanceStatus;
     if (0 != m){
         acceptanceStatus = RdtInterface::getInstance()->process((void*)m);
     }
     jclass ent_clazz = env->FindClass("com/iprd/rdtcamera/AcceptanceStatus");
-//    LOGD("ent_clazz %ld",(long)ent_clazz);
     if (!ent_clazz) return NULL;
 
     // Get the IDs of the constructor and the _myEntityType field
     jmethodID ent_init = env->GetMethodID(ent_clazz, "<init>", "()V");
     jobject result = env->NewObject(ent_clazz, ent_init);
     LOGD("result %ld",(long)result);
-
     if (!result || env->ExceptionCheck() != JNI_FALSE) {
         env->ExceptionClear();
         return NULL;
     }
+
     jfieldID fidmBrightness = env->GetFieldID(ent_clazz, "mBrightness", "S");
      if (!ent_init || !fidmBrightness) return NULL;
     //env->SetObjectField(result, fidmBrightness, reinterpret_cast<jobject>((short) 9));
     env->SetShortField(result,fidmBrightness,acceptanceStatus.mBrightness);
 
     jfieldID fidmSharpness = env->GetFieldID(ent_clazz, "mSharpness", "S");
-
     if (!ent_init || !fidmSharpness) return NULL;
     env->SetShortField(result,fidmSharpness,acceptanceStatus.mSharpness);
 
@@ -58,22 +56,18 @@ Java_com_iprd_rdtcamera_MainActivity_update(JNIEnv *env, jobject thiz, jlong m) 
 
     jfieldID fidX = env->GetFieldID(ent_clazz, "mBoundingBoxX", "S");
     if (!ent_init || !fidX) return NULL;
-    //env->SetObjectField(result, fidmBrightness, reinterpret_cast<jobject>((short) 9));
     env->SetShortField(result,fidX,acceptanceStatus.mBoundingBox.x);
 
     jfieldID fidY = env->GetFieldID(ent_clazz, "mBoundingBoxY", "S");
     if (!ent_init || !fidY) return NULL;
-    //env->SetObjectField(result, fidmBrightness, reinterpret_cast<jobject>((short) 9));
     env->SetShortField(result,fidY,acceptanceStatus.mBoundingBox.y);
 
     jfieldID fidWidth = env->GetFieldID(ent_clazz, "mBoundingBoxWidth", "S");
     if (!ent_init || !fidWidth) return NULL;
-    //env->SetObjectField(result, fidmBrightness, reinterpret_cast<jobject>((short) 9));
     env->SetShortField(result,fidWidth,acceptanceStatus.mBoundingBox.width);
 
     jfieldID fidHeight = env->GetFieldID(ent_clazz, "mBoundingBoxHeight", "S");
     if (!ent_init || !fidHeight) return NULL;
-    //env->SetObjectField(result, fidmBrightness, reinterpret_cast<jobject>((short) 9));
     env->SetShortField(result,fidHeight,acceptanceStatus.mBoundingBox.height);
 
     return  result;
