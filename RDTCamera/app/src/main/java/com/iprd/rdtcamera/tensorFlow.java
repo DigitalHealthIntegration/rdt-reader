@@ -11,6 +11,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.nnapi.NnApiDelegate;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,6 +31,7 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class tensorFlow {
     Interpreter mTflite;
+    Interpreter.Options tf_options = new Interpreter.Options();
     static int mImageCount = 0;
 
     tensorFlow(byte[] bytes){
@@ -39,7 +41,12 @@ public class tensorFlow {
         byteBuffer.order(ByteOrder.nativeOrder());
         byteBuffer.put(bytes);
         try {
-            mTflite = new Interpreter(byteBuffer, new Interpreter.Options());
+            tf_options.setNumThreads(4);
+
+//            NnApiDelegate nnapiDel = new NnApiDelegate();
+//            tf_options.addDelegate(nnapiDel);
+
+            mTflite = new Interpreter(byteBuffer, tf_options);
             if (mTflite != null) {
                 Log.d("Loaded model File", "length = ");
             }
@@ -179,7 +186,7 @@ public class tensorFlow {
 
                     float conf_0 = output[0][row * 15 + col][j][0];
                     float conf_1 = output[0][row * 15 + col][j][1];
-                    if (conf_0 > 0.8) {
+                    if (conf_0 > 0.86) {
 //                            Log.d("outpu", String.valueOf(conf_0));
                         float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
                         float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
@@ -195,7 +202,7 @@ public class tensorFlow {
                         HashMap<Float, Vector<Integer>> hMap = new HashMap<Float, Vector<Integer>>();
                         hMap.put(conf_0, v);
                         vectorTableTop.add(hMap);
-                    } else if (conf_1 > 0.8) {
+                    } else if (conf_1 > 0.86) {
 //                            Log.d("outpu", String.valueOf(conf_1));
                         float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
                         float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
