@@ -29,12 +29,12 @@ import java.util.Vector;
 
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
-public class tensorFlow {
+public class TensorFlow {
     Interpreter mTflite;
     Interpreter.Options tf_options = new Interpreter.Options();
     static int mImageCount = 0;
 
-    tensorFlow(byte[] bytes){
+    TensorFlow(byte[] bytes){
         //File modelFile = new File("/mnt/sdcard/mgd/tflite.lite");
         //mTflite = new Interpreter(modelFile);
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);

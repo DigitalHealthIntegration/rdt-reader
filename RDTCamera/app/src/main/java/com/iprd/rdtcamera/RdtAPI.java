@@ -1,30 +1,17 @@
 package com.iprd.rdtcamera;
 
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import org.opencv.android.Utils;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import org.tensorflow.lite.Interpreter;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import static android.util.Config.LOGD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
 import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
-import static com.iprd.rdtcamera.AcceptanceStatus.NOT_COMPUTED;
 import static org.opencv.core.Core.BORDER_REFLECT101;
 import static org.opencv.core.Core.mean;
 import static org.opencv.core.Core.meanStdDev;
@@ -32,10 +19,10 @@ import static org.opencv.core.CvType.CV_16S;
 import static org.opencv.imgproc.Imgproc.Laplacian;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
-public class rdtapi {
+public class RdtAPI {
     Config mConfig;
     AcceptanceStatus mAcceptanceStatus=new AcceptanceStatus();
-    tensorFlow mTensorFlow=null;
+    TensorFlow mTensorFlow=null;
 
     private boolean computeBlur(Mat greyImage) {
         Mat laplacian=new Mat();
@@ -101,14 +88,14 @@ public class rdtapi {
 
     public void init(Config c) {
         mConfig = c;
-        mTensorFlow = new tensorFlow(mConfig.mTfliteB);
+        mTensorFlow = new TensorFlow(mConfig.mTfliteB);
     }
 
     public AcceptanceStatus update(Bitmap capFrame) {
         Mat matinput = new Mat();
         Mat greyMat = new Mat();
         Utils.bitmapToMat(capFrame, matinput);
-        Log.d("INPUT",capFrame.getWidth()+"x"+capFrame.getHeight());
+        //Log.d("INPUT",capFrame.getWidth()+"x"+capFrame.getHeight());
         cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
         mAcceptanceStatus.setDefaultStatus();
         Boolean [] rdtFound = new Boolean [] {new Boolean(false)};
@@ -135,7 +122,7 @@ public class rdtapi {
 
         if(!rdtFound[0].booleanValue())return mAcceptanceStatus;
       //  if (!computeDistortion())return mAcceptanceStatus;
-        Log.d("........ROI "," "+roi.x +"x"+roi.y + "x" +roi.width + "x" +roi.height);
+        //Log.d("........ROI "," "+roi.x +"x"+roi.y + "x" +roi.width + "x" +roi.height);
 
         Mat imageROI = greyMat.submat(roi);
        // mTensorFlow.SaveROIImage(imageROI,0,0,imageROI.width(),imageROI.height());
