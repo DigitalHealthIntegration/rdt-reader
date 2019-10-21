@@ -3,6 +3,8 @@ package com.iprd.rdtcamera;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -22,8 +24,10 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RenderScript;
@@ -36,6 +40,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -58,6 +63,8 @@ import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -86,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     public static Size CAMERA2_PREVIEW_SIZE = new Size(1280, 720);
     public static Size CAMERA2_IMAGE_SIZE = new Size(1280, 720);
+    private Button preferrenceSettingBtn;
 
     static {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -112,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
+    public Config config = new Config();
 
     int idx;
     RdtAPI mRdtApi;
@@ -173,6 +182,38 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        /// preferrences
+        preferrenceSettingBtn = (Button) findViewById(R.id.preferrenceSettingBtn);
+        preferrenceSettingBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, MyPreferencesActivity.class);
+                startActivity(i);
+            }
+        });
+
+        try {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale", "1100"));
+            config.mMinScale = Short.parseShort(prefs.getString("mMinScale", "700"));
+            config.mXMin = Short.parseShort(prefs.getString("mXMin", "100"));
+            config.mXMax = Short.parseShort(prefs.getString("mXMax", "500"));
+            config.mYMin = Short.parseShort(prefs.getString("mYMin", "50"));
+            config.mYMax = Short.parseShort(prefs.getString("mMaxScalmYMaxe", "650"));
+            config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", "500.0f"));
+            config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", "210.0f"));
+            config.mMinBrightness = Float.parseFloat("100");
+        }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
+            config.mMaxScale = 1100;
+            config.mMinScale = 700;
+            config.mXMin = 100;
+            config.mXMax = 500;
+            config.mYMin = 50;
+            config.mYMax = 650;
+            config.mMinSharpness = 500.0f;
+            config.mMaxBrightness = 210.0f;
+            config.mMinBrightness = 110.0f;
+        }
 
     }
 
@@ -212,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
                 //Utils.matToBitmap(captureMat, resultBitmap);
                 //Log.d("Image",captureMat.cols()+"x"+captureMat.rows());
                 //Log.d("Image",image.getWidth()+"x"+image.getHeight());
+
             } catch(Exception e){
 
             } finally {
@@ -314,11 +356,6 @@ public class MainActivity extends AppCompatActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "is camera open");
         try {
-//            if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
-//                Log.e(TAG, "Time out waiting to lock camera opening.");
-//                return false;
-//            }
-//            String cameraId = mUseFrontCamera ? mFrontCameraId : mBackCameraId;
             String cameraId = manager.getCameraIdList()[0];
 
             // Add permission for camera and let user grant the permission
@@ -391,12 +428,11 @@ public class MainActivity extends AppCompatActivity {
             configureTransform(width, height);
             manager.openCamera(cameraId, mStateCallback, null);
 
+
+
         } catch (CameraAccessException e) {
             Log.e(TAG, "Cannot access the camera.", e);
             return false;
-//        } catch (InterruptedException e) {
-//            Log.e(TAG, "Interrupted while trying to lock camera opening.");
-//            return false;
         } catch (SecurityException e) {
             Log.e(TAG, "No access to camera device", e);
             return false;
@@ -510,6 +546,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+
     }
 
 
