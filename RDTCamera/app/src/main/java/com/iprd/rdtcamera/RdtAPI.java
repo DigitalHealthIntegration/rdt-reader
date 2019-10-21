@@ -23,7 +23,15 @@ public class RdtAPI {
     Config mConfig;
     AcceptanceStatus mAcceptanceStatus=new AcceptanceStatus();
     ObjectDetection mTensorFlow=null;
-    public boolean mInprogress = false;
+    boolean mInprogress = false;
+
+    public void setSaveImages(boolean b){
+        if(mTensorFlow!= null)mTensorFlow.setSaveImages(b);
+    }
+
+    public boolean isInProgress(){
+        return mInprogress;
+    }
 
     private boolean computeBlur(Mat greyImage) {
         Mat laplacian=new Mat();
@@ -94,9 +102,9 @@ public class RdtAPI {
 
     public AcceptanceStatus update(Bitmap capFrame) {
         mInprogress = true;
+        Mat matinput = new Mat();
+        Mat greyMat = new Mat();
         try {
-            Mat matinput = new Mat();
-            Mat greyMat = new Mat();
             Utils.bitmapToMat(capFrame, matinput);
             //Log.d("INPUT",capFrame.getWidth()+"x"+capFrame.getHeight());
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
@@ -131,17 +139,16 @@ public class RdtAPI {
             // mTensorFlow.SaveROIImage(imageROI,0,0,imageROI.width(),imageROI.height());
 
             if (!computeBlur(imageROI)) {
-                greyMat.release();
                 return mAcceptanceStatus;
             }
             if (!computeBrightness(imageROI)) {
-                greyMat.release();
                 return mAcceptanceStatus;
             }
-            greyMat.release();
         } catch (Exception e) {
         } finally {
             mInprogress = false;
+            greyMat.release();
+            matinput.release();
         }
         return mAcceptanceStatus;
    }

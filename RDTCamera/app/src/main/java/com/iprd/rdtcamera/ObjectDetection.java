@@ -3,7 +3,6 @@ package com.iprd.rdtcamera;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import org.opencv.android.Utils;
 import org.opencv.core.CvException;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -35,6 +34,10 @@ public class ObjectDetection {
     Interpreter mTflite;
     Interpreter.Options tf_options = new Interpreter.Options();
 
+    boolean mSaveImage=false;
+    public void setSaveImages(boolean b){
+        mSaveImage =b;
+    }
     ObjectDetection(byte[] bytes){
         //File modelFile = new File("/mnt/sdcard/mgd/tflite.lite");
         //mTflite = new Interpreter(modelFile);
@@ -138,118 +141,125 @@ public class ObjectDetection {
         return roi;
     }
 
-    Rect update(Mat inputmat,Boolean [] rdt){
-        int [] roi = new int[4];
-        int width = inputmat.cols();
-        int height = inputmat.rows();
-        Rect ret = new Rect(-1,-1,-1,-1);
-        //Resize image to 256x256 for the neural network
-        Mat greyMat = new Mat();
-        org.opencv.core.Size sz = new org.opencv.core.Size(256, 256);
-        Imgproc.resize(inputmat, greyMat, sz);
+    Rect update(Mat inputmat,Boolean [] rdt) {
+        Rect ret = new Rect(-1, -1, -1, -1);
+        try {
+            int[] roi = new int[4];
+            int width = inputmat.cols();
+            int height = inputmat.rows();
 
-        //Feed image pixels in normalized form to the input
-        float[][][][] input = new float[1][256][256][1];
-        for (int i = 0; i < 256; i++) {
-            for (int j = 0; j < 256; j++) {
-                double[] pixelvalue = greyMat.get(i, j);
-                // Log.d("val"+i+"x"+j, String.valueOf(pixelvalue[0]));
+            //Resize image to 256x256 for the neural network
+            Mat greyMat = new Mat();
+            org.opencv.core.Size sz = new org.opencv.core.Size(256, 256);
+            Imgproc.resize(inputmat, greyMat, sz);
+
+            //Feed image pixels in normalized form to the input
+            float[][][][] input = new float[1][256][256][1];
+            for (int i = 0; i < 256; i++) {
+                for (int j = 0; j < 256; j++) {
+                    double[] pixelvalue = greyMat.get(i, j);
+                    // Log.d("val"+i+"x"+j, String.valueOf(pixelvalue[0]));
 //                    double normalized = (double) (greyMat.get(i,j)/255.0);
-                input[0][i][j][0] = (float) (pixelvalue[0] / 255.0);
+                    input[0][i][j][0] = (float) (pixelvalue[0] / 255.0);
+                }
             }
-        }
-        //Initialize output buffer
-        float[][][][] output = new float[1][225][5][7];
-        //Image to draw roi in
-        Bitmap bmp = null;
+            //Initialize output buffer
+            float[][][][] output = new float[1][225][5][7];
+            //Image to draw roi in
+            Bitmap bmp = null;
 
-        long startTime = System.nanoTime();
+            long startTime = System.nanoTime();
 
-        mTflite.run(input, output);
-        long endTime = System.nanoTime();
-        long MethodeDuration = (endTime - startTime);
-        float timetaken = MethodeDuration/1000000.0f;
-        Log.d("mTfliteTime", String.valueOf(timetaken));
+            mTflite.run(input, output);
+            long endTime = System.nanoTime();
+            long MethodeDuration = (endTime - startTime);
+            float timetaken = MethodeDuration / 1000000.0f;
+            Log.i("mTfliteTime", String.valueOf(timetaken));
 
 //            AcceptanceStatus ret = update(mat.getNativeObjAddr());
 //            if(null != ret ) Log.d("RDT FOUND ",ret.mRDTFound?"1":"0");
 //            Log.d("TF","done");
-        int[] anchors = new int[]{20, 10, 10, 20, 30, 30, 25, 20, 20, 25};
+            int[] anchors = new int[]{20, 10, 10, 20, 30, 30, 25, 20, 20, 25};
 //           [[[20,10],[10,20],[30,30],[25,20],[20,25]]]
 
-        ArrayList<HashMap<Float, Vector<Integer>>> vectorTableBottom = new ArrayList<HashMap<Float, Vector<Integer>>>();
-        ArrayList<HashMap<Float, Vector<Integer>>> vectorTableTop= new ArrayList<HashMap<Float, Vector<Integer>>>();
+            ArrayList<HashMap<Float, Vector<Integer>>> vectorTableBottom = new ArrayList<HashMap<Float, Vector<Integer>>>();
+            ArrayList<HashMap<Float, Vector<Integer>>> vectorTableTop = new ArrayList<HashMap<Float, Vector<Integer>>>();
 
-        float resizeFactor = 256.0f / 15.0f;
-        for (int row = 0; row < 15; row++) {
-            for (int col = 0; col < 15; col++) {
-                for (int j = 0; j < 5; j++) {
+            float resizeFactor = 256.0f / 15.0f;
+            for (int row = 0; row < 15; row++) {
+                for (int col = 0; col < 15; col++) {
+                    for (int j = 0; j < 5; j++) {
 
-                    float conf_0 = output[0][row * 15 + col][j][0];
-                    float conf_1 = output[0][row * 15 + col][j][1];
-                    if (conf_0 > mTopThreshold) {
+                        float conf_0 = output[0][row * 15 + col][j][0];
+                        float conf_1 = output[0][row * 15 + col][j][1];
+                        if (conf_0 > mTopThreshold) {
 //                            Log.d("outpu", String.valueOf(conf_0));
-                        float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
-                        float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
-                        float w = anchors[j * 2] + output[0][row * 15 + col][j][5] * 256;
-                        float h = anchors[j * 2 + 1] + output[0][row * 15 + col][j][6] * 256;
-                        Vector v = new Vector();
+                            float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
+                            float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
+                            float w = anchors[j * 2] + output[0][row * 15 + col][j][5] * 256;
+                            float h = anchors[j * 2 + 1] + output[0][row * 15 + col][j][6] * 256;
+                            Vector v = new Vector();
 
-                        int[] xy = cxcy2xy(cx, cy, w, h);
-                        v.add(xy[0]);
-                        v.add(xy[1]);
-                        v.add(xy[2]);
-                        v.add(xy[3]);
-                        HashMap<Float, Vector<Integer>> hMap = new HashMap<Float, Vector<Integer>>();
-                        hMap.put(conf_0, v);
-                        vectorTableTop.add(hMap);
-                    } else if (conf_1 > mBottomThreshold) {
+                            int[] xy = cxcy2xy(cx, cy, w, h);
+                            v.add(xy[0]);
+                            v.add(xy[1]);
+                            v.add(xy[2]);
+                            v.add(xy[3]);
+                            HashMap<Float, Vector<Integer>> hMap = new HashMap<Float, Vector<Integer>>();
+                            hMap.put(conf_0, v);
+                            vectorTableTop.add(hMap);
+                        } else if (conf_1 > mBottomThreshold) {
 //                            Log.d("outpu", String.valueOf(conf_1));
-                        float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
-                        float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
+                            float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
+                            float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
 
-                        float w = anchors[j * 2] + output[0][row * 15 + col][j][5] * 256;
-                        float h = anchors[j * 2 + 1] + output[0][row * 15 + col][j][6] * 256;
+                            float w = anchors[j * 2] + output[0][row * 15 + col][j][5] * 256;
+                            float h = anchors[j * 2 + 1] + output[0][row * 15 + col][j][6] * 256;
 
-                        Vector v = new Vector();
-                        int[] xy = cxcy2xy(cx, cy, w, h);
-                        v.add(xy[0]);
-                        v.add(xy[1]);
-                        v.add(xy[2]);
-                        v.add(xy[3]);
-                        HashMap<Float, Vector<Integer>> hMap = new HashMap<Float, Vector<Integer>>();
-                        hMap.put(conf_1, v);
-                        vectorTableBottom.add(hMap);
+                            Vector v = new Vector();
+                            int[] xy = cxcy2xy(cx, cy, w, h);
+                            v.add(xy[0]);
+                            v.add(xy[1]);
+                            v.add(xy[2]);
+                            v.add(xy[3]);
+                            HashMap<Float, Vector<Integer>> hMap = new HashMap<Float, Vector<Integer>>();
+                            hMap.put(conf_1, v);
+                            vectorTableBottom.add(hMap);
+                        }
                     }
                 }
             }
-        }
 
-        if (vectorTableBottom.size() > 0) {
-            Collections.sort(vectorTableBottom, new ScoreComparator());
+            if (vectorTableBottom.size() > 0) {
+                Collections.sort(vectorTableBottom, new ScoreComparator());
+            }
+            if (vectorTableTop.size() > 0) {
+                Collections.sort(vectorTableTop, new ScoreComparator());
+            }
+            if (vectorTableBottom.size() > 0 & vectorTableTop.size() > 0) {
+                roi = nonMaxSupression(vectorTableTop, vectorTableBottom);
+                int x1 = roi[0];
+                int y1 = roi[1];
+                int x2 = roi[2];
+                int y2 = roi[3];
+                //SaveROIImage(greyMat, x1, y1, x2, y2);
+                ret.x = (int) (roi[0] / 256.0f * width);
+                ret.y = (int) (roi[1] / 256.0f * height);
+                ret.width = (int) (roi[2] / 256.0f * width);
+                ret.height = (int) (roi[3] / 256.0f * height);
+                rdt[0] = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        if (vectorTableTop.size() > 0) {
-            Collections.sort(vectorTableTop, new ScoreComparator());
+        if(mSaveImage) {
+            if(rdt[0] == false){
+               Utils.SaveROIImage(inputmat, ret.x,ret.y,ret.width,ret.height);
+               Log.i("ROI",ret.x +"x" + ret.y + " " + ret.width+"x"+ret.height);
+            }
         }
-        if(vectorTableBottom.size() > 0 & vectorTableTop.size() > 0){
-
-            roi=nonMaxSupression(vectorTableTop,vectorTableBottom);
-            int x1=roi[0];
-            int y1=roi[1];
-            int x2=roi[2];
-            int y2=roi[3];
-            //SaveROIImage(greyMat, x1, y1, x2, y2);
-            ret.x = (int) (roi[0]/256.0f*width);
-            ret.y = (int) (roi[1]/256.0f*height);
-            ret.width = (int) (roi[2]/256.0f*width);
-            ret.height = (int) (roi[3]/256.0f*height);
-            rdt[0]=true;
-            //SaveROIImage(inputmat, ret.x,ret.y,ret.width,ret.height);
-        }
-        //Log.d("",)
         return ret;
     }
-
 
 }
 

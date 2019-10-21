@@ -182,6 +182,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        /// Set Torch button
+        Switch saveData = (Switch) findViewById(R.id.saveData);
+        saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    mRdtApi.setSaveImages(true);
+                } else {
+                    mRdtApi.setSaveImages(false);
+                }
+            }
+        });
         /// preferrences
         preferrenceSettingBtn = (Button) findViewById(R.id.preferrenceSettingBtn);
         preferrenceSettingBtn.setOnClickListener(new View.OnClickListener() {
@@ -285,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-            if(!mRdtApi.mInprogress) {
+            if(!mRdtApi.isInProgress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
             }
@@ -303,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             long st  = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.update(capFrame);
             long et = System.currentTimeMillis()-st;
-            Log.d("Total Processing Time "," "+ et);
+            Log.i("Total Processing Time "," "+ et);
 //            final AcceptanceStatus status = getCords(null);
             //final AcceptanceStatus status = getCords(mat);
             runOnUiThread(new Runnable() {

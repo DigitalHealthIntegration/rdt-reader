@@ -20,7 +20,7 @@ public class Utils {
     static String dirpath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RDT/";
     static int mImageCount = 0;
 
-    void CreateDirectory() {
+    static void  CreateDirectory() {
 
         File file = new File(dirpath);
         if (!file.exists()) {
@@ -28,7 +28,7 @@ public class Utils {
         }
     }
 
-    public void SaveROIImage(Mat greyMat, int x1, int y1, int x2, int y2) {
+    public static void SaveROIImage(Mat greyMat, int x1, int y1, int x2, int y2) {
         Mat tmp = new Mat();
         Imgproc.cvtColor(greyMat, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
         Imgproc.rectangle(tmp, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 1);
@@ -45,8 +45,10 @@ public class Utils {
         tmp.release();
     }
 
-    public void saveImage(Bitmap m) {
+    public static void saveImage(Bitmap m) {
+        CreateDirectory();
         File myImage = new File(dirpath+"Image" + mImageCount + ".jpg");
+        Log.i("Saving File",myImage.getAbsolutePath());
         mImageCount++;
         if (myImage.exists()) myImage.delete();
         FileOutputStream out = null;
