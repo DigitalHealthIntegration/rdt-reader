@@ -243,12 +243,10 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-            //Bitmap capFrame = mTextureView.getBitmap();
-            if (count++ % 10 == 0) {
+            if(!mRdtApi.mInprogress) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
             }
-            //Log.d("Madhav",capFrame.getWidth()+"x"+capFrame.getHeight() );
         }
         void Process(final Bitmap capFrame) {
             new Thread(new Runnable() {

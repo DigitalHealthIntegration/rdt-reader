@@ -30,9 +30,10 @@ import java.util.Vector;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class ObjectDetection {
+    public static final double mTopThreshold = 0.9;
+    public static final double mBottomThreshold = 0.9;
     Interpreter mTflite;
     Interpreter.Options tf_options = new Interpreter.Options();
-    static int mImageCount = 0;
 
     ObjectDetection(byte[] bytes){
         //File modelFile = new File("/mnt/sdcard/mgd/tflite.lite");
@@ -80,7 +81,7 @@ public class ObjectDetection {
         //Log.d("detection","done");
         int [] roi = new int[4];
         int [] x1y1x2y2Top = {256,256,0,0};
-        int [] x1y1x2y2Bot= {256,256,0,0};
+        int [] x1y1x2y2Bot = {256,256,0,0};
         for (int i =0;i<topn;i++){
             try {
                 for (Map.Entry mapElement : Top.get(i).entrySet()) {
@@ -186,7 +187,7 @@ public class ObjectDetection {
 
                     float conf_0 = output[0][row * 15 + col][j][0];
                     float conf_1 = output[0][row * 15 + col][j][1];
-                    if (conf_0 > 0.86) {
+                    if (conf_0 > mTopThreshold) {
 //                            Log.d("outpu", String.valueOf(conf_0));
                         float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
                         float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
@@ -202,7 +203,7 @@ public class ObjectDetection {
                         HashMap<Float, Vector<Integer>> hMap = new HashMap<Float, Vector<Integer>>();
                         hMap.put(conf_0, v);
                         vectorTableTop.add(hMap);
-                    } else if (conf_1 > 0.86) {
+                    } else if (conf_1 > mBottomThreshold) {
 //                            Log.d("outpu", String.valueOf(conf_1));
                         float cy = (float) ((row + 0.5) * resizeFactor + output[0][row * 15 + col][j][3] * 256);
                         float cx = (float) ((col + 0.5) * resizeFactor + output[0][row * 15 + col][j][4] * 256);
@@ -245,41 +246,10 @@ public class ObjectDetection {
             rdt[0]=true;
             //SaveROIImage(inputmat, ret.x,ret.y,ret.width,ret.height);
         }
+        //Log.d("",)
         return ret;
     }
 
-    public void SaveROIImage(Mat greyMat, int x1, int y1, int x2, int y2) {
-        Mat tmp = new Mat();
-        Imgproc.cvtColor(greyMat, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
-        Imgproc.rectangle(tmp, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 1);
-        Bitmap finalBitmap = null;
-        try {
-            //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
-            finalBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(tmp, finalBitmap);
-            saveImage(finalBitmap);
-        }
-        catch (CvException e){
-            Log.d("Exception",e.getMessage());
-        }
-        tmp.release();
-    }
 
-    public void saveImage(Bitmap m) {
-        File myImage = new File("/mnt/sdcard/mgd/Image" + mImageCount + ".jpg");
-        mImageCount++;
-        if (myImage.exists()) myImage.delete();
-        FileOutputStream out = null;
-        try {
-            out = new FileOutputStream(myImage);
-            m.compress(Bitmap.CompressFormat.JPEG, 90, out);
-            out.flush();
-            out.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
 
