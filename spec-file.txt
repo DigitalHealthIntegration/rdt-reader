@@ -103,7 +103,7 @@ https://conda.anaconda.org/conda-forge/noarch/networkx-2.3-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/win-64/pillow-6.1.0-py36h643dfcc_1.tar.bz2
 https://conda.anaconda.org/anaconda/win-64/protobuf-3.8.0-py36h33f27b4_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/pygments-2.4.2-py_0.tar.bz2
-https://conda.anaconda.org/conda-forge/win-64/pyqt-5.9.2-py36h6538335_2.tar.bz2
+https://conda.anaconda.org/conda-forge/win-64/pyqt-5.9.2-py36h6538335_4.tar.bz2
 https://conda.anaconda.org/conda-forge/win-64/wheel-0.33.6-py36_0.tar.bz2
 https://conda.anaconda.org/anaconda/noarch/flask-1.1.1-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/win-64/pip-19.2.3-py36_0.tar.bz2
