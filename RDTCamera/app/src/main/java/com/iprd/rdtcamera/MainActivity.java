@@ -456,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
 //        }
    }
     private void startPreview() {
-        if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null) {
+        if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null || mImageReader == null) {
             return;
         }
         try {
