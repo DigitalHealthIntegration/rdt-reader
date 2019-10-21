@@ -38,7 +38,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -94,11 +96,6 @@ import static org.opencv.imgproc.Imgproc.floodFill;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
     private Activity self;
-/*    private Button takePictureButton;
-    private Button btn_on;
-    private Button btn_off;
-    private Boolean flashLightStatus = false;*/
-
     private AutoFitTextureView mtextureView;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     static {
@@ -136,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
     private Handler mOnImageAvailableHandler;
     byte[] mtfliteBytes = null;
 
+
     private boolean checkpermission(){
         System.out.println("..>>"+ WRITE_EXTERNAL_STORAGE);
         int res  = ContextCompat.checkSelfPermission(getApplicationContext(), CAMERA);
@@ -144,13 +142,7 @@ public class MainActivity extends AppCompatActivity {
         return res1 == PackageManager.PERMISSION_GRANTED && res == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED;
     }
     private void requestPermission(){
-       /* if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA,ACCESS_FINE_LOCATION}, 200);
-
-        }*/
-
         ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA, Manifest.permission.CAMERA}, 200);
-
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,6 +186,25 @@ public class MainActivity extends AppCompatActivity {
         }
         mRdtApi = new rdtapi();
         mRdtApi.init(c);
+
+        Switch sw = (Switch) findViewById(R.id.torch);
+        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                try{
+                if (isChecked) {
+                    // The toggle is enabled
+                    captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+                    cameraCaptureSessions.setRepeatingRequest(captureRequestBuilder.build(), null, null);
+                } else {
+                    // The toggle is disabled
+                    captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+                    cameraCaptureSessions.setRepeatingRequest(captureRequestBuilder.build(), null, null);
+                }
+                }catch (CameraAccessException e){
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     byte[] ReadAssests() throws IOException {
@@ -508,12 +519,16 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "updatePreview error, return");
         }
         captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+
         try {
+
             cameraCaptureSessions.setRepeatingRequest(captureRequestBuilder.build(), null, mBackgroundHandler);
+
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
     }
+
     private void closeCamera() {
         if (null != cameraDevice) {
             cameraDevice.close();

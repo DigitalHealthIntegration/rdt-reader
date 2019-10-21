@@ -25,6 +25,16 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintDimensionRatio="H,9:16"
         />
+
+    <Switch
+        android:id="@+id/torch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Light"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
     <!--  android:layout_marginLeft="0px"
   android:layout_marginTop="0px"-->
 </androidx.constraintlayout.widget.ConstraintLayout>
