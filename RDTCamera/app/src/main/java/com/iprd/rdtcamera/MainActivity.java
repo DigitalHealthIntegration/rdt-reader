@@ -36,7 +36,9 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -151,6 +153,27 @@ public class MainActivity extends AppCompatActivity {
         }
         mRdtApi = new RdtAPI();
         mRdtApi.init(c);
+
+        /// Set Torch button
+        Switch sw = (Switch) findViewById(R.id.torch);
+        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                try{
+                    if (isChecked) {
+                        // The toggle is enabled
+                        mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+                        mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
+                    } else {
+                        // The toggle is disabled
+                        mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+                        mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
+                    }
+                }catch (CameraAccessException e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
     }
 
     byte[] ReadAssests() throws IOException {
