@@ -22,7 +22,7 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 public class RdtAPI {
     Config mConfig;
     AcceptanceStatus mAcceptanceStatus=new AcceptanceStatus();
-    TensorFlow mTensorFlow=null;
+    ObjectDetection mTensorFlow=null;
 
     private boolean computeBlur(Mat greyImage) {
         Mat laplacian=new Mat();
@@ -88,7 +88,7 @@ public class RdtAPI {
 
     public void init(Config c) {
         mConfig = c;
-        mTensorFlow = new TensorFlow(mConfig.mTfliteB);
+        mTensorFlow = new ObjectDetection(mConfig.mTfliteB);
     }
 
     public AcceptanceStatus update(Bitmap capFrame) {

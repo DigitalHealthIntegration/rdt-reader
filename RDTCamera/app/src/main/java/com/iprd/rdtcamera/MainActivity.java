@@ -495,7 +495,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updatePreview() {
-        if (null == mCameraDevice) {
+        if (mCameraDevice == null ||mPreviewBuilder == null || mBackgroundHandler == null|| mPreviewSession == null ) {
             return;
         }
         try {
@@ -511,9 +511,6 @@ public class MainActivity extends AppCompatActivity {
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
     }
-
-
-
 
     private AcceptanceStatus getCords(Mat mat){
         if(idx>=mAcceptArray.size()){
