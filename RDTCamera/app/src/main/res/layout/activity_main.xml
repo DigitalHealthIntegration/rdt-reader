@@ -68,4 +68,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/rdtDataToBeDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/rect"
+        android:backgroundTint="#00EB4A4A"
+        android:text="Sharpness : 1000 X 400 \n Brightness : 200 X 1121"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/mode"
+        app:layout_constraintEnd_toEndOf="@+id/texture"
+        app:layout_constraintStart_toStartOf="@+id/texture" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

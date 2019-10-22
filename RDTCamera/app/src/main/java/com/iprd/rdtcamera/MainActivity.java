@@ -44,6 +44,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     public static Size CAMERA2_PREVIEW_SIZE = new Size(1280, 720);
     public static Size CAMERA2_IMAGE_SIZE = new Size(1280, 720);
     private Button preferrenceSettingBtn;
+    private TextView rdtDataToBeDisplay;
 
     static {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -150,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
 
         mRectView = findViewById(R.id.rdtRect);
+        rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
+
         mAcceptArray = new ArrayList<>();
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)50,(short)50,(short)400,(short)50));
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)100,(short)100,(short)500,(short)400));
@@ -472,7 +476,7 @@ public class MainActivity extends AppCompatActivity {
         }
         mTextureView.setTransform(matrix);
     }
-//
+
     private void closeCamera() {
 //        try {
             //////mCameraOpenCloseLock.acquire();
@@ -572,6 +576,9 @@ public class MainActivity extends AppCompatActivity {
 //            if ((curr - prevTime) > 5000) { //5 sec of timeout
 //                Log.d("TimeDiff","curr " + curr + "prev " + prevTime +" = " +(curr - prevTime) );
                 mRectView.setVisibility(View.INVISIBLE);
+                if(rdtDataToBeDisplay != null) {
+                    rdtDataToBeDisplay.setVisibility(View.INVISIBLE);
+                }
                 return;
 //            }
         }
@@ -592,11 +599,20 @@ public class MainActivity extends AppCompatActivity {
         //Log.d("Box","Bounds "+lp.width+"x"+lp.height+" Position "+boxPosition.getWidth()+"x"+boxPosition.getHeight());
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
+
+        rdtDataToBeDisplay.setText("Sharpness : 1000 X 400 \nBrightness : 200 X 1121");
+        rdtDataToBeDisplay.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        //
+        /*SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        String t = prefs.getString("mMaxScale", "1100");
+        Log.d("...........",t);*/
+        //
+
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
