@@ -61,9 +61,10 @@
 
     <Button
         android:id="@+id/preferrenceSettingBtn"
-        android:layout_width="20dp"
-        android:layout_height="32dp"
+        android:layout_width="19dp"
+        android:layout_height="21dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/wthreedots"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
