@@ -24,6 +24,7 @@ public class RdtAPI {
     AcceptanceStatus mAcceptanceStatus=new AcceptanceStatus();
     ObjectDetection mTensorFlow=null;
     boolean mInprogress = false;
+    short mBrightness,mSharpness;
 
     public void setSaveImages(boolean b){
         if(mTensorFlow!= null)mTensorFlow.setSaveImages(b);
@@ -49,6 +50,7 @@ public class RdtAPI {
         // Release resources
         laplacian.release();
         double sharpness =(float) std.get(0,0)[0]*std.get(0,0)[0];
+        mSharpness = (short) sharpness;
        // Log.d("Sharpness","mSharpness " + sharpness);
         if (sharpness < mConfig.mMinSharpness){
             mAcceptanceStatus.mSharpness = TOO_LOW;
@@ -61,6 +63,7 @@ public class RdtAPI {
     private boolean computeBrightness(Mat grey) {
         Scalar tempVal = mean(grey);
         double brightness = tempVal.val[0];
+        mBrightness = (short) brightness;
         //Log.d("Brightness","mBrightness "+brightness);
         if (brightness > mConfig.mMaxBrightness) {
             mAcceptanceStatus.mBrightness = TOO_HIGH;
@@ -109,6 +112,8 @@ public class RdtAPI {
 
     public AcceptanceStatus update(Bitmap capFrame) {
         mInprogress = true;
+        mBrightness = -1;
+        mSharpness = -1;
         Mat matinput = new Mat();
         Mat greyMat = new Mat();
         try {

@@ -54,5 +54,10 @@
         android:key="mBotTh"
         android:defaultValue="0.9"
         android:summary="Please provide Bottom Threshold"></EditTextPreference>
+    <EditTextPreference android:title="Show Image Data"
+        android:key="mShowImageData"
+        android:defaultValue="0"
+        android:summary="To Enable Image Stat"></EditTextPreference>
+
 
 </PreferenceScreen>

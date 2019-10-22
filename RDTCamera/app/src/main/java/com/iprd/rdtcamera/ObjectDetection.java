@@ -30,7 +30,7 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class ObjectDetection {
     public static double mTopThreshold = 0.9;
-    public static double mBottomThreshold = 0.9;
+    public static double mBottomThreshold = 0.7;
     Interpreter mTflite;
     Interpreter.Options tf_options = new Interpreter.Options();
 

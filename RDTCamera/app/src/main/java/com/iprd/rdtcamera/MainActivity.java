@@ -1,7 +1,6 @@
 package com.iprd.rdtcamera;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,17 +21,10 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.PreferenceManager;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.Type;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -50,8 +42,6 @@ import android.widget.Toast;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
 import org.opencv.core.Point;
 
 import androidx.annotation.NonNull;
@@ -61,19 +51,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -94,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     public static Size CAMERA2_PREVIEW_SIZE = new Size(1280, 720);
     public static Size CAMERA2_IMAGE_SIZE = new Size(1280, 720);
-    private Button preferrenceSettingBtn;
+    private Button preferenceSettingBtn;
     private TextView rdtDataToBeDisplay;
 
     static {
@@ -123,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Integer mSensorOrientation;
     private double mTopTh,mBotTh;
+    private short mShowImageData=0;
     public Config config = new Config();
 
     int idx;
@@ -154,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRectView = findViewById(R.id.rdtRect);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
-
+        //rdtDataToBeDisplay.setTextColor(0x000000FF);
         mAcceptArray = new ArrayList<>();
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)50,(short)50,(short)400,(short)50));
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)100,(short)100,(short)500,(short)400));
@@ -167,6 +151,16 @@ public class MainActivity extends AppCompatActivity {
         }
         mRdtApi = new RdtAPI();
         mRdtApi.init(c);
+        // preferences
+        preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
+        preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, MyPreferencesActivity.class);
+                startActivity(i);
+            }
+        });
+        ApplySettings();
 
         /// Set Torch button
         Switch sw = (Switch) findViewById(R.id.torch);
@@ -198,16 +192,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        /// preferrences
-        preferrenceSettingBtn = (Button) findViewById(R.id.preferrenceSettingBtn);
-        preferrenceSettingBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(MainActivity.this, MyPreferencesActivity.class);
-                startActivity(i);
-            }
-        });
 
+    }
+
+    private void ApplySettings() {
         try {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale", "1100"));
@@ -215,12 +203,13 @@ public class MainActivity extends AppCompatActivity {
             config.mXMin = Short.parseShort(prefs.getString("mXMin", "100"));
             config.mXMax = Short.parseShort(prefs.getString("mXMax", "500"));
             config.mYMin = Short.parseShort(prefs.getString("mYMin", "50"));
-            config.mYMax = Short.parseShort(prefs.getString("mMaxScalmYMaxe", "650"));
+            config.mYMax = Short.parseShort(prefs.getString("mYMax", "650"));
             config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", "500.0f"));
             config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", "210.0f"));
             config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", "100.0f"));
             mTopTh = Float.parseFloat(prefs.getString("mTopTh", "0.9f"));
-            mBotTh = Float.parseFloat(prefs.getString("mBotTh", "0.9f"));
+            mBotTh = Float.parseFloat(prefs.getString("mBotTh", "0.7f"));
+            mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
         }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
             config.mMaxScale = 1100;
             config.mMinScale = 700;
@@ -232,12 +221,12 @@ public class MainActivity extends AppCompatActivity {
             config.mMaxBrightness = 210.0f;
             config.mMinBrightness = 110.0f;
             mTopTh = 0.9f;
-            mBotTh = 0.9f;
+            mBotTh = 0.7f;
+            mShowImageData = 0;
         }
-        mRdtApi.setConfig(c);
+        mRdtApi.setConfig(config);
         mRdtApi.setTopThreshold(mTopTh);
         mRdtApi.setBottomThreshold(mBotTh);
-
     }
 
     byte[] ReadAssests() throws IOException {
@@ -325,6 +314,10 @@ public class MainActivity extends AppCompatActivity {
         private void ProcessBitmap(Bitmap capFrame) {
             long st  = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.update(capFrame);
+            if(mShowImageData != 0){
+                status.mSharpness = mRdtApi.mSharpness;
+                status.mBrightness = mRdtApi.mBrightness;
+            }
             long et = System.currentTimeMillis()-st;
             Log.i("Total Processing Time "," "+ et);
 //            final AcceptanceStatus status = getCords(null);
@@ -601,9 +594,11 @@ public class MainActivity extends AppCompatActivity {
         //Log.d("Box","Bounds "+lp.width+"x"+lp.height+" Position "+boxPosition.getWidth()+"x"+boxPosition.getHeight());
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
+        if(mShowImageData !=0) {
+            rdtDataToBeDisplay.setText("S[" + status.mSharpness+ "]\n"+"B[" + status.mBrightness+"]");
+            rdtDataToBeDisplay.setVisibility(View.VISIBLE);
+        }
 
-        rdtDataToBeDisplay.setText("Sharpness : 1000 X 400 \nBrightness : 200 X 1121");
-        rdtDataToBeDisplay.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -613,6 +608,7 @@ public class MainActivity extends AppCompatActivity {
         /*SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         String t = prefs.getString("mMaxScale", "1100");
         Log.d("...........",t);*/
+        ApplySettings();
         //
 
         if (!OpenCVLoader.initDebug()) {
