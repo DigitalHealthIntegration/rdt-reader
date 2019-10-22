@@ -217,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
             short t  = Short.parseShort(prefs.getString("mSaveNegativeData", "0"));
             if(t!=0) mSaveNegativeData =true;
         }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
+            Log.i("RDT","Exception in  Shared Pref switching to default");
             config.setDefaults();
             mTopTh = 0.9f;
             mBotTh = 0.7f;

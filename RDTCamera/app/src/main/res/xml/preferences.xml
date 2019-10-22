@@ -59,5 +59,10 @@
         android:defaultValue="0"
         android:summary="To Enable Image Stat"></EditTextPreference>
 
+    <EditTextPreference android:title="Save Image For Negative Cases"
+        android:key="mSaveNegativeData"
+        android:defaultValue="0"
+        android:summary="Save Image For Negative Cases"></EditTextPreference>
+
 
 </PreferenceScreen>
