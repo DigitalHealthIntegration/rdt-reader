@@ -18,6 +18,7 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     public static Size CAMERA2_IMAGE_SIZE = new Size(1280, 720);
     private Button preferenceSettingBtn;
     private TextView rdtDataToBeDisplay;
+    private List<Surface> mSurfaces;
 
     static {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -108,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
     private double mTopTh,mBotTh;
     private short mShowImageData=0;
     public Config config = new Config();
+
 
     int idx;
     RdtAPI mRdtApi;
@@ -329,6 +332,13 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private CameraCaptureSession.CaptureCallback mCaptureCallback
+            = new CameraCaptureSession.CaptureCallback() {
+
+        private void process(CaptureResult result) {
+        }
+    };
+
     private CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
@@ -500,19 +510,18 @@ public class MainActivity extends AppCompatActivity {
                     mPreviewSize.getHeight());
             mPreviewBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            List surfaces = new ArrayList<>();
+            mSurfaces = new ArrayList<>();
 
             Surface previewSurface = new Surface(texture);
-            surfaces.add(previewSurface);
+            mSurfaces.add(previewSurface);
             mPreviewBuilder.addTarget(previewSurface);
 
             Surface readerSurface = mImageReader.getSurface();
-            surfaces.add(readerSurface);
+            mSurfaces.add(readerSurface);
             mPreviewBuilder.addTarget(readerSurface);
 
-            mCameraDevice.createCaptureSession(surfaces,
+            mCameraDevice.createCaptureSession(mSurfaces,
                     new CameraCaptureSession.StateCallback() {
-
                         @Override
                         public void onConfigured(CameraCaptureSession cameraCaptureSession) {
                             mPreviewSession = cameraCaptureSession;
@@ -535,8 +544,8 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             setUpCaptureRequestBuilder(mPreviewBuilder);
-            HandlerThread thread = new HandlerThread("CameraPreview");
-            thread.start();
+//            HandlerThread thread = new HandlerThread("CameraPreview");
+//            thread.start();
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -576,6 +585,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mRectView.bringToFront();
+        rdtDataToBeDisplay.bringToFront();
 //        Log.d("ROI","Bounds "+status.mBoundingBoxX+"x"+status.mBoundingBoxY+" Position "+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
         Point boundsRatio = new Point(prevStat.mBoundingBoxWidth*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxHeight*1.0/CAMERA2_PREVIEW_SIZE.getHeight()),
                 positionRatio = new Point(prevStat.mBoundingBoxX*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxY*1.0/CAMERA2_PREVIEW_SIZE.getHeight());
@@ -601,6 +611,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        mTextureView.setVisibility(View.VISIBLE);
         //
         /*SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         String t = prefs.getString("mMaxScale", "1100");
@@ -636,26 +647,48 @@ public class MainActivity extends AppCompatActivity {
      * Stops the background thread and its {@link Handler}.
      */
     private void stopBackgroundThread() {
-        mBackgroundThread.quitSafely();
-        try {
-            mBackgroundThread.join();
-            mBackgroundThread = null;
-            mBackgroundHandler = null;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if(mBackgroundHandler != null) {
+            mBackgroundHandler.removeCallbacksAndMessages(null);
+            mBackgroundThread.quitSafely();
+            try {
+                mBackgroundThread.join();
+                mBackgroundThread = null;
+                mBackgroundHandler = null;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
 
     @Override
     public void onPause() {
+        Log.d(TAG,"onPause called");
+        mTextureView.setVisibility(View.GONE);
         closeCamera();
         stopBackgroundThread();
         super.onPause();
     }
 
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG,"onDestroy called");
+        closeCamera();
+        stopBackgroundThread();
+        super.onDestroy();
+    }
+
     private void closePreviewSession() {
         if (mPreviewSession != null) {
+            try {
+                for(Surface surf:mSurfaces){
+                    mPreviewBuilder.removeTarget(surf);
+                }
+                mPreviewSession.stopRepeating();
+                mPreviewSession.abortCaptures();
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
             mPreviewSession.close();
             mPreviewSession = null;
         }
