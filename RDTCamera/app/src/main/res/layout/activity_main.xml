@@ -77,7 +77,7 @@
         android:layout_marginTop="8dp"
         android:backgroundTint="#00ffffff"
         android:text=""
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/colorBlue"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="@+id/texture"
         app:layout_constraintHorizontal_bias="1.0"

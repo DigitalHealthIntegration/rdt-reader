@@ -613,10 +613,7 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         mTextureView.setVisibility(View.VISIBLE);
-        //
-        /*SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        String t = prefs.getString("mMaxScale", "1100");
-        Log.d("...........",t);*/
+
         ApplySettings();
         //
 

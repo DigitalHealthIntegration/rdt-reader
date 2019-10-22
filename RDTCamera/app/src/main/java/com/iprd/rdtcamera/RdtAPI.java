@@ -161,12 +161,12 @@ public class RdtAPI {
             }
         } catch (Exception e) {
         } finally {
-            mInprogress = false;
-            if(((!mAcceptanceStatus.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData)){
+            if(((!mAcceptanceStatus.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData&&mAcceptanceStatus.mRDTFound)){
                 saveImage(capFrame,"Color");
             }
             greyMat.release();
             matinput.release();
+            mInprogress = false;
         }
         return mAcceptanceStatus;
    }
