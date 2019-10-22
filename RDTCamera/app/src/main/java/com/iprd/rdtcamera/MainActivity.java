@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
+    private double mTopTh,mBotTh;
     public Config config = new Config();
 
     int idx;
@@ -213,7 +214,9 @@ public class MainActivity extends AppCompatActivity {
             config.mYMax = Short.parseShort(prefs.getString("mMaxScalmYMaxe", "650"));
             config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", "500.0f"));
             config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", "210.0f"));
-            config.mMinBrightness = Float.parseFloat("100");
+            config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", "100.0f"));
+            mTopTh = Float.parseFloat(prefs.getString("mTopTh", "0.9f"));
+            mBotTh = Float.parseFloat(prefs.getString("mBotTh", "0.9f"));
         }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
             config.mMaxScale = 1100;
             config.mMinScale = 700;
@@ -224,7 +227,12 @@ public class MainActivity extends AppCompatActivity {
             config.mMinSharpness = 500.0f;
             config.mMaxBrightness = 210.0f;
             config.mMinBrightness = 110.0f;
+            mTopTh = 0.9f;
+            mBotTh = 0.9f;
         }
+        mRdtApi.setConfig(c);
+        mRdtApi.setTopThreshold(mTopTh);
+        mRdtApi.setBottomThreshold(mBotTh);
 
     }
 
@@ -366,7 +374,6 @@ public class MainActivity extends AppCompatActivity {
         Log.e(TAG, "is camera open");
         try {
             String cameraId = manager.getCameraIdList()[0];
-
             // Add permission for camera and let user grant the permission
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
@@ -387,8 +394,6 @@ public class MainActivity extends AppCompatActivity {
             Size[] sizes = map.getOutputSizes(ImageReader.class);
             if (sizes.length == 0)
                 return false;
-
-
             // choose optimal size
             Size closestPreviewSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
             Size closestImageSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
@@ -397,22 +402,17 @@ public class MainActivity extends AppCompatActivity {
                 if (size.getWidth() * 9 == size.getHeight() * 16) { //Preview surface ratio is 16:9
                     double currPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - closestPreviewSize.getHeight() * closestPreviewSize.getWidth();
                     double newPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - size.getHeight() * size.getWidth();
-
                     double currImageDiff = (CAMERA2_IMAGE_SIZE.getHeight() * CAMERA2_IMAGE_SIZE.getWidth()) - closestImageSize.getHeight() * closestImageSize.getWidth();
                     double newImageDiff = (CAMERA2_IMAGE_SIZE.getHeight() * CAMERA2_IMAGE_SIZE.getWidth()) - size.getHeight() * size.getWidth();
-
                     if (Math.abs(currPreviewDiff) > Math.abs(newPreviewDiff)) {
                         closestPreviewSize = size;
                     }
-
                     if (Math.abs(currImageDiff) > Math.abs(newImageDiff)) {
                         closestImageSize = size;
                     }
                 }
             }
-
             mVideoSize = closestPreviewSize;
-
             Size videoSize =closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
@@ -421,7 +421,6 @@ public class MainActivity extends AppCompatActivity {
 
             // Get all available size for the textureSurface preview window
             sizes = map.getOutputSizes(SurfaceTexture.class);
-
             // Get the optimal size for a preview window
             mPreviewSize = closestPreviewSize;//chooseOptimalSize(sizes, width, height,mVideoSize);
 
@@ -436,9 +435,6 @@ public class MainActivity extends AppCompatActivity {
             }
             configureTransform(width, height);
             manager.openCamera(cameraId, mStateCallback, null);
-
-
-
         } catch (CameraAccessException e) {
             Log.e(TAG, "Cannot access the camera.", e);
             return false;

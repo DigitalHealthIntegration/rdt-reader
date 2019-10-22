@@ -45,4 +45,14 @@
         android:defaultValue="110.0"
         android:summary="Please provide Minimum Brightness"></EditTextPreference>
 
+    <EditTextPreference android:title="Top Threshold"
+        android:key="mTopTh"
+        android:defaultValue="0.9"
+        android:summary="Please provide Top Thresholdess"></EditTextPreference>
+
+    <EditTextPreference android:title="Bottom threshold"
+        android:key="mBotTh"
+        android:defaultValue="0.9"
+        android:summary="Please provide Bottom Threshold"></EditTextPreference>
+
 </PreferenceScreen>

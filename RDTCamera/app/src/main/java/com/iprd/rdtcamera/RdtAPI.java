@@ -28,6 +28,13 @@ public class RdtAPI {
     public void setSaveImages(boolean b){
         if(mTensorFlow!= null)mTensorFlow.setSaveImages(b);
     }
+    public void setTopThreshold(double top){
+        if(mTensorFlow!= null)mTensorFlow.setTopThreshold(top);
+    }
+    public void setBottomThreshold(double bot){
+        if(mTensorFlow!= null)mTensorFlow.setBottomThreshold(bot);
+    }
+
 
     public boolean isInProgress(){
         return mInprogress;

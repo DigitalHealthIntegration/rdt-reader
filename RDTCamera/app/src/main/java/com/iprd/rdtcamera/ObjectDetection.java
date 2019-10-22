@@ -29,14 +29,21 @@ import java.util.Vector;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class ObjectDetection {
-    public static final double mTopThreshold = 0.9;
-    public static final double mBottomThreshold = 0.9;
+    public static double mTopThreshold = 0.9;
+    public static double mBottomThreshold = 0.9;
     Interpreter mTflite;
     Interpreter.Options tf_options = new Interpreter.Options();
 
     boolean mSaveImage=false;
     public void setSaveImages(boolean b){
         mSaveImage =b;
+    }
+
+    public void setTopThreshold(double top){
+        mTopThreshold = top;
+    }
+    public void setBottomThreshold(double bot){
+        mBottomThreshold = bot;
     }
     ObjectDetection(byte[] bytes){
         //File modelFile = new File("/mnt/sdcard/mgd/tflite.lite");
