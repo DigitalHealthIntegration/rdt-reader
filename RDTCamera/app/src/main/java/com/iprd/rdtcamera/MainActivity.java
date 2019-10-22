@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ApplySettings() {
+        boolean mSaveNegativeData= false;
         try {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale", "1100"));
@@ -210,23 +211,19 @@ public class MainActivity extends AppCompatActivity {
             mTopTh = Float.parseFloat(prefs.getString("mTopTh", "0.9f"));
             mBotTh = Float.parseFloat(prefs.getString("mBotTh", "0.7f"));
             mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
+            short t  = Short.parseShort(prefs.getString("mSaveNegativeData", "0"));
+            if(t!=0) mSaveNegativeData =true;
         }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
-            config.mMaxScale = 1100;
-            config.mMinScale = 700;
-            config.mXMin = 100;
-            config.mXMax = 500;
-            config.mYMin = 50;
-            config.mYMax = 650;
-            config.mMinSharpness = 500.0f;
-            config.mMaxBrightness = 210.0f;
-            config.mMinBrightness = 110.0f;
+            config.setDefaults();
             mTopTh = 0.9f;
             mBotTh = 0.7f;
             mShowImageData = 0;
+            mSaveNegativeData = false;
         }
         mRdtApi.setConfig(config);
         mRdtApi.setTopThreshold(mTopTh);
         mRdtApi.setBottomThreshold(mBotTh);
+        mRdtApi.mSaveNegativeData = mSaveNegativeData;
     }
 
     byte[] ReadAssests() throws IOException {

@@ -12,6 +12,7 @@ import org.opencv.imgproc.Imgproc;
 import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
+import static com.iprd.rdtcamera.Utils.saveImage;
 import static org.opencv.core.Core.BORDER_REFLECT101;
 import static org.opencv.core.Core.mean;
 import static org.opencv.core.Core.meanStdDev;
@@ -25,10 +26,12 @@ public class RdtAPI {
     ObjectDetection mTensorFlow=null;
     boolean mInprogress = false;
     short mBrightness,mSharpness;
+    boolean mSaveNegativeData=false;
 
     public void setSaveImages(boolean b){
         if(mTensorFlow!= null)mTensorFlow.setSaveImages(b);
     }
+
     public void setTopThreshold(double top){
         if(mTensorFlow!= null)mTensorFlow.setTopThreshold(top);
     }
@@ -159,6 +162,9 @@ public class RdtAPI {
         } catch (Exception e) {
         } finally {
             mInprogress = false;
+            if(((!mAcceptanceStatus.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData)){
+                saveImage(capFrame,"Color");
+            }
             greyMat.release();
             matinput.release();
         }

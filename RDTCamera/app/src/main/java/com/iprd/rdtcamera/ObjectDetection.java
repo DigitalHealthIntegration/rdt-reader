@@ -38,6 +38,10 @@ public class ObjectDetection {
     public void setSaveImages(boolean b){
         mSaveImage =b;
     }
+    public boolean getSaveImages(){
+        return mSaveImage;
+    }
+
 
     public void setTopThreshold(double top){
         mTopThreshold = top;

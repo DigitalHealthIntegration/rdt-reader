@@ -37,7 +37,7 @@ public class Utils {
             //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
             finalBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
             org.opencv.android.Utils.matToBitmap(tmp, finalBitmap);
-            saveImage(finalBitmap);
+            saveImage(finalBitmap,"Grey");
         }
         catch (CvException e){
             Log.d("Exception",e.getMessage());
@@ -45,16 +45,16 @@ public class Utils {
         tmp.release();
     }
 
-    public static void saveImage(Bitmap m) {
+    public static void saveImage(Bitmap m,String suff) {
         CreateDirectory();
-        File myImage = new File(dirpath+"Image" + mImageCount + ".jpg");
+        File myImage = new File(dirpath+"Image" + mImageCount+suff + ".jpg");
         Log.i("Saving File",myImage.getAbsolutePath());
         mImageCount++;
         if (myImage.exists()) myImage.delete();
         FileOutputStream out = null;
         try {
             out = new FileOutputStream(myImage);
-            m.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            m.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.flush();
             out.close();
         } catch (FileNotFoundException e) {
