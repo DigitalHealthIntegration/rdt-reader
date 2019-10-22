@@ -484,9 +484,15 @@ def runPipeline(img,serverObj):
 
 
 
+@app.route("/health-check", methods=["GET"])
+def health_check():
+    '''API endpoint to verify the service is up and running.'''
+    if request.method == "GET":
+        return Response("OK", mimetype="application/json")
 
-@app.route("/align", methods=["POST"])
-def align():
+
+@app.route("/Quidel/QuickVue", methods=["POST"])
+def interpret_quidel_quickvue():
     '''API endpoint to Run the entire service and give appropriate response.
 
         Example:
