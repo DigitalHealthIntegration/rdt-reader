@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
-    private double mTopTh,mBotTh;
+    private double mTopTh=0.9,mBotTh=0.7;
     private short mShowImageData=0;
     public Config config = new Config();
 
