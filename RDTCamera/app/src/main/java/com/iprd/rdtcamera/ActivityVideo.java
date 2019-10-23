@@ -1,8 +1,10 @@
 package com.iprd.rdtcamera;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
@@ -21,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -75,9 +78,23 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
         }
     }
 
+    public static String getRealPathFromUri(Context context, Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
     public void doStartStop(View view) {
         if (mMediaPlayer == null) {
-            Intent pickVideo = new Intent(Intent.ACTION_PICK);
+            Intent pickVideo = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
             pickVideo.setTypeAndNormalize("video/*");
             startActivityForResult(pickVideo, PICK_VIDEO_REQUEST);
         } else {
@@ -93,7 +110,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
         if (requestCode == PICK_VIDEO_REQUEST && resultCode == RESULT_OK) {
             Log.d(TAG, "Got video " + data.getData());
             mVideoUri = data.getData();
-            videoPath = data.getData().getPath();
+            videoPath=getRealPathFromUri(getApplicationContext(),data.getData());
         }
     }
 
