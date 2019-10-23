@@ -4,9 +4,13 @@ set -euo pipefail
 SELF_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 cd "$SELF_DIR"
 
+rsync --delete -a tensorflow-yolov3-models/models/ tensorflow-yolov3/models
+
 function cleanup() {
-  cd "$SELF_DIR/tensorflow-yolov3"
-  git checkout ./core/config.py
+  (
+    cd "$SELF_DIR/tensorflow-yolov3"
+    git checkout ./core/config.py
+  )
 }
 trap cleanup EXIT
 
