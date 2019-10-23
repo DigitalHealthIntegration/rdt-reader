@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
-    private double mTopTh,mBotTh;
+    private double mTopTh=0.9,mBotTh=0.7;
     private short mShowImageData=0;
     public Config config = new Config();
     Switch mode;
@@ -217,19 +217,19 @@ public class MainActivity extends AppCompatActivity {
         boolean mSaveNegativeData= false;
         try {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-            config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale", "1100"));
-            config.mMinScale = Short.parseShort(prefs.getString("mMinScale", "700"));
-            config.mXMin = Short.parseShort(prefs.getString("mXMin", "100"));
-            config.mXMax = Short.parseShort(prefs.getString("mXMax", "500"));
-            config.mYMin = Short.parseShort(prefs.getString("mYMin", "50"));
-            config.mYMax = Short.parseShort(prefs.getString("mYMax", "650"));
-            config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", "500.0f"));
-            config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", "210.0f"));
-            config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", "100.0f"));
-            mTopTh = Float.parseFloat(prefs.getString("mTopTh", "0.9f"));
-            mBotTh = Float.parseFloat(prefs.getString("mBotTh", "0.7f"));
+            config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
+            config.mMinScale = Short.parseShort(prefs.getString("mMinScale", config.mMinScale+""));
+            config.mXMin = Short.parseShort(prefs.getString("mXMin",  config.mXMin+""));
+            config.mXMax = Short.parseShort(prefs.getString("mXMax", config.mXMax+""));
+            config.mYMin = Short.parseShort(prefs.getString("mYMin", config.mYMin+""));
+            config.mYMax = Short.parseShort(prefs.getString("mYMax", config.mYMax+""));
+            config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", config.mMinSharpness +""));
+            config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
+            config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
+            mTopTh = Float.parseFloat(prefs.getString("mTopTh", ObjectDetection.mTopThreshold+""));
+            mBotTh = Float.parseFloat(prefs.getString("mBotTh", ObjectDetection.mBottomThreshold+""));
             mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
-            short t  = Short.parseShort(prefs.getString("mSaveNegativeData", "0"));
+            short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
             if(t!=0) mSaveNegativeData =true;
         }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
             Log.i("RDT","Exception in  Shared Pref switching to default");

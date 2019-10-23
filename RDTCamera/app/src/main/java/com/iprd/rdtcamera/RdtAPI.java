@@ -1,6 +1,7 @@
 package com.iprd.rdtcamera;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -44,7 +45,7 @@ public class RdtAPI {
         return mInprogress;
     }
 
-    private boolean computeBlur(Mat greyImage) {
+    private boolean computeBlur(Mat greyImage,AcceptanceStatus ret) {
         Mat laplacian=new Mat();
         Laplacian(greyImage, laplacian, CV_16S, 3, 1, 0, BORDER_REFLECT101);
         MatOfDouble median = new MatOfDouble();
@@ -54,28 +55,28 @@ public class RdtAPI {
         laplacian.release();
         double sharpness =(float) std.get(0,0)[0]*std.get(0,0)[0];
         mSharpness = (short) sharpness;
-       // Log.d("Sharpness","mSharpness " + sharpness);
+        //Log.d("Sharpness","mSharpness " + sharpness);
         if (sharpness < mConfig.mMinSharpness){
-            mAcceptanceStatus.mSharpness = TOO_LOW;
+            ret.mSharpness = TOO_LOW;
             return false;
         }
-        mAcceptanceStatus.mSharpness = AcceptanceStatus.GOOD;
+        ret.mSharpness = AcceptanceStatus.GOOD;
         return true;
     }
 
-    private boolean computeBrightness(Mat grey) {
+    private boolean computeBrightness(Mat grey,AcceptanceStatus ret) {
         Scalar tempVal = mean(grey);
         double brightness = tempVal.val[0];
         mBrightness = (short) brightness;
         //Log.d("Brightness","mBrightness "+brightness);
         if (brightness > mConfig.mMaxBrightness) {
-            mAcceptanceStatus.mBrightness = TOO_HIGH;
+            ret.mBrightness = TOO_HIGH;
             return false;
         }else if (brightness < mConfig.mMinBrightness){
-            mAcceptanceStatus.mBrightness = TOO_LOW;
+            ret.mBrightness = TOO_LOW;
             return false;
         }
-        mAcceptanceStatus.mBrightness = AcceptanceStatus.GOOD;
+        ret.mBrightness = AcceptanceStatus.GOOD;
         return true;
     }
 
@@ -119,16 +120,16 @@ public class RdtAPI {
         mSharpness = -1;
         Mat matinput = new Mat();
         Mat greyMat = new Mat();
+        AcceptanceStatus ret= new AcceptanceStatus();
+
         try {
             Utils.bitmapToMat(capFrame, matinput);
             //Log.d("INPUT",capFrame.getWidth()+"x"+capFrame.getHeight());
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
-            mAcceptanceStatus.setDefaultStatus();
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
-
             Rect roi = mTensorFlow.update(greyMat, rdtFound);
-            mAcceptanceStatus.mRDTFound = rdtFound[0].booleanValue();
-            if (mAcceptanceStatus.mRDTFound) {
+            ret.mRDTFound = rdtFound[0].booleanValue();
+            if (ret.mRDTFound) {
                 roi.width = (roi.width - roi.x);
                 roi.height = roi.height - roi.y;
                 roi.x = Math.max(0, roi.x);
@@ -139,36 +140,36 @@ public class RdtAPI {
                 roi.width = Math.min(greyMat.cols() - roi.x, roi.width);
                 roi.height = Math.min(greyMat.rows() - roi.y, roi.height);
 
-                mAcceptanceStatus.mBoundingBoxX = (short) roi.x;
-                mAcceptanceStatus.mBoundingBoxY = (short) roi.y;
-                mAcceptanceStatus.mBoundingBoxWidth = (short) (roi.width);
-                mAcceptanceStatus.mBoundingBoxHeight = (short) (roi.height);
-                mAcceptanceStatus.mRDTFound = rdtFound[0].booleanValue();
+                ret.mBoundingBoxX = (short) roi.x;
+                ret.mBoundingBoxY = (short) roi.y;
+                ret.mBoundingBoxWidth = (short) (roi.width);
+                ret.mBoundingBoxHeight = (short) (roi.height);
+                ret.mRDTFound = rdtFound[0].booleanValue();
             }
 
-            if (!rdtFound[0].booleanValue()) return mAcceptanceStatus;
+            if (!rdtFound[0].booleanValue()) return ret;
             //  if (!computeDistortion())return mAcceptanceStatus;
             //Log.d("........ROI "," "+roi.x +"x"+roi.y + "x" +roi.width + "x" +roi.height);
 
             Mat imageROI = greyMat.submat(roi);
             // mTensorFlow.SaveROIImage(imageROI,0,0,imageROI.width(),imageROI.height());
 
-            if (!computeBlur(imageROI)) {
-                return mAcceptanceStatus;
+            if (!computeBlur(imageROI,ret)) {
+                return ret;
             }
-            if (!computeBrightness(imageROI)) {
-                return mAcceptanceStatus;
+            if (!computeBrightness(imageROI,ret)) {
+                return ret;
             }
         } catch (Exception e) {
         } finally {
-            if(((!mAcceptanceStatus.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData&&mAcceptanceStatus.mRDTFound)){
+            if(((!ret.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData&&ret.mRDTFound)){
                 saveImage(capFrame,"Color");
             }
             greyMat.release();
             matinput.release();
             mInprogress = false;
         }
-        return mAcceptanceStatus;
+        return ret;
    }
 
     public  void setConfig(Config c) {

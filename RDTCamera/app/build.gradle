@@ -35,6 +35,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets {
+        test {
+            resources.srcDirs += ['sampledata']
+        }
+        androidTest {
+            resources.srcDirs += ['sampledata']
+        }
+    }
+//
+//    testOptions {
+//        unitTests {
+//            includeAndroidResources = true
+//        }
+//    }
+
 //    externalNativeBuild {
 //        cmake {
 //            version '3.10.2'
