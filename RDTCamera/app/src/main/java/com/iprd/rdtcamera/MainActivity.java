@@ -211,8 +211,8 @@ public class MainActivity extends AppCompatActivity {
             config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", config.mMinSharpness +""));
             config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
             config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
-            mTopTh = Float.parseFloat(prefs.getString("mTopTh", mTopTh+""));
-            mBotTh = Float.parseFloat(prefs.getString("mBotTh", mBotTh+""));
+            mTopTh = Float.parseFloat(prefs.getString("mTopTh", ObjectDetection.mTopThreshold+""));
+            mBotTh = Float.parseFloat(prefs.getString("mBotTh", ObjectDetection.mBottomThreshold+""));
             mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
             short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
             if(t!=0) mSaveNegativeData =true;
