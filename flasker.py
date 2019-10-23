@@ -482,8 +482,6 @@ def runPipeline(img,serverObj):
     return rc
 
 
-
-
 @app.route("/health-check", methods=["GET"])
 def health_check():
     '''API endpoint to verify the service is up and running.'''
@@ -586,7 +584,13 @@ def interpret_quidel_quickvue():
             return Response(resp, mimetype="application/json")
 
 
+@app.route("/align", methods=["POST"])
+def align():
+    '''Backwards compatible alias for interpret_quidel_quickvue().
 
+       This can be deleted once all code migrates to the new path.
+    '''
+    interpret_quidel_quickvue()
 
 
 if __name__ == "__main__":
