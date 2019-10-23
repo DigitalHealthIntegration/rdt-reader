@@ -62,7 +62,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
 
             textureView = (TextureView)findViewById(R.id.textureView);
             textureView.setSurfaceTextureListener(this);
-            textureView.setScaleX(1);//isMirrored ? -1 : 
+            textureView.setScaleX(1);//isMirrored ? -1 :
 
             Config c = new Config();
             try {
@@ -186,12 +186,12 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
         return mtfliteBytes;
     }
     void Process(final Bitmap capFrame) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
                 ProcessBitmap(capFrame);
-            }
-        }).start();
+//            }
+//        }).start();
     }
 
     private void ProcessBitmap(Bitmap capFrame) {
