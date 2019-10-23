@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
     private double mTopTh,mBotTh;
     private short mShowImageData=0;
     public Config config = new Config();
+    Switch mode;
 
 
     int idx;
@@ -124,9 +125,6 @@ public class MainActivity extends AppCompatActivity {
         return res1 == PackageManager.PERMISSION_GRANTED && res == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED;
     }
     private void requestPermission(){
-       /* if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA,ACCESS_FINE_LOCATION}, 200);
-        }*/
         ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA, Manifest.permission.CAMERA}, 200);
     }
     @Override
@@ -184,7 +182,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        /// Set Torch button
+
+        /// Set Save button
         Switch saveData = (Switch) findViewById(R.id.saveData);
         saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -196,6 +195,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        ///Video Play
+        mode = (Switch) findViewById(R.id.mode);
+        mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    mode.setChecked(false);
+                    Intent i = new Intent(MainActivity.this, ActivityVideo.class);
+                    i.putExtra("videoPath","aaaaaa");
+                    i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
+                    startActivity(i);
+
+                } else {
+                    Log.d(">>Mode Switch<<","OFF");
+                }
+            }
+        });
     }
 
     private void ApplySettings() {
@@ -298,6 +313,7 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+            Log.d(".... ","onSurfaceTextureUpdated");
             if(!mRdtApi.isInProgress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
