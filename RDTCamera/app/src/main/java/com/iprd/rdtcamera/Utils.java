@@ -1,7 +1,10 @@
 package com.iprd.rdtcamera;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.opencv.core.CvException;
@@ -62,5 +65,41 @@ public class Utils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public static Short ApplySettings(Context c,RdtAPI rdtapi) {
+        double mTopTh = ObjectDetection.mTopThreshold;
+        double mBotTh = ObjectDetection.mBottomThreshold;
+        Short mShowImageData=0;
+        Config config= new Config();
+        boolean mSaveNegativeData= false;
+        try {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
+            config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
+            config.mMinScale = Short.parseShort(prefs.getString("mMinScale", config.mMinScale+""));
+            config.mXMin = Short.parseShort(prefs.getString("mXMin",  config.mXMin+""));
+            config.mXMax = Short.parseShort(prefs.getString("mXMax", config.mXMax+""));
+            config.mYMin = Short.parseShort(prefs.getString("mYMin", config.mYMin+""));
+            config.mYMax = Short.parseShort(prefs.getString("mYMax", config.mYMax+""));
+            config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", config.mMinSharpness +""));
+            config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
+            config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
+            mTopTh = Float.parseFloat(prefs.getString("mTopTh", ObjectDetection.mTopThreshold+""));
+            mBotTh = Float.parseFloat(prefs.getString("mBotTh", ObjectDetection.mBottomThreshold+""));
+            mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
+            short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
+            if(t!=0) mSaveNegativeData =true;
+        }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
+            Log.i("RDT","Exception in  Shared Pref switching to default");
+            config.setDefaults();
+            mTopTh = ObjectDetection.mTopThreshold;
+            mBotTh = ObjectDetection.mBottomThreshold;
+            mShowImageData = 0;
+            mSaveNegativeData = false;
+        }
+        rdtapi.setConfig(config);
+        rdtapi.setTopThreshold(mTopTh);
+        rdtapi.setBottomThreshold(mBotTh);
+        rdtapi.mSaveNegativeData = mSaveNegativeData;
+        return mShowImageData;
     }
 }

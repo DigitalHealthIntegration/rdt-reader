@@ -107,9 +107,8 @@ public class MainActivity extends AppCompatActivity {
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
-    private double mTopTh=0.9,mBotTh=0.7;
+
     private short mShowImageData=0;
-    public Config config = new Config();
     public Switch mode;
     public Switch torch;
     public Switch saveData;
@@ -165,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        ApplySettings();
+        mShowImageData = Utils.ApplySettings(this,mRdtApi);
 
         /// Set Torch button
         torch = (Switch) findViewById(R.id.torch);
@@ -218,38 +217,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    private void ApplySettings() {
-        boolean mSaveNegativeData= false;
-        try {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-            config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
-            config.mMinScale = Short.parseShort(prefs.getString("mMinScale", config.mMinScale+""));
-            config.mXMin = Short.parseShort(prefs.getString("mXMin",  config.mXMin+""));
-            config.mXMax = Short.parseShort(prefs.getString("mXMax", config.mXMax+""));
-            config.mYMin = Short.parseShort(prefs.getString("mYMin", config.mYMin+""));
-            config.mYMax = Short.parseShort(prefs.getString("mYMax", config.mYMax+""));
-            config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", config.mMinSharpness +""));
-            config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
-            config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
-            mTopTh = Float.parseFloat(prefs.getString("mTopTh", ObjectDetection.mTopThreshold+""));
-            mBotTh = Float.parseFloat(prefs.getString("mBotTh", ObjectDetection.mBottomThreshold+""));
-            mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
-            short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
-            if(t!=0) mSaveNegativeData =true;
-        }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
-            Log.i("RDT","Exception in  Shared Pref switching to default");
-            config.setDefaults();
-            mTopTh = 0.9f;
-            mBotTh = 0.7f;
-            mShowImageData = 0;
-            mSaveNegativeData = false;
-        }
-        mRdtApi.setConfig(config);
-        mRdtApi.setTopThreshold(mTopTh);
-        mRdtApi.setBottomThreshold(mBotTh);
-        mRdtApi.mSaveNegativeData = mSaveNegativeData;
     }
 
     byte[] ReadAssests() throws IOException {
@@ -644,8 +611,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         mTextureView.setVisibility(View.VISIBLE);
 
-        ApplySettings();
-        //
+        mShowImageData = Utils.ApplySettings(this,mRdtApi);
 
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
