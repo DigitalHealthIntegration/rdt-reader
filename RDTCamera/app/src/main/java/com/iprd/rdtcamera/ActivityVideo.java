@@ -19,6 +19,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -42,6 +43,8 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
     boolean mStarted=false;
     private Button preferenceSettingBtnVideo;
     short mShowImageData=0;
+    private TextView rdtDataToBeDisplayVideo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -51,6 +54,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
          mTextureView = (TextureView)findViewById(R.id.textureView);
          mTextureView.setScaleX(isMirrored ? 1 : -1);//isMirrored ? -1 :1
          mTextureView.setSurfaceTextureListener(this);
+         rdtDataToBeDisplayVideo = findViewById(R.id.rdtDataToBeDisplayVideo);
 
          Config c = new Config();
          try {
@@ -312,7 +316,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
                 }
 
                 mRectView.bringToFront();
-                //rdtDataToBeDisplay.bringToFront();
+                rdtDataToBeDisplayVideo.bringToFront();
                 ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
 
                 lp.width = prevStat.mBoundingBoxWidth;
@@ -322,8 +326,8 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
                 mRectView.setLayoutParams(lp);
                 mRectView.setVisibility(View.VISIBLE);
                 if(mShowImageData !=0) {
-                   // rdtDataToBeDisplay.setText("S[" + status.mSharpness+ "]\n"+"B[" + status.mBrightness+"]");
-                    //rdtDataToBeDisplay.setVisibility(View.VISIBLE);
+                    rdtDataToBeDisplayVideo.setText("S[" + status.mSharpness+ "]\n"+"B[" + status.mBrightness+"]");
+                    rdtDataToBeDisplayVideo.setVisibility(View.VISIBLE);
                 }
 
             }
