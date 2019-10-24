@@ -2,18 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".ActivityVideo">
-
-    <Button
-        android:id="@+id/button"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.2"
-        android:onClick="doStartStop"
-        android:text="Start/Stop"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="29dp" />
 
     <!--<SurfaceView
         android:id="@+id/firstSurface"
@@ -27,18 +17,24 @@
         app:layout_constraintVertical_bias="1.0" />-->
 
 
+    <TextureView
+        android:id="@+id/textureView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintDimensionRatio="H,9:16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextureView
-            android:id="@+id/textureView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_margin="3dp"
-            android:layout_weight="1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button"
-            app:layout_constraintVertical_bias="1.0"/>
-
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="doStartStop"
+        android:text="Start/Stop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent" />
 
     <ImageView
         android:id="@+id/rdtRectVideo"
@@ -46,9 +42,9 @@
         android:layout_height="wrap_content"
         android:src="@drawable/rect"
         android:visibility="visible"
+        app:layout_constraintDimensionRatio="H,9:16"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintDimensionRatio="H,9:16" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

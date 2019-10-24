@@ -1,60 +1,44 @@
 package com.iprd.rdtcamera;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.ImageReader;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-
-
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageView;
 
-import org.opencv.core.Point;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 public class ActivityVideo extends AppCompatActivity implements TextureView.SurfaceTextureListener{
 
     private static final int PICK_VIDEO_REQUEST = 1001;
     private static final String TAG = "SurfaceSwitch";
-    private MediaPlayer mMediaPlayer;
+    private MediaPlayer mMediaPlayer=null;
     private SurfaceHolder mFirstSurface;
     private Uri mVideoUri;
     private ImageView mRectView;
     boolean isMirrored = true;
     public String videoPath = "";
-    MediaPlayer mediaPlayer = null;
     private RdtAPI mRdtApi;
     byte[] mtfliteBytes = null;
-    TextureView textureView;
+    TextureView mTextureView;
+    boolean mStarted=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +47,9 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
             setContentView(R.layout.activity_video);
             mRectView = findViewById(R.id.rdtRectVideo);
 
-            textureView = (TextureView)findViewById(R.id.textureView);
-            textureView.setSurfaceTextureListener(this);
-            textureView.setScaleX(1);//isMirrored ? -1 :
+            mTextureView = (TextureView)findViewById(R.id.textureView);
+            mTextureView.setScaleX(1);//isMirrored ? -1 :
+            mTextureView.setSurfaceTextureListener(this);
 
             Config c = new Config();
             try {
@@ -92,80 +76,59 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
             }
         }
     }
-    public void doStartStop(View view) {
-        if (mMediaPlayer == null) {
-            Intent pickVideo = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
-            pickVideo.setTypeAndNormalize("video/*");
-            startActivityForResult(pickVideo, PICK_VIDEO_REQUEST);
-        } else {
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-            videoPath = "";
+
+    void StartPlayingVideo(SurfaceTexture surface,String videoPath) {
+        if(mStarted) return;
+        Surface s= new Surface(surface);
+        try{
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setSurface(s);
+            mMediaPlayer.setDataSource(videoPath);
+            mMediaPlayer.prepare();
+            mMediaPlayer.setOnBufferingUpdateListener(mOnBufferingCB);
+            mMediaPlayer.setOnCompletionListener(mOnComplitionCB);
+//            mMediaPlayer.setOnPreparedListener(this);
+            mMediaPlayer.setOnVideoSizeChangedListener(mOnSizeChangeCB);
+            mMediaPlayer.start();
+            mStarted = true;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PICK_VIDEO_REQUEST && resultCode == RESULT_OK) {
-            Log.d(TAG, "Got video " + data.getData());
-            mVideoUri = data.getData();
-            videoPath=getRealPathFromUri(getApplicationContext(),data.getData());
+    private MediaPlayer.OnBufferingUpdateListener mOnBufferingCB = new MediaPlayer.OnBufferingUpdateListener() {
+        @Override
+        public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
+            Log.d(TAG, "onBufferingUpdate percent:" + i);
         }
-    }
+    };
 
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        Log.d("1====>>", videoPath);
-    }
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {return false;}
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
-        Log.d("2====>>", videoPath);
-    }
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-        Log.d("3====>>", videoPath);
-        videoPath = videoPath.replace("external_files","sdcard");
-        if(mediaPlayer == null) {
+    private MediaPlayer.OnCompletionListener mOnComplitionCB = new MediaPlayer.OnCompletionListener(){
 
-            mediaPlayer = new MediaPlayer();
+        @Override
+        public void onCompletion(MediaPlayer mediaPlayer) {
+            Log.d(TAG, "onCompletion called");
+            releaseMediaPlayer();
+        }
+    };
 
-            mediaPlayer.setSurface(new Surface(surfaceTexture));
-            if (videoPath.length() > 1)
-                try {
-                    /*Matrix txform = new Matrix();
-                    textureView.getTransform(txform);
-                    txform.setScale((float) newWidth / viewWidth, (float) newHeight / viewHeight);
-                    txform.postTranslate(xoff, yoff);
-                    textureView.setTransform(txform);*/
-
-                    mediaPlayer.setDataSource(videoPath);
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-        }else{
-            Log.d(".... ","onSurfaceTextureUpdated");
-            if(!mRdtApi.isInProgress()) {
-                Bitmap capFrame = textureView.getBitmap();
-                Process(capFrame);
+    private MediaPlayer.OnVideoSizeChangedListener mOnSizeChangeCB = new MediaPlayer.OnVideoSizeChangedListener() {
+        @Override
+        public void onVideoSizeChanged(MediaPlayer mediaPlayer, int width, int height) {
+            Log.v(TAG, "onVideoSizeChanged called");
+            if (width == 0 || height == 0) {
+                Log.e(TAG, "invalid video width(" + width + ") or height(" + height + ")");
+                return;
             }
+            //configureTransform(width,height);
+            adjustAspectRatio(width,height);
         }
-    }
+    };
 
-    /*private void configureTransform() {
-
-        mPreviewSize = getPreviewSize();
-        if (null == textureView || null == mPreviewSize || null == this) {
+    private void configureTransform(int viewWidth, int viewHeight) {
+        Size mPreviewSize= new Size(1280,720);
+        if (null == mTextureView || null == mPreviewSize || null == this) {
             return;
         }
-
-        int viewWidth = textureView.getWidth();
-        int viewHeight = textureView.getHeight();
-
         int rotation = this.getWindowManager().getDefaultDisplay().getRotation();
         Matrix matrix = new Matrix();
         RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
@@ -183,15 +146,107 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180, centerX, centerY);
         }
-        textureView.setTransform(matrix);
-    }*/
+        mTextureView.setTransform(matrix);
+    }
+
+
+    public void doStartStop(View view) {
+        if (mMediaPlayer == null) {
+            Intent pickVideo = new Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+            pickVideo.setTypeAndNormalize("video/*");
+            startActivityForResult(pickVideo, PICK_VIDEO_REQUEST);
+        } else {
+            releaseMediaPlayer();
+        }
+    }
+
+    private void releaseMediaPlayer() {
+        if(mMediaPlayer!= null) {
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
+        videoPath = "";
+        mStarted=false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        releaseMediaPlayer();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseMediaPlayer();
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_VIDEO_REQUEST && resultCode == RESULT_OK) {
+            Log.d(TAG, "Got video " + data.getData());
+            mVideoUri = data.getData();
+            videoPath=getRealPathFromUri(getApplicationContext(),data.getData());
+        }
+    }
+
+    private void adjustAspectRatio(int videoWidth, int videoHeight) {
+        int viewWidth = mTextureView.getWidth();
+        int viewHeight = mTextureView.getHeight();
+        double aspectRatio = (double) videoHeight / videoWidth;
+
+        int newWidth, newHeight;
+        if (viewHeight > (int) (viewWidth * aspectRatio)) {
+            // limited by narrow width; restrict height
+            newWidth = viewWidth;
+            newHeight = (int) (viewWidth * aspectRatio);
+        } else {
+            // limited by short height; restrict width
+            newWidth = (int) (viewHeight / aspectRatio);
+            newHeight = viewHeight;
+        }
+        int xoff = (viewWidth - newWidth) / 2;
+        int yoff = (viewHeight - newHeight) / 2;
+        Log.v(TAG, "video=" + videoWidth + "x" + videoHeight +
+                " view=" + viewWidth + "x" + viewHeight +
+                " newView=" + newWidth + "x" + newHeight +
+                " off=" + xoff + "," + yoff);
+
+        Matrix txform = new Matrix();
+        mTextureView.getTransform(txform);
+        txform.setScale((float) newWidth / viewWidth, (float) newHeight / viewHeight);
+        //txform.postRotate(10);          // just for fun
+        txform.postTranslate(xoff, yoff);
+        mTextureView.setTransform(txform);
+    }
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        Log.d("1====>>", videoPath);
+
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+        return false;
+    }
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+        Log.d("2====>>", videoPath);
+    }
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        Log.d("3====>>", videoPath);
+        if(!mStarted){
+            StartPlayingVideo(surface,videoPath) ;
+        }else{
+            if(!mRdtApi.isInProgress()) {
+                Bitmap capFrame = mTextureView.getBitmap();
+                Process(capFrame);
+            }
+        }
+    }
 
     private Size getPreviewSize() {
-
-        //
-
-
-        //
         return null;
     }
 
@@ -214,7 +269,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
     private void ProcessBitmap(Bitmap capFrame) {
         long st  = System.currentTimeMillis();
         final AcceptanceStatus status = mRdtApi.update(capFrame);
-       {
+        {
             status.mSharpness = mRdtApi.mSharpness;
             status.mBrightness = mRdtApi.mBrightness;
         }
@@ -229,7 +284,6 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
             long prevTime=0;
             AcceptanceStatus prevStat;
             private void repositionRect(AcceptanceStatus status) {
-
                 if(mRectView == null)return;
                 if(status.mRDTFound){
                     prevTime = System.currentTimeMillis();
@@ -243,7 +297,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
 
                 mRectView.bringToFront();
                 //rdtDataToBeDisplay.bringToFront();
-               ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
+                ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
 
                 lp.width = prevStat.mBoundingBoxWidth;
                 lp.height=prevStat.mBoundingBoxHeight;
@@ -251,8 +305,6 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
                 //Log.d("Box","Bounds "+lp.width+"x"+lp.height+" Position "+boxPosition.getWidth()+"x"+boxPosition.getHeight());
                 mRectView.setLayoutParams(lp);
                 mRectView.setVisibility(View.VISIBLE);
-
-
             }
         });
     }

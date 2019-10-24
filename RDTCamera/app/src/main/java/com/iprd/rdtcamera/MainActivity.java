@@ -313,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-            Log.d(".... ","onSurfaceTextureUpdated");
+            //Log.d(".... ","onSurfaceTextureUpdated");
             if(!mRdtApi.isInProgress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
