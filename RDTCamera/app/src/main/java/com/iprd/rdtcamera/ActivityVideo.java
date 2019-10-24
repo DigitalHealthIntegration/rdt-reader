@@ -17,6 +17,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,27 +40,35 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
     byte[] mtfliteBytes = null;
     TextureView mTextureView;
     boolean mStarted=false;
+    private Button preferenceSettingBtnVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_video);
-            mRectView = findViewById(R.id.rdtRectVideo);
 
-            mTextureView = (TextureView)findViewById(R.id.textureView);
-            mTextureView.setScaleX(isMirrored ? 1 : -1);//isMirrored ? -1 :1
-            mTextureView.setSurfaceTextureListener(this);
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_video);
+         mRectView = findViewById(R.id.rdtRectVideo);
+         mTextureView = (TextureView)findViewById(R.id.textureView);
+         mTextureView.setScaleX(isMirrored ? 1 : -1);//isMirrored ? -1 :1
+         mTextureView.setSurfaceTextureListener(this);
+         Config c = new Config();
+         try {
+             c.mTfliteB = ReadAssests();
+         } catch (IOException e) {
+             e.printStackTrace();
+         }
+         mRdtApi = new RdtAPI();
+         mRdtApi.init(c);
 
-            Config c = new Config();
-            try {
-                c.mTfliteB = ReadAssests();
-            } catch (IOException e) {
-                e.printStackTrace();
+        // preferences
+        preferenceSettingBtnVideo = (Button) findViewById(R.id.preferenceSettingBtnVideo);
+        preferenceSettingBtnVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(ActivityVideo.this, MyPreferencesActivity.class);
+                startActivity(i);
             }
-            mRdtApi = new RdtAPI();
-            mRdtApi.init(c);
-        }
+        });
     }
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
@@ -90,6 +99,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
             mMediaPlayer.setOnCompletionListener(mOnComplitionCB);
 //            mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnVideoSizeChangedListener(mOnSizeChangeCB);
+            mMediaPlayer.setVolume(0,0);
             mMediaPlayer.start();
             mStarted = true;
         } catch (Exception e) {
