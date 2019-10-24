@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{3406AF7B-2D44-4380-8DFA-84E4F8F53592}</ProjectGuid>
+    <RootNamespace>rdt</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\ws\MGD\RDT\boost_1_71_0;C:\ws\MGD\RDT\opencv-3.4.1\build\install\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\ws\MGD\RDT\opencv-3.4.1\build\install\x64\vc15\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_aruco341.lib;opencv_bgsegm341.lib;opencv_bioinspired341.lib;opencv_calib3d341.lib;opencv_ccalib341.lib;opencv_core341.lib;opencv_datasets341.lib;opencv_dnn_objdetect341.lib;opencv_dnn341.lib;opencv_dpm341.lib;opencv_face341.lib;opencv_features2d341.lib;opencv_flann341.lib;opencv_fuzzy341.lib;opencv_hfs341.lib;opencv_highgui341.lib;opencv_img_hash341.lib;opencv_imgcodecs341.lib;opencv_imgproc341.lib;opencv_line_descriptor341.lib;opencv_ml341.lib;opencv_objdetect341.lib;opencv_optflow341.lib;opencv_phase_unwrapping341.lib;opencv_photo341.lib;opencv_plot341.lib;opencv_reg341.lib;opencv_rgbd341.lib;opencv_saliency341.lib;opencv_shape341.lib;opencv_stereo341.lib;opencv_stitching341.lib;opencv_structured_light341.lib;opencv_superres341.lib;opencv_surface_matching341.lib;opencv_text341.lib;opencv_tracking341.lib;opencv_video341.lib;opencv_videoio341.lib;opencv_videostab341.lib;opencv_xfeatures2d341.lib;opencv_ximgproc341.lib;opencv_xobjdetect341.lib;opencv_xphoto341.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\ws\MGD\RDT\opencv-3.4.1\build\install\include;C:\ws\tensorflow\bazel-tensorflow\external\com_google_absl;C:\ws\tensorflow\bazel-tensorflow\external\flatbuffers\include;C:\ws\tensorflow;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\ws\MGD\RDT\opencv-3.4.1\build\install\x64\vc15\lib;C:\ws\tensorflow\bazel-out\x64_windows-opt\bin\tensorflow\lite\c;C:\ws\tensorflow\bazel-out\x64_windows-opt\bin\tensorflow\lite\core\api</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_aruco341.lib;opencv_bgsegm341.lib;opencv_bioinspired341.lib;opencv_calib3d341.lib;opencv_ccalib341.lib;opencv_core341.lib;opencv_datasets341.lib;opencv_dnn_objdetect341.lib;opencv_dnn341.lib;opencv_dpm341.lib;opencv_face341.lib;opencv_features2d341.lib;opencv_flann341.lib;opencv_fuzzy341.lib;opencv_hfs341.lib;opencv_highgui341.lib;opencv_img_hash341.lib;opencv_imgcodecs341.lib;opencv_imgproc341.lib;opencv_line_descriptor341.lib;opencv_ml341.lib;opencv_objdetect341.lib;opencv_optflow341.lib;opencv_phase_unwrapping341.lib;opencv_photo341.lib;opencv_plot341.lib;opencv_reg341.lib;opencv_rgbd341.lib;opencv_saliency341.lib;opencv_shape341.lib;opencv_stereo341.lib;opencv_stitching341.lib;opencv_structured_light341.lib;opencv_superres341.lib;opencv_surface_matching341.lib;opencv_text341.lib;opencv_tracking341.lib;opencv_video341.lib;opencv_videoio341.lib;opencv_videostab341.lib;opencv_xfeatures2d341.lib;opencv_ximgproc341.lib;opencv_xobjdetect341.lib;opencv_xphoto341.lib;c_api_internal.lib;api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ObjectDetection.cpp" />
+    <ClCompile Include="RdtReader.cpp" />
+    <ClCompile Include="RdtUtil.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RdtProcessing.h" />
+    <ClInclude Include="RdtReader.h" />
+    <ClInclude Include="RdtUtil.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

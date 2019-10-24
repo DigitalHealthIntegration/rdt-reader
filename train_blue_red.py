@@ -11,6 +11,7 @@ import numpy as np
 import cv2
 import imgaug as ia
 import keras.backend as K
+from sklearn.utils import class_weight
 from sklearn.model_selection import train_test_split
 import imgaug.augmenters as iaa
 from imgaug.augmentables.kps import KeypointsOnImage
@@ -27,23 +28,9 @@ from keras.constraints import max_norm
 from keras.optimizers import Adam
 from keras.applications.inception_v3 import InceptionV3,preprocess_input
 import argparse
-parser = argparse.ArgumentParser(description='Train a CNN to detect presence of red and blue line on an RDT and also give the normalized y-axis location.')
-parser.add_argument('--transfer', default="false",
-                    help='Set boolean to true to train a transfer learning model',type=str)
-font = cv2.FONT_HERSHEY_SIMPLEX
-args=parser.parse_args()
+from mixup_generator import MixupGenerator
 
-if args.transfer =="true" or args.transfer =="True":
-    useTransferLearning = True
-else:
-    useTransferLearning = False
-
-if useTransferLearning:
-    print("\n\nCurrently using transfer learning...\n\n")
-else:
-    print("\n\nCurrently using custom model...\n\n")
-
-def loadData(noBatchSamples,batchIdx,duplicativeFactor=30,rareData="redonly.txt",rootPathCentreLabel="./obj/labels",rootPathCroppedImages = "./obj/images"):
+def loadData(noBatchSamples,batchIdx,duplicativeFactor=1,rareData="faint.txt",badData="baddata.txt",rootPathCentreLabel="./obj/labels",rootPathCroppedImages = "./obj/images"):
     """This function loads data from the directory of labels, it works with the yolo data format.
         
         Args:
@@ -64,14 +51,22 @@ def loadData(noBatchSamples,batchIdx,duplicativeFactor=30,rareData="redonly.txt"
     
     y_train=[]
     X_train=[]
+    x_faint = []
+    y_faint = []
     name=[]
     test_data=[]
     f = open(rareData)
     lines = f.readlines()
     lines = [x.strip() for x in lines]
     f.close()
+    f = open(badData)
+    lines_bad = f.readlines()
+    lines_bad = [x.strip() for x in lines_bad]
+    f.close()
+
+    faintInd=0
     for ind,element in enumerate(os.listdir(rootPathCentreLabel)):
-        if  ind >= noBatchSamples*batchIdx and ind<=noBatchSamples*(batchIdx+1):
+        if  ind >= noBatchSamples*batchIdx and ind<=noBatchSamples*(batchIdx+1) and element.replace(".txt","") not in lines_bad:
             with open(os.path.join(rootPathCentreLabel,element)) as fin:
                 y = [(0,0),(0,0)]
                 img = cv2.imread(os.path.join(rootPathCroppedImages,element.replace(".txt",".jpg")),cv2.IMREAD_COLOR)
@@ -90,10 +85,9 @@ def loadData(noBatchSamples,batchIdx,duplicativeFactor=30,rareData="redonly.txt"
                         if float(line[2])<1:
                             y[1]=(int(float(line[1])*100),int(float(line[2])*2000))
             if element.replace(".txt","") in lines:
-                for i in range(duplicativeFactor):
-                    y_train.append(y)
-                    X_train.append(img)
-                    name.append(element)
+                x_faint.append(img)
+                y_faint.append(y)
+                name.append(element)
             else:
                 y_train.append(y)
                 X_train.append(img)
@@ -102,9 +96,10 @@ def loadData(noBatchSamples,batchIdx,duplicativeFactor=30,rareData="redonly.txt"
             test_data.append(element)
     with open("test_data.txt","w") as fout:
         fout.write("\n".join(test_data))
-    X_train=np.array(X_train)  
-    print("Training + validation:",len(X_train))
-    return X_train,y_train,name #np.zeros((128, 32, 32, 3), dtype=np.uint8) + (batch_idx % 255)
+#     X_train=np.array(X_train,dtype=np.uint8)
+#     x_faint =np.array(x_faint,dtype=np.uint8)
+#     print(y_faint)
+    return X_train,y_train,name,x_faint,y_faint #np.zeros((128, 32, 32, 3), dtype=np.uint8) + (batch_idx % 255)
 
 
 def key2Target(keypoints,name):
@@ -135,14 +130,14 @@ def key2Target(keypoints,name):
             y_class[1]=0
         
         elif k[0][1]>=700 and (k[1][1]<=700 or k[1][1]>=1800): # Red line:False && Blue line:True
-            y[0]=k[0][1]/2000
+            y[0]=(k[0][1]-1000)/500
             y[1]=0
             y_class[0]=1
             y_class[1]=0
         elif (k[1][1]>=700 and k[1][1]<=1900) and k[0][1]>=700: # Red line:True && Blue line:True
             numred+=1
-            y[0]=k[0][1]/2000
-            y[1]=k[1][1]/2000
+            y[0]=(k[0][1]-1000)/500
+            y[1]=(k[1][1]-1000)/500
             y_class[0]=1
             y_class[1]=1
         y_test_regression.append(np.array(y))
@@ -167,14 +162,20 @@ def returnAugmentationObj(percentageOfChance=0.9):
     # All augmenters with per_channel=0.5 will sample one value _per image_
     # in 50% of all cases. In all other cases they will sample new values
     # _per channel_.
+    
     seq = iaa.Sequential(
         [
-            sometimes(iaa.Affine(
-                translate_percent={"x": (-0.06, 0.06), "y": (-0.04, 0.04)}, # translate by -x to +x percent (per axis)
-                rotate=(-5, 5) # rotate by -x to +x degrees
-            )),
+#             sometimes(iaa.Affine(
+#                 translate_percent={"x": (-0.06, 0.06)}, # translate by -x to +x percent (per axis)
+#                 rotate=(-5, 5) # rotate by -x to +x degrees
+#             )),
             # execute 0 to 2 of the following (less important) augmenters per image
             # don't execute all of them, as that would often be way too strong
+            iaa.Dropout(0.02, name="Dropout"),
+            iaa.Add((-50,50),per_channel=0.5),
+            iaa.Fliplr(0.5), # horizontally flip 50% of the images
+            iaa.AddToHueAndSaturation((-20, 20)), # change hue and saturation
+
             iaa.SomeOf((0, 2),
                 [
                     iaa.OneOf([
@@ -184,8 +185,6 @@ def returnAugmentationObj(percentageOfChance=0.9):
                     ]),
                     iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)), # sharpen images
                     iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)), # emboss images
-                    iaa.Add((-9, 9), per_channel=0.5), # change brightness of images (by -x to x of original value)
-                    iaa.AddToHueAndSaturation((-15, 15)), # change hue and saturation
                     iaa.GammaContrast((0.2,1.8)),
                     sometimes(iaa.PerspectiveTransform(scale=(0.01, 0.016))) # Add perscpective transform
                 ],
@@ -251,11 +250,59 @@ def returnModel(loadWeights,weightsFile="./red_blue.hdf5"):
     batchnorm7 = BatchNormalization()(D_soft)
     out1 = Activation('sigmoid',name="cat_kash")(batchnorm7)
 
-    D_sigmoid = Dense(2)(act6)
-    batchnorm8 = BatchNormalization()(D_sigmoid)
-    out2 = Activation('sigmoid',name="reg_kash")(batchnorm8)
+    D_sigmoid_blue = Dense(1)(act6)
+    batchnorm8 = BatchNormalization()(D_sigmoid_blue)
+    out_blue = Activation('sigmoid',name="reg_blue")(batchnorm8)
+    
+    D_sigmoid_red = Dense(1)(act6)
+    batchnorm9 = BatchNormalization()(D_sigmoid_red)
+    out_red = Activation('sigmoid',name="reg_red")(batchnorm9)
+    
+    model = Model(inputs=x, outputs=[out1,out_blue,out_red])
+    if (loadWeights):
+        model.load_weights(weightsFile,by_name=True)
 
-    model = Model(inputs=x, outputs=[out1,out2])
+
+    return model
+
+def modelShredding(loadWeights,weightsFile="./red_blue_shred.hdf5"):
+    """This function returns a keras model.
+        
+        Args:
+            loadWeights (bool) : Load weights specified in the weightsFile param
+            weightsFile (str) : Path to weights
+        
+        Returns:
+            :class:`keras.model.Model` : Neural Network 
+
+    """
+    x = Input(shape=(20, 100,3))
+
+    conv1=Conv2D(4, (5,5),strides=(1,5), padding='same')(x)
+    batchnorm1 = BatchNormalization()(conv1)
+    act1 = ReLU()(batchnorm1)
+
+    conv2=Conv2D(8, (5,5),strides=(1,5), padding='same')(act1)
+    batchnorm2 = BatchNormalization()(conv2)
+    act2 = ReLU()(batchnorm2)
+    
+#     conv3=Conv2D(16, (3,3),strides=(2,2), padding='valid')(act2)
+#     batchnorm3 = BatchNormalization()(conv3)
+#     act3 = ReLU()(batchnorm3)
+
+#     conv4=Conv2D(32, (3,3),strides=(2,2), padding='valid')(act3)
+#     batchnorm4 = BatchNormalization()(conv4)
+#     act4 = ReLU()(batchnorm4)
+    flat1 = Flatten()(act2)
+    D1 = Dense(256)(flat1)
+    batchnorm3 = BatchNormalization()(D1)
+    act3 = ReLU()(batchnorm3)
+
+
+    predictor = Dense(3)(act3)
+    batchnorm9 = BatchNormalization()(predictor)
+    output = Activation('softmax',name="classification")(batchnorm9)
+    model = Model(inputs=x, outputs=output)
     if (loadWeights):
         model.load_weights(weightsFile,by_name=True)
 
@@ -302,47 +349,194 @@ def modelTransferLearning(loadWeights,weightsFile="./red_blue_transf.hdf5"):
 
 
 
+def convertProblem2Shred(X,Y):
+    x_shred=[]
+    y_cat = []
+    redFound=0
+    y_pos_red=0
+    y_pos_blue=0
+    si=0
+    ei=0
+    numberofBlue=0
+    numberofRed=0
+    numberofNone=0
+    for ind,img in enumerate(X):
+#         img = cv2.cvtColor(img,cv2.COLOR_YCrCb2BGR)
+#         img = img*255
+        for index in range(25):
+            startIndex=index*20-10
+            endIndex=(index+1)*20+10
+            if Y[ind][1]*500>startIndex and Y[ind][1]*500<=endIndex and Y[ind][1]>0:
+                numberofRed+=1
+                y_pos_red=int(Y[ind][1]*500)
+                redFound = 1
+                si=y_pos_red-10
+                ei=y_pos_red+10
+#                 cv2.imwrite("./sample/train/"+str(ind)+"_"+str(index)+"red"+".jpg",img[si:ei,:,:])
+                if True:
+                    for shift in range(100):
+                        tmp_aug_st = si + random.randint(-5,6)
+                        tmp_aug_en = tmp_aug_st+20
+                        x_shred.append(img[tmp_aug_st:tmp_aug_en,:,:])
+                        y_cat.append(np.array([0,1,0]))
+#                     cv2.imwrite("./sample/train/"+str(ind)+"_"+str(index)+"_"+str(shift)+"red"+".jpg",img[tmp_aug_st:tmp_aug_en,:,:])
+            elif Y[ind][0]*500>startIndex and Y[ind][0]*500<=endIndex and Y[ind][0]>0:
+                y_pos_blue=int(Y[ind][0]*500)
+                si=y_pos_blue-10
+                ei=y_pos_blue+10
+                if True:
+                    for shift in range(10):
+                        tmp_aug_st = si+random.randint(-5,6) 
+                        tmp_aug_en = tmp_aug_st+20
+                        x_shred.append(img[tmp_aug_st:tmp_aug_en,:,:])
+                        y_cat.append(np.array([1,0,0]))
+    #                     cv2.imwrite("./sample/train/"+str(ind)+"_"+str(index)+"_"+str(shift)+"blue"+".jpg",img[tmp_aug_st:tmp_aug_en,:,:])
+
+                    
+#                 if numberofRed<=numberofBlue:
+#                     numberofBlue+=1
+# #                     cv2.imwrite("./sample/train/"+str(ind)+"_"+str(index)+"blue"+".jpg",img[si:ei,:,:])
+            else:
+#                 if numberofBlue+20>=numberofNone:
+#                     numberofNone+=1
+#                     cv2.imwrite("./sample/train/"+str(ind)+"_"+str(index)+"none"+".jpg",img[startIndex+10:endIndex-10,:,:])
+
+                for shift in range(7):
+                    tmp_aug_st = startIndex+random.randint(-1,1) 
+                    tmp_aug_en = tmp_aug_st+20
+                    if img[tmp_aug_st:tmp_aug_en,:,:].shape[0]==20:
+                        x_shred.append(img[tmp_aug_st:tmp_aug_en,:,:])
+                        y_cat.append(np.array([0,0,1]))
+                    
+        if True:
+#             img=cv2.circle(img,(50,y_pos_red),5,(0,0,255),5)
+#             img=cv2.circle(img,(50,si),2,(0,255,0),2)
+#             img=cv2.circle(img,(50,ei),2,(0,255,0),2)
+#             img=cv2.circle(img,(50,y_pos_blue),5,(255,0,0),5)
+            
+#             cv2.imwrite("./sample/train/"+str(ind)+"_"+str(index)+"full"+".jpg",img)
+            redFound=0
+    x_shred=np.array(x_shred)
+    y_cat = np.array(y_cat)
+    
+    combined = list(zip(x_shred,y_cat))
+    random.shuffle(combined)
+
+    x_shred[:], y_cat[:] = zip(*combined)
+    return x_shred,y_cat
+
+def recall_m(y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+        recall = true_positives / (possible_positives + K.epsilon())
+        return recall
+
+def precision_m(y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+        precision = true_positives / (predicted_positives + K.epsilon())
+        return precision
+
+def f1_m(y_true, y_pred):
+    precision = precision_m(y_true, y_pred)
+    recall = recall_m(y_true, y_pred)
+    return 2*((precision*recall)/(precision+recall+K.epsilon()))
+
+
+def arguementsHandler():
+    parser = argparse.ArgumentParser(description='Train a CNN to detect presence of red and blue line on an RDT and also give the normalized y-axis location.')
+    parser.add_argument('--transfer', default="false",
+                        help='Set boolean to true to train a transfer learning model',type=str)
+    parser.add_argument('--shred', default="true",
+                        help='Set boolean to true to convert the problem into classifying shreds',type=str)
+
+    try:
+        args=parser.parse_args()
+    except SystemExit:
+        args=parser.parse_args(["--transfer true --shred true"])
+    return args
 
 if __name__ == "__main__":
+    args = arguementsHandler()
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    if args.transfer =="true" or args.transfer =="True":
+        useTransferLearning = True
+    else:
+        useTransferLearning = False
+    if args.shred =="true" or args.shred =="True":
+        useShred = True
+    else:
+        useShred = False
+
+    if useTransferLearning:
+        print("\n\nCurrently using transfer learning...\n\n")
+    else:
+        print("\n\nCurrently using custom model...\n\n")
+
     config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} ) # Correctly put number of GPU and CPU
     sess = tf.Session(config=config) 
     
     SeqAug = returnAugmentationObj()
-    if useTransferLearning:
-        model = modelTransferLearning(True,"red_blue_transf.hdf5")
-    else:
-        model = returnModel(True,"red_blue_cust.hdf5")
-        
+    SeqAugTest = returnAugmentationObj(0.)
+
     filepath="weights-latest_model_YCrCb_test.hdf5" # Name and path of weights to save
-    
+
     checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min') # Checkpoint call back to save best model on validation set
 
     lrd=ReduceLROnPlateau(monitor='val_loss', factor=0.9, patience=10, verbose=1, mode='auto', min_delta=0.00001, cooldown=5, min_lr=0.00000000000000000001) # Callback to control learning rate on plateau condition 
-    
-    X,Y,name = loadData(540,0) # Load all data in one batch, 3 since sample data has only 3
-
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.33333, random_state=42) # Split data into training and testing 
-
     callbacks_list = [checkpoint,lrd]
 
     optimizer = Adam(lr=0.0009, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True) # Optimizer used to train
     
-    model.compile(optimizer=optimizer, loss={"cat_kash":"binary_crossentropy","reg_kash":lossReg}, metrics={"cat_kash":'accuracy',"reg_kash":"mse"}) # Compile model for training
+
+    
+    if useTransferLearning:
+        model = modelTransferLearning(True,"red_blue_transf.hdf5")
+        model.compile(optimizer=optimizer, loss={"cat_kash":"binary_crossentropy","reg_kash":"mean_squared_error","reg_red":"mean_squared_error"}, metrics={"cat_kash":'accuracy',"reg_blue":"mse","reg_red":"mse"})
+    elif useShred:
+        model = modelShredding(True,"shredRGB1.hdf5")
+        model.compile(optimizer=optimizer, loss={"classification":"categorical_crossentropy"},metrics={"classification":['acc',f1_m,precision_m, recall_m]})
+    else:
+        model = returnModel(False,"red_blue_cust.hdf5")
+        model.compile(optimizer=optimizer, loss={"cat_kash":"binary_crossentropy","reg_kash":"mean_squared_error","reg_red":"mean_squared_error"},metrics={"cat_kash":'accuracy',"reg_blue":"mse","reg_red":"mse"})
+        
+
+    
+    X,Y,name,X_faint,Y_faint = loadData(800,0) # Load all data in one batch, 3 since sample data has only 3
+
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42) # Split data into training and testing 
+    X_faint_tr,X_faint_te,Y_faint_tr,Y_faint_te = train_test_split(X_faint, Y_faint, test_size=0.2, random_state=42)
+    
+    
+    [X_train.append(obj) for obj in X_faint_tr]
+    [X_test.append(obj) for obj in X_faint_te]
+    [y_train.append(obj) for obj in Y_faint_tr]
+    [y_test.append(obj) for obj in Y_faint_te]
+    
+#     X_train = np.concatenate((X_train,X_faint_tr))
+#     X_test = np.concatenate((X_test,X_faint_te))
+    
+#     y_train = np.concatenate((y_train,Y_faint_tr))
+#     y_test = np.concatenate((y_test,Y_faint_te))
+    
+ # Compile model for training
 
 
-    for iterationOut in range(5): # increase for more iterations
-        for iterationIn in range(5): # increase for more number of iterations
+    for iterationOut in range(25): # increase for more iterations
+
+        for iterationIn in range(15): # increase for more number of iterations
             xx_tr=[]
             yy_reg_tr=[]
             yy_cat_tr=[]
             xx_te=[]
             yy_reg_te=[]
             yy_cat_te=[]
-            for i in range(5): # increase for more augmented data
+            for i in range(3): # increase for more augmented data
                 images_aug_tr, keypoints_aug_tr = SeqAug(images=X_train,keypoints=y_train)  
-                images_aug_te, keypoints_aug_te = SeqAug(images=X_test,keypoints=y_test)
                 tar_train_reg,tar_train_cat=key2Target(keypoints_aug_tr,name)
+                images_aug_te, keypoints_aug_te = SeqAugTest(images=X_test,keypoints=y_test)
                 tar_test_reg,tar_test_cat=key2Target(keypoints_aug_te,name)
+
                 for ind,im in enumerate(images_aug_tr):
                     im=im[1000:1500,:,:] # Crop out only test area
                     if(useTransferLearning):
@@ -350,7 +544,7 @@ if __name__ == "__main__":
                     else:
                         im = im/255.0
                         im = np.array(im,dtype=np.float32)
-                        yuv_im = cv2.cvtColor(im, cv2.COLOR_RGB2YCrCb)
+                        yuv_im = im #cv2.cvtColor(im, cv2.COLOR_RGB2HSV)
                         xx_tr.append(yuv_im)
                 for ii in tar_train_reg:
                     yy_reg_tr.append(ii)
@@ -373,7 +567,7 @@ if __name__ == "__main__":
                     else:
                         im = im/255.0
                         im = np.array(im,dtype=np.float32)
-                        yuv_im = cv2.cvtColor(im, cv2.COLOR_RGB2YCrCb)
+                        yuv_im = im #cv2.cvtColor(im, cv2.COLOR_RGB2HSV)
                         xx_te.append(yuv_im)
                 for ii in tar_test_reg:
                     yy_reg_te.append(ii)
@@ -395,5 +589,16 @@ if __name__ == "__main__":
             xxx_te=np.array(xx_te)
             yyy_reg_te=np.array(yy_reg_te)
             yyy_cat_te=np.array(yy_cat_te)
-            model.fit(xxx, [yyy_cat,yyy_reg], validation_data=(xxx_te, [yyy_cat_te,yyy_reg_te]), epochs=35,batch_size=4,callbacks=callbacks_list) # Change batch size as per available resources
+            if useShred:
+                xxx_train,yyyy_cat_tr=convertProblem2Shred(xxx,yyy_reg)
+#                 xxx_train = SeqAug(images=xxx_train)
+#                 xxx_train = xxx_train/255.0
+                xxx_test,yyyy_cat_te=convertProblem2Shred(xxx,yyy_reg)
+                training_generator = MixupGenerator(xxx_train, yyyy_cat_tr, batch_size=32, alpha=0.1)()
+                test_generator = MixupGenerator(xxx_test, yyyy_cat_te, batch_size=32, alpha=0.2)()
+                class_weights = {0:2,1:4,2:1}
+                model.fit(xxx_train, yyyy_cat_tr, validation_data=(xxx_test, yyyy_cat_te), epochs=5,batch_size=32,callbacks=callbacks_list)
+                #model.fit_generator(training_generator,validation_data=(xxx_test,yyyy_cat_te),epochs=15,             steps_per_epoch=xxx_train.shape[0] // 32,callbacks=callbacks_list)
+            else:
+                model.fit(xxx, [yyy_cat,yyy_reg[:,0],yyy_reg[:,1]], validation_data=(xxx_te, [yyy_cat_te,yyy_reg_te[:,0],yyy_reg_te[:,1]]), epochs=35,batch_size=4,callbacks=callbacks_list) # Change batch size as per available resources
             

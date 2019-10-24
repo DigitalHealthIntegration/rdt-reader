@@ -121,20 +121,67 @@ class LineDetector:
     
         img = cv.imread("2.jpg")
         img=cv.resize(img,(100,2000))
-        img = img[1500:2000,:,:]
+        img = img[1500:1520,:,:]
         img = img/ 255.0
         img = np.array(img,dtype=np.float32)
         img = cv.cvtColor(img, cv.COLOR_BGR2YCrCb)
 
-        img = np.reshape(img,(1,self.input_size[0],self.input_size[1],3))
+        img = np.reshape(img,(1,20,100,3))
 
         predict_fn = tf.contrib.predictor.from_saved_model(self.weightsPath)
         result = predict_fn({"input_image": img})
-
-        probability =result["softmax"]
-        predicted_points = result["multiply"]
         return predict_fn
 
+
+    def most_frequent(self,List): 
+        return max(set(List), key = List.count) 
+    
+    def slidingMaxpool(self,truthLabels,windowSize,stride):
+        
+        noIterations = int(len(truthLabels)/windowSize + len(truthLabels)/stride)  
+        y_averaged=[]
+        for ind in range(noIterations):
+            start = ind*stride
+            end = start +windowSize
+            tmp_data = truthLabels[start:end]
+            if(len(tmp_data)==windowSize):
+                m_tmp = self.most_frequent(tmp_data)
+                y_averaged.append(m_tmp)
+        return y_averaged
+    
+    def shredImage(self,img):
+        y=[]
+#         print("input shape",img.shape)
+        if img.shape == (2000,100,3):
+            pass
+        else:
+            img = cv.resize(img,(100,2000))
+#             print(img.shape)
+        img_inp = img[1000:1500,:,:]
+        img_no_sclae = np.copy(img_inp)
+        img_inp = img_inp/255.0
+        img_inp = np.array(img_inp,dtype=np.float32)
+        img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2RGB)
+
+        for i in range(96):
+            st = i*5
+            end = st+20
+            # print(end-st)
+            shred_img = img_inp[st:end,:,:]
+            shred_img_write = img_no_sclae[st:end,:,:]
+            cv.imwrite("./shred/"+str(i)+".jpg",shred_img_write)
+            shred_img = shred_img[np.newaxis]
+            preds = self.predictorFn({"input_image": shred_img})
+            preds=list(preds["predictions"][0])
+            if preds.index(max(preds))==0:
+                y.append(0)
+            elif preds.index(max(preds))==1:
+                y.append(1)
+            elif preds.index(max(preds))==2:
+                y.append(2)
+        print("sliding window predictions :",y)
+        y_avg = self.slidingMaxpool(y,3,1)
+        return y_avg
 
     def wrapper(self, image):
         """Wrapper method for the whole service for the Line Detection service
@@ -149,32 +196,34 @@ class LineDetector:
                 list: Y-axis of predicted point
                 numpy.ndarray: Image cropped
         """
-
-        img_resize= np.copy(image)  #cv.resize(image,(100,2000))
-        img = np.copy(img_resize)
-        img = img[1000:1500,:,:]
-        img = img/ 255.0
-        img = np.array(img,dtype=np.float32)
-        img = cv.cvtColor(img, cv.COLOR_BGR2YCrCb)
-        img = np.reshape(img,(1,self.input_size[0],self.input_size[1], 3))
-
-
-        start_grpc = dt.utcnow()
-        result = self.predictorFn({"input_image": img})
-        end_grpc = dt.utcnow()
-
-        self.grpc_delta = end_grpc - start_grpc
-
-        #the output from TFS
-        predicted_points=[[0],[0]]
-        probability = result["softmax"]
-        predicted_points =result["multiply"]
-        predicted_points[0][0]=predicted_points[0][0]*2000 #Rescale predicted point
-        try:
-            predicted_points[0][1]=predicted_points[0][1]*2000
-        except IndexError:
-            pass
-        return [probability,predicted_points,img_resize] 
+        blue_detected = 0
+        red_detected = 0
+        virus_type = 0
+        cntFromBlue=0
+        predictions = self.shredImage(image)
+        windowSize = 500/len(predictions)
+        for indexLoc,p in enumerate(predictions):
+            if blue_detected==1:
+                cntFromBlue+=1
+            if p==2:
+                pass
+            elif p==1 and indexLoc<80:
+                print("red",indexLoc)
+                if blue_detected==0:
+                    virus_type = 1
+                    red_detected = 1
+                else:
+                    # print("here")
+                    if red_detected==0:
+                        virus_type = 2
+                    elif cntFromBlue<30:
+                        virus_type = 3
+                image = cv.circle(image,(50,int(indexLoc*windowSize+1010)),5, (0,0,255), 5)
+            elif p==0 and indexLoc>20:
+                print("blue",indexLoc)
+                blue_detected=1
+                image = cv.circle(image,(50,int(indexLoc*windowSize+1010)),5, (255,0,0), 5)
+        return [image,virus_type,blue_detected]
 
 
 

@@ -11,7 +11,7 @@ for index in range(3):
     epoch = []
     with open("plotable1") as fin:
         for ind,line in enumerate(fin):
-            if ind<206:
+            #if ind<206:
                 #epoch.append(ind+1)
                 #print(line.split(":"))
                 if(index==0):
