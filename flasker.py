@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 """Flask server
-Example:
-
-        $ python flasker.py
 """
-from flask import Flask, request
 from tf_model_api import YOLO,LineDetector
 import json
 import os, io
@@ -19,7 +15,6 @@ from PIL import Image
 from base64 import decodestring
 import re
 import math
-from flask import Flask, Response
 from requests_toolbelt import MultipartEncoder
 import base64
 import time
@@ -27,9 +22,6 @@ import os.path
 from os import path
 
 
-
-
-app = Flask(__name__)
 
 def reduceByConfidence(dictBoxC,dictBoxL):
     """This function handles multple object detection by selecting the one with the highest score.
@@ -481,68 +473,24 @@ def runPipeline(img,serverObj):
         rc = -2
     return rc
 
-
-@app.route("/health-check", methods=["GET"])
-def health_check():
-    '''API endpoint to verify the service is up and running.'''
-    if request.method == "GET":
-        return Response("OK", mimetype="application/json")
-
-
-@app.route("/Quidel/QuickVue", methods=["POST"])
-def interpret_quidel_quickvue():
-    '''API endpoint to Run the entire service and give appropriate response.
-
-        Example:
-                
-            Sample Request::
-
-                    {"UUID":"a43f9681-a7ff-43f8-a1a6-f777e9362654","Quality_parameters":{"brightness":"10"},"RDT_Type":"Flu_Audere","Include_Proof":"False"}
-
-        Response codes
-            
-            0=> No Flu detected
-            
-            1=> Type A Flu detected
-            
-            2=> Type B Flu detected
-            
-            3=> Both type A and B detected
-            
-            Negative values indicate error conditions
-            
-            -1=> Invalid(No Control Line detected)
-            
-            -2=> No RDT found in image
-
-    
-        Example:
-
-            Sample API response:: 
-                    
-                    {"UUID":"a43f9681-a7ff-43f8-a1a6-f777e9362654",rc":0,"msg":"No Flu","Include_Proof":"False"}
+def processRdtRequest(UUID,include_proof,img_str):
     '''
-    t1=0
-    t2=0
-    UUID=json.loads(request.form.get("metadata"))["UUID"]
-    include_proof = json.loads(request.form.get("metadata"))["Include_Proof"]
-    
-    if request.method == "POST":
-        message="No Flu"
-        rc = 0 
-        imagefile=request.files.get('image') # Get image from file
-        img_str = imagefile.read()
-        imagefile.close()
-        nparr = np.fromstring(img_str, np.uint8)
-        img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
-        im0 = np.copy(img_np)
-        st = time.time()
-        boxes = serv.callyolo(img_np)
-        et = time.time()
-        t1=et-st
-        im0 = utils.draw_bbox(im0, boxes, show_label=True)
-        resp,roi = generateRDTcrop(boxes,img_np,[])
-        if resp["message"]=="success": 
+        Reads rdt input image and tells the result: No rdt, No flu, Type A flu, Type B flu. Handles errors as well.
+        This function is called from the rest API code which extracts the required data from the request and calls this function.
+    '''
+    message1="No Flu"
+    rc=0
+    nparr = np.fromstring(img_str, np.uint8)
+    img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+    im0 = np.copy(img_np)
+    st = time.time()
+    serv = FluServer()
+    boxes = serv.callyolo(img_np)
+    et = time.time()
+    t1=et-st
+    im0 = utils.draw_bbox(im0, boxes, show_label=True)
+    resp,roi = generateRDTcrop(boxes,img_np,[])
+    if resp["message"]=="success": 
             cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
             st=time.time()
             outImage,virus_type,blue_detection = serv.callLineDetector(roi)
@@ -552,47 +500,39 @@ def interpret_quidel_quickvue():
                 if blue_detection>0 and virus_type==0:
                     rc=0
                 elif blue_detection ==0:
-                    message="No control line found"
+                    message1="No control line found"
                     rc=-1
                 elif virus_type==1:
                     rc = 1
-                    message="Atype"
+                    message1="Atype"
                 elif virus_type==2:
-                    message="Btype"
+                    message1="Btype"
                     rc = 2
                 elif virus_type==3:
-                    message="A+Btype"
+                    message1="A+Btype"
                     rc = 3
             except IndexError:
                 pass
             cv2.imwrite("out.jpg",outImage[1000:1500,:,:])
-        else:
-            message="No rdt found"
+            print("Time taken",t2)
+    else:
+            message1="No rdt found"
             rc = -2
-        print("Time taken",t2)
-        if include_proof=="True" and path.exists('roi.jpg') :
-            with open("roi.jpg", "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read())
-        
-            m = MultipartEncoder(
-                   fields={'metadata': ('response',json.dumps({"UUID":UUID,"rc":str(rc),"msg":message,"Include Proof":include_proof}),'application/json'),
-                'image': ('rdt', encoded_string, 'image/jpeg')})
-            return Response(m.to_string(), mimetype=m.content_type)
-
-        else:
-            resp = json.dumps({"UUID":UUID,"rc":str(rc),"msg":message,"Include Proof":include_proof})
-            return Response(resp, mimetype="application/json")
-
-
-@app.route("/align", methods=["POST"])
-def align():
-    '''Backwards compatible alias for interpret_quidel_quickvue().
-
-       This can be deleted once all code migrates to the new path.
-    '''
-    interpret_quidel_quickvue()
+    
+    if include_proof=="True":
+            try:
+                with open("roi.jpg", "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read())
+                    m = MultipartEncoder(fields={'metadata': ('response',json.dumps({"UUID":UUID,"rc":str(rc),"msg":message1,"Include Proof":include_proof}),'application/json'),
+                    'image': ('rdt', encoded_string, 'image/jpeg')})
+                    return m,True
+            except IOError:
+                print("Unable to open roi image")
+                raise IOError('Unable to open roi file')
+                
+    else:
+            encoded_string=None
+            resp = json.dumps({"UUID":UUID,"rc":str(rc),"msg":message1,"Include Proof":include_proof})
+            return resp,False
 
 
-if __name__ == "__main__":
-    serv = FluServer()
-    app.run(host='0.0.0.0', port=9000)
