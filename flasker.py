@@ -482,11 +482,15 @@ def runPipeline(img,serverObj):
     return rc
 
 
+@app.route("/health-check", methods=["GET"])
+def health_check():
+    '''API endpoint to verify the service is up and running.'''
+    if request.method == "GET":
+        return Response("OK", mimetype="application/json")
 
 
-
-@app.route("/align", methods=["POST"])
-def align():
+@app.route("/Quidel/QuickVue", methods=["POST"])
+def interpret_quidel_quickvue():
     '''API endpoint to Run the entire service and give appropriate response.
 
         Example:
@@ -580,7 +584,13 @@ def align():
             return Response(resp, mimetype="application/json")
 
 
+@app.route("/align", methods=["POST"])
+def align():
+    '''Backwards compatible alias for interpret_quidel_quickvue().
 
+       This can be deleted once all code migrates to the new path.
+    '''
+    interpret_quidel_quickvue()
 
 
 if __name__ == "__main__":
