@@ -48,7 +48,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
             mRectView = findViewById(R.id.rdtRectVideo);
 
             mTextureView = (TextureView)findViewById(R.id.textureView);
-            mTextureView.setScaleX(1);//isMirrored ? -1 :
+            mTextureView.setScaleX(isMirrored ? 1 : -1);//isMirrored ? -1 :1
             mTextureView.setSurfaceTextureListener(this);
 
             Config c = new Config();
@@ -80,6 +80,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
     void StartPlayingVideo(SurfaceTexture surface,String videoPath) {
         if(mStarted) return;
         Surface s= new Surface(surface);
+        if(videoPath != null && videoPath.length() > 1)
         try{
             mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setSurface(s);
@@ -120,7 +121,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
                 return;
             }
             //configureTransform(width,height);
-            adjustAspectRatio(width,height);
+            //adjustAspectRatio(width,height);
         }
     };
 
@@ -162,7 +163,10 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
 
     private void releaseMediaPlayer() {
         if(mMediaPlayer!= null) {
-            mMediaPlayer.stop();
+            if(mMediaPlayer.isPlaying()) {
+                mMediaPlayer.stop();
+            }
+            mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
         }

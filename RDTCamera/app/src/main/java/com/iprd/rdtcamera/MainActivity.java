@@ -110,7 +110,9 @@ public class MainActivity extends AppCompatActivity {
     private double mTopTh=0.9,mBotTh=0.7;
     private short mShowImageData=0;
     public Config config = new Config();
-    Switch mode;
+    public Switch mode;
+    public Switch torch;
+    public Switch saveData;
 
 
     int idx;
@@ -140,6 +142,8 @@ public class MainActivity extends AppCompatActivity {
         mRectView = findViewById(R.id.rdtRect);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
+
+
         mAcceptArray = new ArrayList<>();
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)50,(short)50,(short)400,(short)50));
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)100,(short)100,(short)500,(short)400));
@@ -164,8 +168,9 @@ public class MainActivity extends AppCompatActivity {
         ApplySettings();
 
         /// Set Torch button
-        Switch sw = (Switch) findViewById(R.id.torch);
-        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        torch = (Switch) findViewById(R.id.torch);
+        //torch.setVisibility(View.VISIBLE);
+        torch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try{
                     if (isChecked) {
@@ -184,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         /// Set Save button
-        Switch saveData = (Switch) findViewById(R.id.saveData);
+        saveData = (Switch) findViewById(R.id.saveData);
+        //saveData.setVisibility(View.VISIBLE);
         saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -197,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
         ///Video Play
         mode = (Switch) findViewById(R.id.mode);
+        //mode.setVisibility(View.VISIBLE);
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -273,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onImageAvailable(ImageReader reader) {
             //Log.d("Madhav","Comes in imagehandler");
+
             Image image = null;
             try {
                 image = reader.acquireLatestImage();
@@ -297,7 +305,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture,
                                               int width, int height) {
+
             openCamera(width, height);
+
         }
 
         @Override
@@ -314,6 +324,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
             //Log.d(".... ","onSurfaceTextureUpdated");
+            mode.setVisibility(View.VISIBLE);
+            saveData.setVisibility(View.VISIBLE);
+            torch.setVisibility(View.VISIBLE);
+
             if(!mRdtApi.isInProgress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
