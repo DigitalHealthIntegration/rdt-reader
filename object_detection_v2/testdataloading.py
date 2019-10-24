@@ -19,6 +19,6 @@ import numpy as np
 
 # x=data_loader.generateBoundingBox([0.5],[[[30,20]]],512)
 # print(np.array(x))
-x,y,n = data_loader.loadDataObjSSD("test")
-x,y,n = data_loader.loadDataObjSSD("train")
+# x,y,n = data_loader.loadDataObjSSD("test")
+x,y,n = data_loader.loadDataObjSSDFromYoloFormat("train")
 print(x.shape,y.shape)

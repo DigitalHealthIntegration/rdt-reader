@@ -33,11 +33,11 @@ __C.TRAIN.UPSAMPLE              = 4
 __C.TRAIN.QUANT_DELAY           = 2
 __C.TRAIN.OUTDATA           = "D:/source/repos/object_detection_mobile_v2/output_check/"
 __C.TRAIN.PREDICTION_SCALE   = [0.5]
-__C.TRAIN.NUMBER_CLASSES   = 3
-__C.TRAIN.ANCHOR_ASPECTRATIO   = [[[20,10],[10,20],[30,30],[25,20],[20,25]]]
+__C.TRAIN.NUMBER_CLASSES   = 4
+__C.TRAIN.ANCHOR_ASPECTRATIO   = [[[30,20],[15,11],[19,15],[6,20],[25,15]]]
 __C.TRAIN.IOU_THRESH   = 0.5
 __C.TRAIN.NUMBER_BLOCKS            = 15
-
+__C.TRAIN.LABEL_FILE_YOLO          ="rdt_train_hor.txt"
 
 
 
@@ -58,6 +58,7 @@ __C.TEST.QUANTIZED_WEIGHT_FILE  = "D:/source/repos/object_detection_mobile_v2/ev
 __C.TEST.SHOW_LABEL             = True
 __C.TEST.UPSAMPLE               = 1
 __C.TEST.EVAL_MODEL_PATH        = "D:/source/repos/object_detection_mobile_v2/eval_model"
+__C.TEST.LABEL_FILE_YOLO          ="rdt_test_hor.txt"
 
 
 

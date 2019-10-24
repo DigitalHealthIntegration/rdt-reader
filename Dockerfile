@@ -12,18 +12,20 @@ RUN apt-get update --fix-missing \
   libgl1-mesa-glx \
   wget
 
+ENV CONDA=/opt/miniconda3
+RUN mkdir -p /opt \
+ && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+      -O /opt/install-miniconda.sh \
+ && /bin/bash /opt/install-miniconda.sh -b -p ${CONDA}
+
 RUN useradd --create-home --shell /bin/bash ${USER}
 ENV HOME=/home/${USER}
-ENV CONDA=${HOME}/miniconda3
 
 COPY . ${HOME}/rdt-reader
-RUN chown -R ${USER}:${USER} ${HOME}
+RUN chown -R ${USER}:${USER} ${HOME}/rdt-reader
 
 USER ${USER}
 WORKDIR ${HOME}
-
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ${HOME}/install-miniconda.sh
-RUN /bin/bash ${HOME}/install-miniconda.sh -b -p ${CONDA}
 
 RUN echo ". ${CONDA}/etc/profile.d/conda.sh" >> ${HOME}/.bash_profile \
  && cat ${HOME}/.bash_profile
