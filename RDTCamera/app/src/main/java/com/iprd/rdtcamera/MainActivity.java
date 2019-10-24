@@ -1,8 +1,9 @@
 package com.iprd.rdtcamera;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -17,18 +18,14 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.Type;
-import android.util.DisplayMetrics;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -36,16 +33,16 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
 import org.opencv.core.Point;
 
 import androidx.annotation.NonNull;
@@ -55,17 +52,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -86,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     public static Size CAMERA2_PREVIEW_SIZE = new Size(1280, 720);
     public static Size CAMERA2_IMAGE_SIZE = new Size(1280, 720);
+    private Button preferenceSettingBtn;
+    private TextView rdtDataToBeDisplay;
+    private List<Surface> mSurfaces;
 
     static {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -112,6 +107,11 @@ public class MainActivity extends AppCompatActivity {
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
+    private double mTopTh=0.9,mBotTh=0.7;
+    private short mShowImageData=0;
+    public Config config = new Config();
+    Switch mode;
+
 
     int idx;
     RdtAPI mRdtApi;
@@ -125,9 +125,6 @@ public class MainActivity extends AppCompatActivity {
         return res1 == PackageManager.PERMISSION_GRANTED && res == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED;
     }
     private void requestPermission(){
-       /* if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA,ACCESS_FINE_LOCATION}, 200);
-        }*/
         ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA, Manifest.permission.CAMERA}, 200);
     }
     @Override
@@ -141,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
 
         mRectView = findViewById(R.id.rdtRect);
+        rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
+        //rdtDataToBeDisplay.setTextColor(0x000000FF);
         mAcceptArray = new ArrayList<>();
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)50,(short)50,(short)400,(short)50));
         mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)100,(short)100,(short)500,(short)400));
@@ -153,6 +152,16 @@ public class MainActivity extends AppCompatActivity {
         }
         mRdtApi = new RdtAPI();
         mRdtApi.init(c);
+        // preferences
+        preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
+        preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, MyPreferencesActivity.class);
+                startActivity(i);
+            }
+        });
+        ApplySettings();
 
         /// Set Torch button
         Switch sw = (Switch) findViewById(R.id.torch);
@@ -174,6 +183,66 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /// Set Save button
+        Switch saveData = (Switch) findViewById(R.id.saveData);
+        saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    mRdtApi.setSaveImages(true);
+                } else {
+                    mRdtApi.setSaveImages(false);
+                }
+            }
+        });
+
+        ///Video Play
+        mode = (Switch) findViewById(R.id.mode);
+        mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    mode.setChecked(false);
+                    Intent i = new Intent(MainActivity.this, ActivityVideo.class);
+                    i.putExtra("videoPath","aaaaaa");
+                    i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
+                    startActivity(i);
+
+                } else {
+                    Log.d(">>Mode Switch<<","OFF");
+                }
+            }
+        });
+    }
+
+    private void ApplySettings() {
+        boolean mSaveNegativeData= false;
+        try {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
+            config.mMinScale = Short.parseShort(prefs.getString("mMinScale", config.mMinScale+""));
+            config.mXMin = Short.parseShort(prefs.getString("mXMin",  config.mXMin+""));
+            config.mXMax = Short.parseShort(prefs.getString("mXMax", config.mXMax+""));
+            config.mYMin = Short.parseShort(prefs.getString("mYMin", config.mYMin+""));
+            config.mYMax = Short.parseShort(prefs.getString("mYMax", config.mYMax+""));
+            config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", config.mMinSharpness +""));
+            config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
+            config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
+            mTopTh = Float.parseFloat(prefs.getString("mTopTh", ObjectDetection.mTopThreshold+""));
+            mBotTh = Float.parseFloat(prefs.getString("mBotTh", ObjectDetection.mBottomThreshold+""));
+            mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
+            short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
+            if(t!=0) mSaveNegativeData =true;
+        }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
+            Log.i("RDT","Exception in  Shared Pref switching to default");
+            config.setDefaults();
+            mTopTh = 0.9f;
+            mBotTh = 0.7f;
+            mShowImageData = 0;
+            mSaveNegativeData = false;
+        }
+        mRdtApi.setConfig(config);
+        mRdtApi.setTopThreshold(mTopTh);
+        mRdtApi.setBottomThreshold(mBotTh);
+        mRdtApi.mSaveNegativeData = mSaveNegativeData;
     }
 
     byte[] ReadAssests() throws IOException {
@@ -212,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
                 //Utils.matToBitmap(captureMat, resultBitmap);
                 //Log.d("Image",captureMat.cols()+"x"+captureMat.rows());
                 //Log.d("Image",image.getWidth()+"x"+image.getHeight());
+
             } catch(Exception e){
 
             } finally {
@@ -243,12 +313,11 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-            //Bitmap capFrame = mTextureView.getBitmap();
-            if (count++ % 10 == 0) {
+            //Log.d(".... ","onSurfaceTextureUpdated");
+            if(!mRdtApi.isInProgress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
             }
-            //Log.d("Madhav",capFrame.getWidth()+"x"+capFrame.getHeight() );
         }
         void Process(final Bitmap capFrame) {
             new Thread(new Runnable() {
@@ -262,8 +331,12 @@ public class MainActivity extends AppCompatActivity {
         private void ProcessBitmap(Bitmap capFrame) {
             long st  = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.update(capFrame);
+            if(mShowImageData != 0){
+                status.mSharpness = mRdtApi.mSharpness;
+                status.mBrightness = mRdtApi.mBrightness;
+            }
             long et = System.currentTimeMillis()-st;
-            Log.d("Total Processing Time "," "+ et);
+            Log.i("Total Processing Time "," "+ et);
 //            final AcceptanceStatus status = getCords(null);
             //final AcceptanceStatus status = getCords(mat);
             runOnUiThread(new Runnable() {
@@ -273,6 +346,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             //Log.d("Madhav",capFrame.getWidth()+"x"+capFrame.getHeight() );
+        }
+    };
+
+    private CameraCaptureSession.CaptureCallback mCaptureCallback
+            = new CameraCaptureSession.CaptureCallback() {
+
+        private void process(CaptureResult result) {
         }
     };
 
@@ -314,13 +394,7 @@ public class MainActivity extends AppCompatActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "is camera open");
         try {
-//            if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
-//                Log.e(TAG, "Time out waiting to lock camera opening.");
-//                return false;
-//            }
-//            String cameraId = mUseFrontCamera ? mFrontCameraId : mBackCameraId;
             String cameraId = manager.getCameraIdList()[0];
-
             // Add permission for camera and let user grant the permission
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
@@ -341,8 +415,6 @@ public class MainActivity extends AppCompatActivity {
             Size[] sizes = map.getOutputSizes(ImageReader.class);
             if (sizes.length == 0)
                 return false;
-
-
             // choose optimal size
             Size closestPreviewSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
             Size closestImageSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
@@ -351,22 +423,17 @@ public class MainActivity extends AppCompatActivity {
                 if (size.getWidth() * 9 == size.getHeight() * 16) { //Preview surface ratio is 16:9
                     double currPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - closestPreviewSize.getHeight() * closestPreviewSize.getWidth();
                     double newPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - size.getHeight() * size.getWidth();
-
                     double currImageDiff = (CAMERA2_IMAGE_SIZE.getHeight() * CAMERA2_IMAGE_SIZE.getWidth()) - closestImageSize.getHeight() * closestImageSize.getWidth();
                     double newImageDiff = (CAMERA2_IMAGE_SIZE.getHeight() * CAMERA2_IMAGE_SIZE.getWidth()) - size.getHeight() * size.getWidth();
-
                     if (Math.abs(currPreviewDiff) > Math.abs(newPreviewDiff)) {
                         closestPreviewSize = size;
                     }
-
                     if (Math.abs(currImageDiff) > Math.abs(newImageDiff)) {
                         closestImageSize = size;
                     }
                 }
             }
-
             mVideoSize = closestPreviewSize;
-
             Size videoSize =closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
@@ -375,7 +442,6 @@ public class MainActivity extends AppCompatActivity {
 
             // Get all available size for the textureSurface preview window
             sizes = map.getOutputSizes(SurfaceTexture.class);
-
             // Get the optimal size for a preview window
             mPreviewSize = closestPreviewSize;//chooseOptimalSize(sizes, width, height,mVideoSize);
 
@@ -390,13 +456,9 @@ public class MainActivity extends AppCompatActivity {
             }
             configureTransform(width, height);
             manager.openCamera(cameraId, mStateCallback, null);
-
         } catch (CameraAccessException e) {
             Log.e(TAG, "Cannot access the camera.", e);
             return false;
-//        } catch (InterruptedException e) {
-//            Log.e(TAG, "Interrupted while trying to lock camera opening.");
-//            return false;
         } catch (SecurityException e) {
             Log.e(TAG, "No access to camera device", e);
             return false;
@@ -436,7 +498,7 @@ public class MainActivity extends AppCompatActivity {
         }
         mTextureView.setTransform(matrix);
     }
-//
+
     private void closeCamera() {
 //        try {
             //////mCameraOpenCloseLock.acquire();
@@ -456,7 +518,7 @@ public class MainActivity extends AppCompatActivity {
 //        }
    }
     private void startPreview() {
-        if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null) {
+        if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null || mImageReader == null) {
             return;
         }
         try {
@@ -465,19 +527,18 @@ public class MainActivity extends AppCompatActivity {
                     mPreviewSize.getHeight());
             mPreviewBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            List surfaces = new ArrayList<>();
+            mSurfaces = new ArrayList<>();
 
             Surface previewSurface = new Surface(texture);
-            surfaces.add(previewSurface);
+            mSurfaces.add(previewSurface);
             mPreviewBuilder.addTarget(previewSurface);
 
             Surface readerSurface = mImageReader.getSurface();
-            surfaces.add(readerSurface);
+            mSurfaces.add(readerSurface);
             mPreviewBuilder.addTarget(readerSurface);
 
-            mCameraDevice.createCaptureSession(surfaces,
+            mCameraDevice.createCaptureSession(mSurfaces,
                     new CameraCaptureSession.StateCallback() {
-
                         @Override
                         public void onConfigured(CameraCaptureSession cameraCaptureSession) {
                             mPreviewSession = cameraCaptureSession;
@@ -495,13 +556,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updatePreview() {
-        if (null == mCameraDevice) {
+        if (mCameraDevice == null ||mPreviewBuilder == null || mBackgroundHandler == null|| mPreviewSession == null ) {
             return;
         }
         try {
             setUpCaptureRequestBuilder(mPreviewBuilder);
-            HandlerThread thread = new HandlerThread("CameraPreview");
-            thread.start();
+//            HandlerThread thread = new HandlerThread("CameraPreview");
+//            thread.start();
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -510,10 +571,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+
     }
-
-
-
 
     private AcceptanceStatus getCords(Mat mat){
         if(idx>=mAcceptArray.size()){
@@ -535,11 +594,15 @@ public class MainActivity extends AppCompatActivity {
 //            if ((curr - prevTime) > 5000) { //5 sec of timeout
 //                Log.d("TimeDiff","curr " + curr + "prev " + prevTime +" = " +(curr - prevTime) );
                 mRectView.setVisibility(View.INVISIBLE);
+                if(rdtDataToBeDisplay != null) {
+                    rdtDataToBeDisplay.setVisibility(View.INVISIBLE);
+                }
                 return;
 //            }
         }
 
         mRectView.bringToFront();
+        rdtDataToBeDisplay.bringToFront();
 //        Log.d("ROI","Bounds "+status.mBoundingBoxX+"x"+status.mBoundingBoxY+" Position "+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
         Point boundsRatio = new Point(prevStat.mBoundingBoxWidth*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxHeight*1.0/CAMERA2_PREVIEW_SIZE.getHeight()),
                 positionRatio = new Point(prevStat.mBoundingBoxX*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxY*1.0/CAMERA2_PREVIEW_SIZE.getHeight());
@@ -555,11 +618,21 @@ public class MainActivity extends AppCompatActivity {
         //Log.d("Box","Bounds "+lp.width+"x"+lp.height+" Position "+boxPosition.getWidth()+"x"+boxPosition.getHeight());
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
+        if(mShowImageData !=0) {
+            rdtDataToBeDisplay.setText("S[" + status.mSharpness+ "]\n"+"B[" + status.mBrightness+"]");
+            rdtDataToBeDisplay.setVisibility(View.VISIBLE);
+        }
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        mTextureView.setVisibility(View.VISIBLE);
+
+        ApplySettings();
+        //
+
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
@@ -588,26 +661,48 @@ public class MainActivity extends AppCompatActivity {
      * Stops the background thread and its {@link Handler}.
      */
     private void stopBackgroundThread() {
-        mBackgroundThread.quitSafely();
-        try {
-            mBackgroundThread.join();
-            mBackgroundThread = null;
-            mBackgroundHandler = null;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if(mBackgroundHandler != null) {
+            mBackgroundHandler.removeCallbacksAndMessages(null);
+            mBackgroundThread.quitSafely();
+            try {
+                mBackgroundThread.join();
+                mBackgroundThread = null;
+                mBackgroundHandler = null;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
 
     @Override
     public void onPause() {
+        Log.d(TAG,"onPause called");
+        mTextureView.setVisibility(View.GONE);
         closeCamera();
         stopBackgroundThread();
         super.onPause();
     }
 
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG,"onDestroy called");
+        closeCamera();
+        stopBackgroundThread();
+        super.onDestroy();
+    }
+
     private void closePreviewSession() {
         if (mPreviewSession != null) {
+            try {
+                for(Surface surf:mSurfaces){
+                    mPreviewBuilder.removeTarget(surf);
+                }
+                mPreviewSession.stopRepeating();
+                mPreviewSession.abortCaptures();
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
             mPreviewSession.close();
             mPreviewSession = null;
         }

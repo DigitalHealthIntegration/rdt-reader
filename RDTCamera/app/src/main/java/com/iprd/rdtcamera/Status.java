@@ -5,6 +5,10 @@ import java.nio.MappedByteBuffer;
 
 class Config{
     Config() {
+        setDefaults();
+    }
+
+    public void setDefaults() {
         mMaxScale = 1100;
         mMinScale = 700;
         mXMin = 100;
@@ -15,6 +19,7 @@ class Config{
         mMaxBrightness = 210.0f;
         mMinBrightness = 110.0f;
     }
+
     short mMaxScale;
     short mMinScale;
     short mXMin;

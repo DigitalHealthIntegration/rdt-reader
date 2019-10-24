@@ -1,6 +1,20 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('..\\rdtcam.jks')
+            storePassword 'm4m1g0'
+            keyAlias = 'iprd'
+            keyPassword 'm4m1g0'
+        }
+        release {
+            storeFile file('..\\rdtcam.jks')
+            storePassword 'm4m1g0'
+            keyAlias = 'iprd'
+            keyPassword 'm4m1g0'
+        }
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
     defaultConfig {
@@ -10,10 +24,10 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-//        ndk {
-//            abiFilters 'arm64-v8a', 'armeabi-v7a'
-//            // 'x86', 'x86_64', removed madhav armeabi, mips and mips64 has removed since NDK r17
-//        }
+        signingConfig signingConfigs.release
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
     }
     buildTypes {
         release {
@@ -21,6 +35,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets {
+        test {
+            resources.srcDirs += ['sampledata']
+        }
+        androidTest {
+            resources.srcDirs += ['sampledata']
+        }
+    }
+//
+//    testOptions {
+//        unitTests {
+//            includeAndroidResources = true
+//        }
+//    }
+
 //    externalNativeBuild {
 //        cmake {
 //            version '3.10.2'
@@ -33,7 +63,7 @@ android {
             enable true
             reset()
             // Specify a list of ABIs that Gradle should create APKs for
-            include 'arm64-v8a','armeabi-v7a' //,
+            include 'arm64-v8a', 'armeabi-v7a' //,
             // If you don’t want to generate a universal APK that includes all ABIs.
             universalApk true
         }
@@ -49,5 +79,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     implementation project(path: ':openCVLibrary341')
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
-
+    implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
 }

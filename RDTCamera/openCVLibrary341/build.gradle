@@ -1,6 +1,20 @@
 apply plugin: 'com.android.library'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('..\\rdtcam.jks')
+            storePassword 'm4m1g0'
+            keyAlias = 'iprd'
+            keyPassword 'm4m1g0'
+        }
+        release {
+            storeFile file('..\\rdtcam.jks')
+            storePassword 'm4m1g0'
+            keyAlias = 'iprd'
+            keyPassword 'm4m1g0'
+        }
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
 
