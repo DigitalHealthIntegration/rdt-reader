@@ -55,7 +55,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
          mTextureView = (TextureView)findViewById(R.id.textureView);
          mTextureView.setScaleX(isMirrored ? 1 : -1);//isMirrored ? -1 :1
          mTextureView.setSurfaceTextureListener(this);
-         rdtDataToBeDisplayVideo = findViewById(R.id.rdtDataToBeDisplay);
+         rdtDataToBeDisplayVideo = findViewById(R.id.rdtDataToBeDisplayVideo);
 
          Config c = new Config();
          try {
