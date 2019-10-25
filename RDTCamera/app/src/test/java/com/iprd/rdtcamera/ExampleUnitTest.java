@@ -26,7 +26,7 @@ public class ExampleUnitTest {
 
     @Test
     public void rdtTest1() {
-        RdtAPI mRdtApi;
+        RdtAPIOld mRdtApi;
 
 
         Config c = new Config();
@@ -35,7 +35,7 @@ public class ExampleUnitTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mRdtApi = new RdtAPI();
+        mRdtApi = new RdtAPIOld();
         mRdtApi.init(c);
 
         assertEquals(4, 2 + 2);

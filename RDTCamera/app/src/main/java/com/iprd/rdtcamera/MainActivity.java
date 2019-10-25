@@ -1,9 +1,9 @@
 package com.iprd.rdtcamera;
 
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -25,7 +25,6 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -51,8 +50,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import org.opencv.core.Mat;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -68,7 +65,6 @@ import static org.opencv.imgproc.Imgproc.floodFill;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
 
-    private ArrayList<AcceptanceStatus> mAcceptArray;
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
 
@@ -103,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     ImageReader mImageReader;
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
- //   private Semaphore mCameraOpenCloseLock = new Semaphore(1);
+    //   private Semaphore mCameraOpenCloseLock = new Semaphore(1);
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
@@ -117,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
     int idx;
     RdtAPI mRdtApi;
     byte[] mtfliteBytes = null;
+    private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
 
     private boolean checkpermission(){
         System.out.println("..>>"+ WRITE_EXTERNAL_STORAGE);
@@ -142,19 +139,17 @@ public class MainActivity extends AppCompatActivity {
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
 
-
-        mAcceptArray = new ArrayList<>();
-        mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)50,(short)50,(short)400,(short)50));
-        mAcceptArray.add(new AcceptanceStatus((short) 0,(short)0,(short)0,(short)0,(short)0,(short)0,(short)100,(short)100,(short)500,(short)400));
-
         Config c = new Config();
         try {
             c.mTfliteB = ReadAssests();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mRdtApi = new RdtAPI();
-        mRdtApi.init(c);
+
+        rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
+        //mRdtApi = new RdtAPI1.RdtAPIBuilder().init(c).build();//optional
+        rdtAPIBuilder = rdtAPIBuilder.init(c);
+
         // preferences
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
@@ -164,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        mShowImageData = Utils.ApplySettings(this,mRdtApi);
+        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder);
 
         /// Set Torch button
         torch = (Switch) findViewById(R.id.torch);
@@ -193,16 +188,17 @@ public class MainActivity extends AppCompatActivity {
         saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    mRdtApi.setSaveImages(true);
+                    //mRdtApi.setSaveImages(true);
+                    rdtAPIBuilder = rdtAPIBuilder.setSaveImages(true);
                 } else {
-                    mRdtApi.setSaveImages(false);
+                    //mRdtApi.setSaveImages(false);
+                    rdtAPIBuilder = rdtAPIBuilder.setSaveImages(false);
                 }
             }
         });
 
         ///Video Play
         mode = (Switch) findViewById(R.id.mode);
-        //mode.setVisibility(View.VISIBLE);
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -251,11 +247,6 @@ public class MainActivity extends AppCompatActivity {
             Image image = null;
             try {
                 image = reader.acquireLatestImage();
-                //final Mat captureMat = imageToRGBAMat(image);
-                //Bitmap resultBitmap = Bitmap.createBitmap(captureMat.cols(), captureMat.rows(), Bitmap.Config.ARGB_8888);
-                //Utils.matToBitmap(captureMat, resultBitmap);
-                //Log.d("Image",captureMat.cols()+"x"+captureMat.rows());
-                //Log.d("Image",image.getWidth()+"x"+image.getHeight());
 
             } catch(Exception e){
 
@@ -295,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
             saveData.setVisibility(View.VISIBLE);
             torch.setVisibility(View.VISIBLE);
 
-            if(!mRdtApi.isInProgress()) {
+            if(!rdtAPIBuilder.isInProgress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
             }
@@ -311,22 +302,19 @@ public class MainActivity extends AppCompatActivity {
 
         private void ProcessBitmap(Bitmap capFrame) {
             long st  = System.currentTimeMillis();
-            final AcceptanceStatus status = mRdtApi.update(capFrame);
+            final AcceptanceStatus status = rdtAPIBuilder.update(capFrame);
             if(mShowImageData != 0){
-                status.mSharpness = mRdtApi.mSharpness;
-                status.mBrightness = mRdtApi.mBrightness;
+                status.mSharpness = rdtAPIBuilder.build().getmSharpness();
+                status.mBrightness = rdtAPIBuilder.build().getmBrightness();
             }
             long et = System.currentTimeMillis()-st;
             Log.i("Total Processing Time "," "+ et);
-//            final AcceptanceStatus status = getCords(null);
-            //final AcceptanceStatus status = getCords(mat);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     repositionRect(status);
                 }
             });
-            //Log.d("Madhav",capFrame.getWidth()+"x"+capFrame.getHeight() );
         }
     };
 
@@ -349,13 +337,11 @@ public class MainActivity extends AppCompatActivity {
         }
         @Override
         public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-            //////mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
         }
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int error) {
-            //////mCameraOpenCloseLock.release();
             cameraDevice.close();
             mCameraDevice = null;
         }
@@ -455,7 +441,7 @@ public class MainActivity extends AppCompatActivity {
      * @param viewWidth  The width of `mTextureView`
      * @param viewHeight The height of `mTextureView`
      */
-        private void configureTransform(int viewWidth, int viewHeight) {
+    private void configureTransform(int viewWidth, int viewHeight) {
 
         if (null == mTextureView || null == mPreviewSize || null == this) {
             return;
@@ -481,23 +467,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void closeCamera() {
-//        try {
-            //////mCameraOpenCloseLock.acquire();
-            closePreviewSession();
-            if (null != mCameraDevice) {
-                mCameraDevice.close();
-                mCameraDevice = null;
-            }
-            if (null != mImageReader) {
-                mImageReader.close();
-                mImageReader = null;
-            }
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException("Interrupted while trying to lock camera closing.");
-//        } finally {
-//            //////mCameraOpenCloseLock.release();
-//        }
-   }
+        closePreviewSession();
+        if (null != mCameraDevice) {
+            mCameraDevice.close();
+            mCameraDevice = null;
+        }
+        if (null != mImageReader) {
+            mImageReader.close();
+            mImageReader = null;
+        }
+    }
     private void startPreview() {
         if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null || mImageReader == null) {
             return;
@@ -542,8 +521,6 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             setUpCaptureRequestBuilder(mPreviewBuilder);
-//            HandlerThread thread = new HandlerThread("CameraPreview");
-//            thread.start();
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -553,13 +530,6 @@ public class MainActivity extends AppCompatActivity {
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
 
-    }
-
-    private AcceptanceStatus getCords(Mat mat){
-        if(idx>=mAcceptArray.size()){
-            idx=0;
-        }
-        return mAcceptArray.get(idx++);
     }
 
     AcceptanceStatus prevStat;
@@ -572,31 +542,22 @@ public class MainActivity extends AppCompatActivity {
             prevStat = status;
         }else {
             long curr = System.currentTimeMillis();
-//            if ((curr - prevTime) > 5000) { //5 sec of timeout
-//                Log.d("TimeDiff","curr " + curr + "prev " + prevTime +" = " +(curr - prevTime) );
-                mRectView.setVisibility(View.INVISIBLE);
-                if(rdtDataToBeDisplay != null) {
-                    rdtDataToBeDisplay.setVisibility(View.INVISIBLE);
-                }
-                return;
-//            }
+            mRectView.setVisibility(View.INVISIBLE);
+            if(rdtDataToBeDisplay != null) {
+                rdtDataToBeDisplay.setVisibility(View.INVISIBLE);
+            }
+            return;
         }
 
         mRectView.bringToFront();
         rdtDataToBeDisplay.bringToFront();
-//        Log.d("ROI","Bounds "+status.mBoundingBoxX+"x"+status.mBoundingBoxY+" Position "+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
         Point boundsRatio = new Point(prevStat.mBoundingBoxWidth*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxHeight*1.0/CAMERA2_PREVIEW_SIZE.getHeight()),
                 positionRatio = new Point(prevStat.mBoundingBoxX*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxY*1.0/CAMERA2_PREVIEW_SIZE.getHeight());
-//        Size boxBounds = new Size((int) Math.round(boundsRatio.x*mWindowSize.getWidth()),(int) Math.round(boundsRatio.y*mWindowSize.getHeight())),
-//                boxPosition=new Size((int) Math.round(positionRatio.x*mWindowSize.getWidth()) , (int)Math.round(positionRatio.y*mWindowSize.getHeight()));
+
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
-        /*lp.width = boxBounds.getWidth();
-        lp.height=boxBounds.getHeight();
-        lp.setMargins(boxPosition.getWidth(),boxPosition.getHeight(),0,0);*/
         lp.width = prevStat.mBoundingBoxWidth;
         lp.height=prevStat.mBoundingBoxHeight;
         lp.setMargins(prevStat.mBoundingBoxX,status.mBoundingBoxY,0,0);
-        //Log.d("Box","Bounds "+lp.width+"x"+lp.height+" Position "+boxPosition.getWidth()+"x"+boxPosition.getHeight());
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
         if(mShowImageData !=0) {
@@ -611,7 +572,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         mTextureView.setVisibility(View.VISIBLE);
 
-        mShowImageData = Utils.ApplySettings(this,mRdtApi);
+        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder);
 
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");

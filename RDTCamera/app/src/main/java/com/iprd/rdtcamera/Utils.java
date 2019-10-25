@@ -66,7 +66,8 @@ public class Utils {
             e.printStackTrace();
         }
     }
-    public static Short ApplySettings(Context c,RdtAPI rdtapi) {
+
+    public static Short ApplySettings(Context c,RdtAPI.RdtAPIBuilder rdtapi) {
         double mTopTh = ObjectDetection.mTopThreshold;
         double mBotTh = ObjectDetection.mBottomThreshold;
         Short mShowImageData=0;
@@ -96,10 +97,13 @@ public class Utils {
             mShowImageData = 0;
             mSaveNegativeData = false;
         }
+
+
         rdtapi.setConfig(config);
         rdtapi.setTopThreshold(mTopTh);
         rdtapi.setBottomThreshold(mBotTh);
-        rdtapi.mSaveNegativeData = mSaveNegativeData;
+        rdtapi.mSaveNegativeData(mSaveNegativeData);
+
         return mShowImageData;
     }
 }

@@ -61,5 +61,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/rdtDataToBeDisplayVideo"
+        android:layout_width="175dp"
+        android:layout_height="139dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#00ffffff"
+        android:text=""
+        android:textColor="@color/colorBlue"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@+id/texture"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

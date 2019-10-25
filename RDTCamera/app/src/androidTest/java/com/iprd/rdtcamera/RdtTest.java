@@ -49,11 +49,11 @@ public class RdtTest {
 
     @Test
     public void rdtTest1() {
-        RdtAPI mRdtApi;
+        RdtAPIOld mRdtApi;
         Config c = new Config();
         c.mTfliteB = ReadFile("/tflite.lite");
         assertTrue("Unable to read tflite file ",c.mTfliteB!=null);
-        mRdtApi = new RdtAPI();
+        mRdtApi = new RdtAPIOld();
         mRdtApi.init(c);
 //        mTopTh = 0.9f;
 //        mBotTh = 0.7f;
