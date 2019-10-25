@@ -590,7 +590,7 @@ def align():
 
        This can be deleted once all code migrates to the new path.
     '''
-    interpret_quidel_quickvue()
+    return interpret_quidel_quickvue()
 
 
 if __name__ == "__main__":
