@@ -57,16 +57,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
          mTextureView.setSurfaceTextureListener(this);
          rdtDataToBeDisplayVideo = findViewById(R.id.rdtDataToBeDisplayVideo);
 
-         Config c = new Config();
-         try {
-             c.mTfliteB = ReadAssests();
-         } catch (IOException e) {
-             e.printStackTrace();
-         }
-         //mRdtApi = new RdtAPI1();
-         rdtAPIBuilder = new RdtAPI.RdtAPIBuilder().init(c);
-         //mRdtApi.init(c);
-         mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder);
+
 
         // preferences
         preferenceSettingBtnVideo = (Button) findViewById(R.id.preferenceSettingBtnVideo);
@@ -77,6 +68,16 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
                 startActivity(i);
             }
         });
+
+        rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
+        rdtAPIBuilder = rdtAPIBuilder.setModel(Utils.loadModelFile(getAssets(),"tflite.lite"));
+        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,null);
+        mRdtApi = rdtAPIBuilder.build();
+
+        //call the setter for saving functions
+        Utils.ApplySettings(this,rdtAPIBuilder,mRdtApi);
+
+
     }
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
@@ -194,7 +195,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
     @Override
     protected void onPause() {
         super.onPause();
-        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder);
+        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,mRdtApi);
         releaseMediaPlayer();
     }
     @Override
@@ -260,7 +261,7 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
         if(!mStarted){
             StartPlayingVideo(surface,videoPath) ;
         }else{
-            if(!rdtAPIBuilder.isInProgress()) {
+            if(!mRdtApi.isInprogress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
             }
@@ -289,17 +290,17 @@ public class ActivityVideo extends AppCompatActivity implements TextureView.Surf
 
     private void ProcessBitmap(Bitmap capFrame) {
         long st  = System.currentTimeMillis();
-        final AcceptanceStatus status = rdtAPIBuilder.update(capFrame);
+        final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
         if(mShowImageData != 0){
-            status.mSharpness = rdtAPIBuilder.build().getmSharpness();
-            status.mBrightness = rdtAPIBuilder.build().getmBrightness();
+            status.mSharpness = mRdtApi.getSharpness();
+            status.mBrightness = mRdtApi.getBrightness();
         }
         long et = System.currentTimeMillis()-st;
         Log.i("Total Processing Time "," "+ et);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                repositionRect(status);
+//                repositionRect(status);
                 Log.d("~~~~~~~~~~~","~~~~~~~");
             }
             long prevTime=0;

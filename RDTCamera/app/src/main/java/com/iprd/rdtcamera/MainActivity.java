@@ -5,6 +5,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
@@ -50,8 +52,11 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +69,7 @@ import static org.opencv.imgproc.Imgproc.floodFill;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
-
+    private static final String mModelFileName="tflite.lite";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
 
@@ -109,11 +114,9 @@ public class MainActivity extends AppCompatActivity {
     public Switch torch;
     public Switch saveData;
 
-
     int idx;
-    RdtAPI mRdtApi;
-    byte[] mtfliteBytes = null;
-    private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
+    RdtAPI mRdtApi=null;
+    private RdtAPI.RdtAPIBuilder rdtAPIBuilder=null;
 
     private boolean checkpermission(){
         System.out.println("..>>"+ WRITE_EXTERNAL_STORAGE);
@@ -138,18 +141,6 @@ public class MainActivity extends AppCompatActivity {
         mRectView = findViewById(R.id.rdtRect);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
-
-        Config c = new Config();
-        try {
-            c.mTfliteB = ReadAssests();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
-        //mRdtApi = new RdtAPI1.RdtAPIBuilder().init(c).build();//optional
-        rdtAPIBuilder = rdtAPIBuilder.init(c);
-
         // preferences
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
@@ -159,8 +150,21 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder);
+        byte[] mTfliteB=null;
+        MappedByteBuffer mMappedByteBuffer=null;
+        try {
+            mTfliteB = ReadAssests();
+            mMappedByteBuffer = Utils.loadModelFile(getAssets(),mModelFileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
+        rdtAPIBuilder = rdtAPIBuilder.setModel(mMappedByteBuffer);
+        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,null);
+        mRdtApi = rdtAPIBuilder.build();
 
+        //call the setter for saving functions
+        Utils.ApplySettings(this,rdtAPIBuilder,mRdtApi);
         /// Set Torch button
         torch = (Switch) findViewById(R.id.torch);
         //torch.setVisibility(View.VISIBLE);
@@ -188,11 +192,9 @@ public class MainActivity extends AppCompatActivity {
         saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    //mRdtApi.setSaveImages(true);
-                    rdtAPIBuilder = rdtAPIBuilder.setSaveImages(true);
+                    mRdtApi.setSaveImages(true);
                 } else {
-                    //mRdtApi.setSaveImages(false);
-                    rdtAPIBuilder = rdtAPIBuilder.setSaveImages(false);
+                    mRdtApi.setSaveImages(false);
                 }
             }
         });
@@ -207,7 +209,6 @@ public class MainActivity extends AppCompatActivity {
                     i.putExtra("videoPath","aaaaaa");
                     i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
                     startActivity(i);
-
                 } else {
                     Log.d(">>Mode Switch<<","OFF");
                 }
@@ -216,7 +217,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     byte[] ReadAssests() throws IOException {
-        InputStream is=getAssets().open("tflite.lite");
+        byte[] mtfliteBytes=null;
+        InputStream is=getAssets().open(mModelFileName);
         mtfliteBytes=new byte[is.available()];
         is.read( mtfliteBytes);
         is.close();
@@ -243,7 +245,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onImageAvailable(ImageReader reader) {
             //Log.d("Madhav","Comes in imagehandler");
-
             Image image = null;
             try {
                 image = reader.acquireLatestImage();
@@ -286,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
             saveData.setVisibility(View.VISIBLE);
             torch.setVisibility(View.VISIBLE);
 
-            if(!rdtAPIBuilder.isInProgress()) {
+            if(!mRdtApi.isInprogress()) {
                 Bitmap capFrame = mTextureView.getBitmap();
                 Process(capFrame);
             }
@@ -302,10 +303,10 @@ public class MainActivity extends AppCompatActivity {
 
         private void ProcessBitmap(Bitmap capFrame) {
             long st  = System.currentTimeMillis();
-            final AcceptanceStatus status = rdtAPIBuilder.update(capFrame);
+            final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
             if(mShowImageData != 0){
-                status.mSharpness = rdtAPIBuilder.build().getmSharpness();
-                status.mBrightness = rdtAPIBuilder.build().getmBrightness();
+                status.mSharpness = mRdtApi.getSharpness();
+                status.mBrightness = mRdtApi.getBrightness();
             }
             long et = System.currentTimeMillis()-st;
             Log.i("Total Processing Time "," "+ et);
@@ -564,16 +565,13 @@ public class MainActivity extends AppCompatActivity {
             rdtDataToBeDisplay.setText("S[" + status.mSharpness+ "]\n"+"B[" + status.mBrightness+"]");
             rdtDataToBeDisplay.setVisibility(View.VISIBLE);
         }
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
         mTextureView.setVisibility(View.VISIBLE);
-
-        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder);
-
+        mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,mRdtApi);
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
