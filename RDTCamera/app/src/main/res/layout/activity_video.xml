@@ -71,7 +71,7 @@
         android:text=""
         android:textColor="@color/colorBlue"
         android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="@+id/texture"
+        app:layout_constraintStart_toStartOf="@+id/textureView"
         app:layout_constraintTop_toTopOf="parent" />
 
 

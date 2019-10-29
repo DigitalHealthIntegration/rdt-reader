@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         mRdtApi = rdtAPIBuilder.build();
 
         //call the setter for saving functions
-        Utils.ApplySettings(this,rdtAPIBuilder,mRdtApi);
+        Utils.ApplySettings(this,null,mRdtApi);
         /// Set Torch button
         torch = (Switch) findViewById(R.id.torch);
         //torch.setVisibility(View.VISIBLE);
