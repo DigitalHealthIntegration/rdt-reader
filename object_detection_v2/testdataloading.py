@@ -21,4 +21,6 @@ import numpy as np
 # print(np.array(x))
 # x,y,n = data_loader.loadDataObjSSD("test")
 x,y,n = data_loader.loadDataObjSSDFromYoloFormat("train")
+x,y,n = data_loader.loadDataObjSSDFromYoloFormat("test")
+
 print(x.shape,y.shape)

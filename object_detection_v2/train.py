@@ -42,18 +42,9 @@ def custlossSSD(y_true,y_pred):
 
 
 
-    categoricalLoss = tf.keras.losses.categorical_crossentropy(y_true[:,:,:,0:3],y_pred[:,:,:,0:3])
+    categoricalLoss = tf.keras.losses.categorical_crossentropy(y_true[:,:,:,0:4],y_pred[:,:,:,0:4])
 
-    mask1 =tf.dtypes.cast(y_pred[:,:,:,0]>0.5, tf.float32)
-    mask2=tf.dtypes.cast(y_pred[:,:,:,1]>0.5, tf.float32)
-    mask3=tf.dtypes.cast(y_pred[:,:,:,2]>0.5, tf.float32)
-
-    Mask = mask1+mask2+mask3
-    # Mask +=0.1
-    # print("sahpe",Mask)
-    l1_smooth = tf.keras.losses.mean_squared_error(y_true[:,:,:,3:],y_pred[:,:,:,3:])
-    # l1_smooth = l1_smooth*Mask
-    # print(l1_smooth.shape,categoricalLoss.shape)
+    l1_smooth = tf.keras.losses.mean_squared_error(y_true[:,:,:,4:],y_pred[:,:,:,4:])
     total_loss = tf.reduce_mean(categoricalLoss,axis=[1,2])+tf.reduce_mean(l1_smooth,axis=[1,2])
     return total_loss
 
@@ -80,8 +71,8 @@ class Train(object):
         self.saveModelpath       = cfg.TEST.WEIGHT_FILE
         self.time                = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         self.train_logdir        = "./dataset/log/"
-        self.trainset            = data_loader.loadDataObjSSD('train')
-        self.testset             = data_loader.loadDataObjSSD('test')
+        self.trainset            = data_loader.loadDataObjSSDFromYoloFormat('train')
+        self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
         self.model               = ObjectDetection(False,self.initial_weight).model
         self.number_blocks = cfg.TRAIN.NUMBER_BLOCKS
 
@@ -269,8 +260,10 @@ class Test(object):
             # break
 
 if __name__ == '__main__':
-    # Train().train()
-    Test().createTflite()
+    # mirrored_strategy = tf.distribute.MirroredStrategy()
+    # with mirrored_strategy.scope():
+        Train().train()
+    # Test().createTflite()
     # Test().runOntest()
 
 

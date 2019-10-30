@@ -16,7 +16,7 @@ import itertools
 import math
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 import ntpath
-
+import random
 def cxcy2xy(bbox):
     return np.array([bbox[0]-bbox[2]/2,bbox[1]-bbox[3]/2,bbox[0]+bbox[2]/2,bbox[1]+bbox[3]/2])
 
@@ -84,164 +84,261 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                     all_annotations["frames"][basePath].append(tmpbox)
             except KeyError:
                 pass
+            except IndexError:
+                print("LINE contenet:",line)
     # print(all_annotations)
     
     for  ind,element in enumerate(os.listdir(rootPathCroppedImages)):
         print(ind)
         if True: #"IMG_1514" in element:
             # print(all_annotations["frames"][element+"path"])
-
-            img_path = all_annotations["frames"][element+"path"]#os.path.join(rootPathCroppedImages,element)
-            img_path=img_path.replace("//","/").replace("/","\\").replace("object_detection_v2","object_detection_mobile_v2")
-            img = cv2.imread(img_path,cv2.IMREAD_COLOR)
-            # img = iaa.Fliplr(1.0)(images=img)
-            # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            original_size=img.shape
-            img = cv2.resize(img,resize_dim)
-            # img = img[...,np.newaxis]
-            # cnt = 1
             try:
-                objects = all_annotations["frames"][element]
-                # print(all_annotations[image_list_id[element]]["frames"][element])
-                targs = []
-                classES=[]
-                list_BBOX = []
-                    # BoundingBox(x1=0.2*447, x2=0.85*447, y1=0.3*298, y2=0.95*298),
+                
+                img_path = all_annotations["frames"][element+"path"]#os.path.join(rootPathCroppedImages,element)
+                # img_path=img_path.replace("//","/").replace("/","\\").replace("object_detection_v2","object_detection_mobile_v2")
+                img = cv2.imread(img_path,cv2.IMREAD_COLOR)
+                original_size=img.shape
+                img = cv2.pyrDown(img)
+                img = cv2.pyrDown(img)
+                # img = iaa.Fliplr(1.0)(images=img)
+                # print(img)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                # img = cv2.resize(img,resize_dim)
+                img = img[...,np.newaxis]
+                # cnt = 1
+                try:
+                    objects = all_annotations["frames"][element]
+                    # print(all_annotations[image_list_id[element]]["frames"][element])
+                    targs = []
+                    classES=[]
+                    list_BBOX = []
+                        # BoundingBox(x1=0.2*447, x2=0.85*447, y1=0.3*298, y2=0.95*298),
 
-                for inde,obj in enumerate(objects):
-                    c = np.zeros((num_class,))
-                    if obj["tags"][0] in class_pos_id:
-                        # print(obj["tags"][0])
-                        if obj["tags"][0] in ["0"]:
-                            c[0]=1
-                        elif obj["tags"][0] in ["1"]:
-                            c[1]=1
-                        elif obj["tags"][0] in ["2"]:
-                            c[2]=1
-                        # print(obj["box"])
-                        y1 = obj["box"]["x1"]/original_size[0]*resize_dim[0]
-                        x1 = obj["box"]["y1"]/original_size[1]*resize_dim[0]
-                        y2 = obj["box"]["x2"]/original_size[0]*resize_dim[0]
-                        x2 = obj["box"]["y2"]/original_size[1]*resize_dim[0]
-                        list_BBOX.append(BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2))
-                        targs.append([x1,y1,x2,y2])
-                        classES.append(c)
+                    for inde,obj in enumerate(objects):
+                        c = np.zeros((num_class,))
+                        if obj["tags"][0] in class_pos_id:
+                            # print(obj["tags"][0])
+                            if obj["tags"][0] in ["0"]:
+                                c[0]=1
+                            elif obj["tags"][0] in ["1"]:
+                                c[1]=1
+                            elif obj["tags"][0] in ["2"]:
+                                c[2]=1
+                            # print(obj["box"])
+                            # print(original_size,resize_dim)
+                            y1 = obj["box"]["x1"]/original_size[0]*resize_dim[0]
+                            x1 = obj["box"]["y1"]/original_size[1]*resize_dim[1]
+                            y2 = obj["box"]["x2"]/original_size[0]*resize_dim[0]
+                            x2 = obj["box"]["y2"]/original_size[1]*resize_dim[1]
+                            list_BBOX.append(BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2))
+                            targs.append([x1,y1,x2,y2])
+                            classES.append(c)
 
-                priorBBoxes = generateBoundingBox(predictionScale,anchorAspect,resize_dim[0],number_blocks)
-                targets,match_ids=convert2target(priorBBoxes,targs,iou_thresh,classES,number_blocks,resize_dim[0],num_class,anchorAspect)
-                # print(classES)
-                # targets = np.reshape(targets,(1,15,15,5,7))
-                # for tar in targs:
-                #     x1,y1,x2,y2=tar
-                #     for ii,match_id in enumerate( match_ids):
-                #         # print(match_id)
-                #         # pred_x1=int(priorBBoxes[0,0,match_id[0],match_id[1],0]*resize_dim[0])
+                    priorBBoxes = generateBoundingBox(predictionScale,anchorAspect,resize_dim,number_blocks)
+                    targets,match_ids=convert2target(priorBBoxes,targs,iou_thresh,classES,number_blocks,resize_dim,num_class,anchorAspect)
+                    # print(classES)
+                    # targets = np.reshape(targets,(1,15,15,5,7))
+                    # for tar in targs:
+                    #     x1,y1,x2,y2=tar
+                    #     for ii,match_id in enumerate( match_ids):
+                    #         # print(match_id)
+                    #         # pred_x1=int(priorBBoxes[0,0,match_id[0],match_id[1],0]*resize_dim[0])
 
-                #         # pred_y1=int(priorBBoxes[0,0,match_id[0],match_id[1],1]*resize_dim[0])
-                #         # pred_x2=int(priorBBoxes[0,0,match_id[0],match_id[1],2]*resize_dim[0])
-                #         # pred_y2=int(priorBBoxes[0,0,match_id[0],match_id[1],3]*resize_dim[0])
-                #         # print(priorBBoxes.shape)
-                #         pcx,pcy,pw,ph =priorBBoxes[0,match_id[0],match_id[1],match_id[2],0],priorBBoxes[0,match_id[0],match_id[1],match_id[2],1],priorBBoxes[0,match_id[0],match_id[1],match_id[2],2],priorBBoxes[0,match_id[0],match_id[1],match_id[2],3] 
+                    #         # pred_y1=int(priorBBoxes[0,0,match_id[0],match_id[1],1]*resize_dim[0])
+                    #         # pred_x2=int(priorBBoxes[0,0,match_id[0],match_id[1],2]*resize_dim[0])
+                    #         # pred_y2=int(priorBBoxes[0,0,match_id[0],match_id[1],3]*resize_dim[0])
+                    #         # print(priorBBoxes.shape)
+                    #         pcx,pcy,pw,ph =priorBBoxes[0,match_id[0],match_id[1],match_id[2],0],priorBBoxes[0,match_id[0],match_id[1],match_id[2],1],priorBBoxes[0,match_id[0],match_id[1],match_id[2],2],priorBBoxes[0,match_id[0],match_id[1],match_id[2],3] 
+                            
+                    #         pcx,pcy,pw,ph = xy2cxcy([pcx*resize_dim[0],pcy*resize_dim[0],pw*resize_dim[0],ph*resize_dim[0]])
+                            
+                    #         pcx,pcy,pw,ph = (pcx+targets[0,match_id[0],match_id[1],match_id[2],-4]),pcy+targets[0,match_id[0],match_id[1],match_id[2],-3],pw+targets[0,match_id[0],match_id[1],match_id[2],-2],ph+targets[0,match_id[0],match_id[1],match_id[2],-1]
+                    #         # pcx,pcy,pw,ph=int(pcx*resize_dim[0]),int(pcy*resize_dim[0]),int(pw*resize_dim[0]),int(ph*resize_dim[0])
+                    #         pred_x1,pred_y1,pred_x2,pred_y2 = cxcy2xy([pcx,pcy,pw,ph])
+                    #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
+                    #         # pred_x1,pred_y1,pred_x2,pred_y2 = 
+                    #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
+                    #         # print(targets[0,])
+                    #         img = cv2.rectangle(img,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),tuple(targets[0,match_id[0],match_id[1],match_id[2],0:num_class]*255),1)
+
+                    #     x1=int(x1)#*resize_dim[0])
+
+                    #     y1=int(y1)#*resize_dim[0])
+                    #     x2=int(x2)#*resize_dim[0])
+                    #     y2=int(y2)#*resize_dim[0])
+
+
+                    #     img = cv2.rectangle(img,(x1,y1),(x2,y2),(255,255,0),2)                
+                    ogimg = img
+                    img = img/255.0
+                    X.append(img)
+                    y.append(targets[0])
+                    
+
+                    if data_aug_upsample>1:
                         
-                #         pcx,pcy,pw,ph = xy2cxcy([pcx*resize_dim[0],pcy*resize_dim[0],pw*resize_dim[0],ph*resize_dim[0]])
-                        
-                #         pcx,pcy,pw,ph = (pcx+targets[0,match_id[0],match_id[1],match_id[2],-4]),pcy+targets[0,match_id[0],match_id[1],match_id[2],-3],pw+targets[0,match_id[0],match_id[1],match_id[2],-2],ph+targets[0,match_id[0],match_id[1],match_id[2],-1]
-                #         # pcx,pcy,pw,ph=int(pcx*resize_dim[0]),int(pcy*resize_dim[0]),int(pw*resize_dim[0]),int(ph*resize_dim[0])
-                #         pred_x1,pred_y1,pred_x2,pred_y2 = cxcy2xy([pcx,pcy,pw,ph])
-                #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
-                #         # pred_x1,pred_y1,pred_x2,pred_y2 = 
-                #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
-                #         # print(targets[0,])
-                #         img = cv2.rectangle(img,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),tuple(targets[0,match_id[0],match_id[1],match_id[2],0:num_class]*255),1)
+                        for i in range(data_aug_upsample):
+                            bbs = BoundingBoxesOnImage(list_BBOX, shape=ogimg.shape)
+                            image_aug, bbs_aug = SeqAug(image=ogimg, bounding_boxes=bbs)
+                            newtars = []
+                            for tar in bbs_aug.bounding_boxes:
+                                # print(tar)
 
-                #     x1=int(x1)#*resize_dim[0])
+                                x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
+                                newtars.append([x1,y1,x2,y2])
+                            # print("start")
+                            targets,match_ids=convert2target(priorBBoxes,newtars,iou_thresh,classES,number_blocks,resize_dim,num_class,anchorAspect)
+                            image_aug=image_aug/255.0
+                            X.append(image_aug)
+                            y.append(targets[0])
+                            # targets = np.reshape(targets,(1,number_blocks[0],number_blocks[1],len(anchorAspect[0]),8))
 
-                #     y1=int(y1)#*resize_dim[0])
-                #     x2=int(x2)#*resize_dim[0])
-                #     y2=int(y2)#*resize_dim[0])
+                            # for tar in bbs_aug.bounding_boxes:
+                            #     # print(tar)
+                            #     x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
+                            #     for ii,match_id in enumerate( match_ids):
+                            #         # pred_x1=int(priorBBoxes[0,0,match_id[0],match_id[1],0]*resize_dim[0])
 
+                            #         # pred_y1=int(priorBBoxes[0,0,match_id[0],match_id[1],1]*resize_dim[0])
+                            #         # pred_x2=int(priorBBoxes[0,0,match_id[0],match_id[1],2]*resize_dim[0])
+                            #         # pred_y2=int(priorBBoxes[0,0,match_id[0],match_id[1],3]*resize_dim[0])
+                            #         # print(priorBBoxes.shape)
+                            #         pcx,pcy,pw,ph =priorBBoxes[0,match_id[0],match_id[1],match_id[2],0],priorBBoxes[0,match_id[0],match_id[1],match_id[2],1],priorBBoxes[0,match_id[0],match_id[1],match_id[2],2],priorBBoxes[0,match_id[0],match_id[1],match_id[2],3] 
+                                    
+                            #         pcx,pcy,pw,ph = xy2cxcy([pcx*resize_dim[1],pcy*resize_dim[0],pw*resize_dim[1],ph*resize_dim[0]])
+                                    
+                            #         pcx,pcy,pw,ph = (pcx+targets[0,match_id[0],match_id[1],match_id[2],-4]*resize_dim[1]),pcy+targets[0,match_id[0],match_id[1],match_id[2],-3]*resize_dim[0],pw+targets[0,match_id[0],match_id[1],match_id[2],-2]*resize_dim[1],ph+targets[0,match_id[0],match_id[1],match_id[2],-1]*resize_dim[0]
+                            #         # pcx,pcy,pw,ph=int(pcx*resize_dim[0]),int(pcy*resize_dim[0]),int(pw*resize_dim[0]),int(ph*resize_dim[0])
+                            #         pred_x1,pred_y1,pred_x2,pred_y2 = cxcy2xy([pcx,pcy,pw,ph])
+                            #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
+                            #         # pred_x1,pred_y1,pred_x2,pred_y2 = 
+                            #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
+                            #         # print(targets[0,])
+                            #         # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
+                            #         if max(targets[0,match_id[0],match_id[1],match_id[2],0:num_class])==1:
+                            #             # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
+                            #             image_aug = cv2.rectangle(image_aug,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),tuple(targets[0,match_id[0],match_id[1],match_id[2],0:num_class]*255),1)
 
-                #     img = cv2.rectangle(img,(x1,y1),(x2,y2),(255,255,0),2)                
-                ogimg = img
-                # img = img/255.0
-                X.append(img)
-                y.append(targets[0])
+                            #     x1=int(x1)#*resize_dim[0])
 
-                if data_aug_upsample >1:
-                    for i in range(data_aug_upsample):
-                        bbs = BoundingBoxesOnImage(list_BBOX, shape=ogimg.shape)
-                        image_aug, bbs_aug = SeqAug(image=ogimg, bounding_boxes=bbs)
-                        newtars = []
-                        for tar in bbs_aug.bounding_boxes:
-                            # print(tar)
-
-                            x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
-                            newtars.append([x1,y1,x2,y2])
-                        print("start")
-                        targets,match_ids=convert2target(priorBBoxes,newtars,iou_thresh,classES,number_blocks,resize_dim[0],num_class,anchorAspect)
-                        # image_aug=image_aug/255.0
-                        X.append(image_aug)
-                        y.append(targets[0])
-                        # targets = np.reshape(targets,(1,number_blocks,number_blocks,5,8))
-
-                        for tar in bbs_aug.bounding_boxes:
-                            # print(tar)
-                            x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
-                            for ii,match_id in enumerate( match_ids):
-                                # pred_x1=int(priorBBoxes[0,0,match_id[0],match_id[1],0]*resize_dim[0])
-
-                                # pred_y1=int(priorBBoxes[0,0,match_id[0],match_id[1],1]*resize_dim[0])
-                                # pred_x2=int(priorBBoxes[0,0,match_id[0],match_id[1],2]*resize_dim[0])
-                                # pred_y2=int(priorBBoxes[0,0,match_id[0],match_id[1],3]*resize_dim[0])
-                                # print(priorBBoxes.shape)
-                                pcx,pcy,pw,ph =priorBBoxes[0,match_id[0],match_id[1],match_id[2],0],priorBBoxes[0,match_id[0],match_id[1],match_id[2],1],priorBBoxes[0,match_id[0],match_id[1],match_id[2],2],priorBBoxes[0,match_id[0],match_id[1],match_id[2],3] 
+                            #     y1=int(y1)#*resize_dim[0])
+                            #     x2=int(x2)#*resize_dim[0])
+                            #     y2=int(y2)#*resize_dim[0])
                                 
-                                pcx,pcy,pw,ph = xy2cxcy([pcx*resize_dim[0],pcy*resize_dim[0],pw*resize_dim[0],ph*resize_dim[0]])
-                                
-                                pcx,pcy,pw,ph = (pcx+targets[0,match_id[0],match_id[1],match_id[2],-4]*resize_dim[0]),pcy+targets[0,match_id[0],match_id[1],match_id[2],-3]*resize_dim[0],pw+targets[0,match_id[0],match_id[1],match_id[2],-2]*resize_dim[0],ph+targets[0,match_id[0],match_id[1],match_id[2],-1]*resize_dim[0]
-                                # pcx,pcy,pw,ph=int(pcx*resize_dim[0]),int(pcy*resize_dim[0]),int(pw*resize_dim[0]),int(ph*resize_dim[0])
-                                pred_x1,pred_y1,pred_x2,pred_y2 = cxcy2xy([pcx,pcy,pw,ph])
-                                # print(pred_x1,pred_y1,pred_x2,pred_y2)
-                                # pred_x1,pred_y1,pred_x2,pred_y2 = 
-                                # print(pred_x1,pred_y1,pred_x2,pred_y2)
-                                # print(targets[0,])
-                                # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
-                                if max(targets[0,match_id[0],match_id[1],match_id[2],0:num_class])==1:
-                                    image_aug = cv2.rectangle(image_aug,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),tuple(targets[0,match_id[0],match_id[1],match_id[2],0:num_class]*255),1)
+                            #     image_aug = cv2.rectangle(image_aug,(x1,y1),(x2,y2),(255,0,255),1)      
+                            # cv2.imwrite(rootPathForOutputCheckImages+element,image_aug)
+                            # print("end")
 
-                            x1=int(x1)#*resize_dim[0])
+                    # name.append(element)
+                                    # croppedImg = cv2.resize(croppedImg,resize_dim)
+                                    # cv2.imwrite(rootPathForOutputCheckImages+ str(i)+obj["tags"][0]+element,croppedImg)
+                                # break
+                    if ind==10 and dataset_type=="train":
+                        break
+                    elif ind==10 and dataset_type=="test":
+                        break
+                # break
+                except KeyError:
+                    print(image_list_id[element])
+                    print("oop")
 
-                            y1=int(y1)#*resize_dim[0])
-                            x2=int(x2)#*resize_dim[0])
-                            y2=int(y2)#*resize_dim[0])
-
-
-                            # image_aug = cv2.rectangle(image_aug,(x1,y1),(x2,y2),(255,0,255),1)      
-                        cv2.imwrite(rootPathForOutputCheckImages+element,image_aug)
-                        print("end")
-
-                # name.append(element)
-                                # croppedImg = cv2.resize(croppedImg,resize_dim)
-                                # cv2.imwrite(rootPathForOutputCheckImages+ str(i)+obj["tags"][0]+element,croppedImg)
-                            # break
-                if ind==1 and dataset_type=="train":
-                    break
-                elif ind==1 and dataset_type=="test":
-                    break
-            # break
             except KeyError:
-                print(image_list_id[element])
-                print("oop")
-
-
+                print(element)
     X = np.array(X,dtype=np.float32)
     y = np.array(y,dtype=np.float32)
 
     return X,y,name
 
 
+def generateBoundingBox(predictionScale,anchorAspect,shape,number_blocks):
 
+    for ind,sc in enumerate(predictionScale):
+        featureMAPWH=number_blocks
+        
+        def_bboxes=np.zeros((len(predictionScale),featureMAPWH[0],featureMAPWH[1],len(anchorAspect[ind]),4))
+        
+        for iii,anchs in enumerate(anchorAspect[ind]):
+            for i in range(featureMAPWH[0]):
+                for j in range(featureMAPWH[1]):
+                    cx =  ((j+1)-0.5)/featureMAPWH[1]
+                    cy = ((i+1)-0.5)/featureMAPWH[0]
+                    w  = anchs[1]/shape[1]
+                    h  = anchs[0]/shape[0]
+                    def_bboxes[ind,i,j,iii]= cxcy2xy([cx,cy,w,h])
+                    # print(def_bboxes[ind,i,j,iii])
+    return def_bboxes
 
+def convert2target(defaultbboxes,targs,thresh,targe_class,number_blocks,shape,num_class,anchorAspect):
+    match_ids =[]
+    scaledDownShape = number_blocks
+    targets = np.zeros((1,scaledDownShape[0],scaledDownShape[1],len(anchorAspect[0]),(num_class+4)))
+    cntpos=0
+    cntneg=0
+    for innnd,t in enumerate(targs) :
+        x1y1x2y2 = t
+        c = targe_class[innnd]
+        for outer in range(scaledDownShape[0]):
+            for inner in range(scaledDownShape[1]):
+                for anch_id in range(len(anchorAspect[0])):
+                        # print(outer,inner,anch_id)
+                        anch=defaultbboxes[0,outer,inner,anch_id]
+                        # print("Before",anch)
+                        anch_x1 = anch[0]*shape[1]
+                        anch_y1 = anch[1]*shape[0]
+                        anch_x2 = anch[2]*shape[1]
+                        anch_y2 = anch[3]*shape[0] 
+                        # print("After",anch)
+                        # x1y1x2y2 = x1y1x2y2*shape
+                        iou_score = iou([anch_x1,anch_y1,anch_x2,anch_y2],x1y1x2y2)
+                        if max(c)==0:
+                            print("FUNC")
+                        if iou_score>0.2:
+                            cntpos+=1
+                            cg_x,cg_y,g_w,g_h=xy2cxcy(x1y1x2y2)
+                            cp_x,cp_y,p_w,p_h=xy2cxcy([anch_x1,anch_y1,anch_x2,anch_y2])
+                            w_offset = math.log(g_w/p_w)
+                            h_offset = math.log(g_h/p_h)
+                            # print(c)
+                            cx_offset,cy_offset = (cg_x-cp_x)/shape[1],(cg_y-cp_y)/shape[0]
+                            match_ids.append([outer,inner,anch_id])
+                            targets[0,outer,inner,anch_id,0:num_class]=np.asarray(c)
+                            targets[0,outer,inner,anch_id,num_class:] = np.asarray([cx_offset,cy_offset,w_offset,h_offset])
+                            # print(targets[0,outer,inner,num_class:])
+    cntneg=cntpos/3
+    while(cntneg>0):
+        # print(cntneg)
+        cc=np.zeros((num_class,))
+        cc[-1]=1
+        out=random.randint(4,number_blocks[0]-1)
+        inner=random.randint(4,number_blocks[1]-1)
+        anch=random.randint(0,len(anchorAspect[0])-1)
+        if([out,inner,anch] not in match_ids):
+            targets[0,out,inner,anch,0:num_class]=cc
+            cntneg-=1
+            match_ids.append([out,inner,anch])
+    targets = np.reshape(targets,(1,scaledDownShape[0]*scaledDownShape[1],len(anchorAspect[0]),(num_class+4)))
+    return targets,match_ids
+
+def iou(boxA,boxB):
+    # print(boxA,boxB)
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[2], boxB[2])
+    yB = min(boxA[3], boxB[3])
+
+    # compute the area of intersection rectangle
+    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+
+    # compute the area of both the prediction and ground-truth
+    # rectangles
+    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the interesection area
+    iou = interArea / float(boxAArea + boxBArea - interArea)
+    return iou
 
 
 def loadDataObjSSD(dataset_type):
@@ -435,95 +532,6 @@ def loadDataObjSSD(dataset_type):
     y = np.array(y,dtype=np.float32)
 
     return X,y,name
-
-
-def generateBoundingBox(predictionScale,anchorAspect,shape,number_blocks):
-
-    for ind,sc in enumerate(predictionScale):
-        featureMAPWH=number_blocks
-        
-        def_bboxes=np.zeros((len(predictionScale),featureMAPWH,featureMAPWH,len(anchorAspect[ind]),4))
-        
-        for iii,anchs in enumerate(anchorAspect[ind]):
-            for i in range(featureMAPWH):
-                for j in range(featureMAPWH):
-                    cx =  ((i+1)-0.5)/(featureMAPWH)
-                    cy = ((j+1)-0.5)/featureMAPWH
-                    w  = anchs[0]/shape
-                    h  = anchs[1]/shape
-                    def_bboxes[ind,i,j,iii]= cxcy2xy([cx,cy,w,h])
-    
-    return def_bboxes
-
-def convert2target(defaultbboxes,targs,thresh,targe_class,number_blocks,shape,num_class,anchorAspect):
-    # print(defaultbboxes.shape)
-    match_ids =[]
-    scaledDownShape = number_blocks
-    targets = np.zeros((1,scaledDownShape,scaledDownShape,len(anchorAspect[0]),(num_class+4)))
-    targets[:,:,:,:,2] =1 
-    # print(shape)
-    cntpos=0
-    cntneg=0
-    for innnd,t in enumerate(targs) :
-        x1y1x2y2 = t
-        c = targe_class[innnd]
-        for outer,boxes in enumerate(defaultbboxes[0]):
-            for inner,bb in enumerate(boxes):
-                for anch_id,anch in enumerate(bb):
-                        anch = anch*shape
-                        # x1y1x2y2 = x1y1x2y2*shape
-                        iou_score = iou(anch,x1y1x2y2)
-                        if max(c)==0:
-                            print("FUNC")
-                        if iou_score>0.5:
-                            cntpos+=1
-                            cg_x,cg_y,g_w,g_h=xy2cxcy(x1y1x2y2)
-                            cp_x,cp_y,p_w,p_h=xy2cxcy(anch)
-                            # print(c)
-                            cx_offset,cy_offset,w_offset,h_offset = (cg_x-cp_x)/shape,(cg_y-cp_y)/shape,(g_w-p_w)/shape,(g_h-p_h)/shape
-                            match_ids.append([outer,inner,anch_id])
-                            targets[0,outer,inner,anch_id,0:num_class]=np.asarray(c)
-                            targets[0,outer,inner,anch_id,num_class:] = np.asarray([cx_offset,cy_offset,w_offset,h_offset])
-                            # print(targets[0,outer,inner,num_class:])
-                        elif iou_score<0.01:
-                            cc = np.zeros((num_class,))
-                            cc[-1]=1
-
-                            if cntpos+3>=cntneg:
-                                cntneg+=1
-                                cg_x,cg_y,g_w,g_h=xy2cxcy(x1y1x2y2)
-                                cp_x,cp_y,p_w,p_h=xy2cxcy(anch)
-                                cx_offset,cy_offset,w_offset,h_offset = (cg_x-cp_x)/shape,(cg_y-cp_y)/shape,(g_w-p_w)/shape,(g_h-p_h)/shape
-                                match_ids.append([outer,inner,anch_id])
-                                targets[0,outer-2,inner-2,anch_id,0:num_class]=cc
-                                targets[0,outer-2,inner-2,anch_id,num_class:] = np.asarray([cx_offset,cy_offset,w_offset,h_offset])
-                            elif cntpos>=4:
-                                cntpos=0
-                                cntneg=0
-    targets = np.reshape(targets,(1,scaledDownShape*scaledDownShape,len(anchorAspect[0]),(num_class+4)))
-    return targets,match_ids
-
-def iou(boxA,boxB):
-    
-    xA = max(boxA[0], boxB[0])
-    yA = max(boxA[1], boxB[1])
-    xB = min(boxA[2], boxB[2])
-    yB = min(boxA[3], boxB[3])
-
-    # compute the area of intersection rectangle
-    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
-
-    # compute the area of both the prediction and ground-truth
-    # rectangles
-    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
-    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
-
-    # compute the intersection over union by taking the intersection
-    # area and dividing it by the sum of prediction + ground-truth
-    # areas - the interesection area
-    iou = interArea / float(boxAArea + boxBArea - interArea)
-    return iou
-
 
 def returnAugmentationObj(percentageOfChance=0.):
     """This function returns an augementation pipeline which can be used to augment training data.

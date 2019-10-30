@@ -5,7 +5,6 @@ from utils import utils
 from core.config import cfg
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow_examples.models.pix2pix import pix2pix
 
 
 class ObjectDetection(object):
@@ -167,7 +166,7 @@ class ObjectDetection(object):
                     :class:`keras.model.Model` : Neural Network 
 
             """
-            inputs = tf.keras.layers.Input(shape=[256, 256, 1])
+            inputs = tf.keras.layers.Input(shape=[180, 320, 1])
 
 
 
@@ -185,14 +184,14 @@ class ObjectDetection(object):
             drop3 = keras.layers.Dropout(0.2)(maxpool3)
             conv6 = keras.layers.Conv2D(self.number_anchors*(self.num_class+4),(3,3), padding='same',activation='linear',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(drop3)
             #drop2 = keras.layers.Dropout(0.2)(conv4)
-            reshapeOut = layers.Reshape((15*15,self.number_anchors,(self.num_class+4)))(conv6)
+
+            reshapeOut = layers.Reshape((10*19,self.number_anchors,(self.num_class+4)))(conv6)
             # for i in range(self.num_class+4):
             reshapeOutClass = reshapeOut[:,:,:,0:self.num_class]
             reshapeOutReg = reshapeOut[:,:,:,self.num_class:]
             reshapeOutClass = layers.Softmax()(reshapeOutClass)
             reshapeOutReg = layers.Activation("tanh")(reshapeOutReg)
             concat_1 = layers.concatenate([reshapeOutClass,reshapeOutReg])
-            print(concat_1.shape)
 
             model = tf.keras.Model(inputs=inputs,outputs=[concat_1])
 
