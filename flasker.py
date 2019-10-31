@@ -534,5 +534,7 @@ def processRdtRequest(UUID,include_proof,img_str):
             encoded_string=None
             resp = json.dumps({"UUID":UUID,"rc":str(rc),"msg":message1,"Include Proof":include_proof})
             return resp,False
+            
+
 
 
