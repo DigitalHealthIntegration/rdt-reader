@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
     private RdtAPI mRdtApi;
     Short mShowImageData;
+    Bitmap mCapFrame;
 
     PlayPause mState=PlayPause.PAUSE;
     boolean mRunningloop=false;
@@ -194,9 +195,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 if (frame.image != null) {
-                    final Bitmap capFrame = converter.convert(frame);
-                    Log.i("Madhav", "frame" + count++ + "_" + capFrame.getWidth() + "x" + capFrame.getHeight());
-                    final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
+                    mCapFrame = converter.convert(frame);
+                    Log.i("Madhav", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
+                    final AcceptanceStatus status = mRdtApi.checkFrame(mCapFrame);
                     String frNoSB = count+" S["+mRdtApi.getSharpness() +"]" + "B[" + mRdtApi.getBrightness() +"]";
                     mRdtApi.SetText(frNoSB, status);
                     final Bitmap ret = mRdtApi.getLocalcopyAsBitmap();
