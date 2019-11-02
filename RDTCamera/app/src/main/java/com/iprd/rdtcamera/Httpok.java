@@ -3,7 +3,11 @@ package com.iprd.rdtcamera;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,23 +24,52 @@ public class Httpok extends AsyncTask<String, Void, String> {
     byte[] img;
     String urlString;
     String metaDataStr;
+    ProgressBar mProgressBar=null;
+    ImageView mImageView=null;
 
-    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr){
+    public Bitmap getResult() {
+        return mResult;
+    }
+
+    Bitmap mResult=null;
+    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view){
         this.imgName = imgName;
         this.img = img;
         this.urlString = urlString;
         this.metaDataStr = metaDataStr;
+        this.mProgressBar= mProgressBar;
+        this.mImageView= view;
     }
 
     @Override
     protected String doInBackground(String... strings) {
-
         try {
             httpOkPostMultipartAndJson();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(String result) {
+        Log.i("HTTPOK","ONPOSTEXECUTE");
+        if(null != mProgressBar){
+            mProgressBar.setVisibility(View.INVISIBLE);
+            if(mResult != null){
+                mImageView.setVisibility(View.VISIBLE);
+                mImageView.setImageBitmap(mResult);
+                mImageView.bringToFront();
+            }
+        }
+    }
+    @Override
+    protected void onPreExecute() {
+        Log.i("HTTPOK","ONPREEXECUTE");
+        if(null != mProgressBar){
+            mProgressBar.setVisibility(View.VISIBLE);
+            mProgressBar.bringToFront();
+        }
     }
 
     private void httpOkPostMultipartAndJson() throws IOException {
@@ -58,13 +91,23 @@ public class Httpok extends AsyncTask<String, Void, String> {
         Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {
-                bitmap = BitmapFactory.decodeStream(response.body().byteStream());
+                String[] s = res.split("Content-Type:");
+                for (String a : s) {
+                    if(a.contains("image/jpeg\r\n\r\n")) {
+                        String[] i=a.split("image/jpeg\r\n\r\n");
+                        if(i.length >1){
+                            String[] k=i[1].split("--");
+                            System.out.println(k[0]);
+                            byte[] decodedString = Base64.decode(k[0], Base64.DEFAULT);
+                            mResult = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        }
+                    }
+                }
             } catch (Exception e) {
                 Log.e("Error", e.getMessage());
                 e.printStackTrace();
             }
         }
-        if(bitmap != null) Log.i("Maddy",bitmap.getWidth()+"x"+bitmap.getHeight());
     }
 }
 

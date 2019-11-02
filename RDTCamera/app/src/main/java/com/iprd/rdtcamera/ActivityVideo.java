@@ -21,6 +21,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -53,12 +54,14 @@ public class ActivityVideo extends AppCompatActivity {
     String videoPath;
     Button mSelectVideo;
     Button mPlayPause;
-    ImageView mShowImage;
+    ImageView mShowImage,mRdtImage;
     Button preferenceSettingBtn;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
     private RdtAPI mRdtApi;
     Short mShowImageData;
     Bitmap mCapFrame;
+    ProgressBar mCyclicProgressBar;
+
 
     PlayPause mState = PlayPause.PAUSE;
     boolean mRunningloop = false;
@@ -82,6 +85,9 @@ public class ActivityVideo extends AppCompatActivity {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
+        mCyclicProgressBar = findViewById(R.id.loader);
+        mRdtImage = findViewById(R.id.rdt);
+
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,6 +116,8 @@ public class ActivityVideo extends AppCompatActivity {
         mSelectVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+            mRdtImage.setVisibility(View.INVISIBLE);
+                mCyclicProgressBar.setVisibility(View.INVISIBLE);
                 mRunningloop = false;
                 mPlayPause.setText("");
                 try {
@@ -124,28 +132,34 @@ public class ActivityVideo extends AppCompatActivity {
         mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mState == PlayPause.PLAY) {
-                    mState = PlayPause.PAUSE;
-                    setFilePickerVisibility(true);
-                    mPlayPause.setText("PAUSE");
+            if (mState == PlayPause.PLAY) {
+                mState = PlayPause.PAUSE;
+                setFilePickerVisibility(true);
+                mPlayPause.setText("PAUSE");
+                mCyclicProgressBar.setVisibility(View.VISIBLE);
+                mCyclicProgressBar.bringToFront();
 
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
-                    byte[] byteArray = stream.toByteArray();
-
-                    String urlString = "http://192.168.1.2:9000/align";
-                    String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
-                    try{
-                        Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr);
-                        mr.execute();
-                    }catch(Exception ex){
-                        ex.printStackTrace();
-                    }
-                } else if (mRunningloop) {
-                    mState = PlayPause.PLAY;
-                    setFilePickerVisibility(false);
-                    mPlayPause.setText("");
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+                byte[] byteArray = stream.toByteArray();
+                String urlString = "http://192.168.1.2:9000/align";
+                String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+                try{
+                    Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage);
+                    mr.execute();
+                    Bitmap ret = mr.getResult();
+                    if(ret != null) Log.i("Maddy",ret.getWidth()+"x"+ret.getHeight());
+                }catch(Exception ex){
+                    ex.printStackTrace();
                 }
+
+            } else if (mRunningloop) {
+                mState = PlayPause.PLAY;
+                setFilePickerVisibility(false);
+                mPlayPause.setText("");
+                mRdtImage.setVisibility(View.INVISIBLE);
+                mCyclicProgressBar.setVisibility(View.INVISIBLE);
+            }
             }
         });
     }
