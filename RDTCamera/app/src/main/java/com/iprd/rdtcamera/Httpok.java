@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -26,6 +28,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     String metaDataStr;
     ProgressBar mProgressBar=null;
     ImageView mImageView=null;
+    JSONObject mJsonResult=null;
 
     public Bitmap getResult() {
         return mResult;
@@ -40,6 +43,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
         mResult=null;
+        mJsonResult=null;
     }
 
     @Override
@@ -92,7 +96,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
         Response response = client.newCall(request).execute();
         String res = response.body().string();
-//        System.out.println(">>>>>>>>"+res);
+        //System.out.println(">>>>>>>>"+res);
         Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {
@@ -105,6 +109,16 @@ public class Httpok extends AsyncTask<String, Void, String> {
                             System.out.println(k[0]);
                             byte[] decodedString = Base64.decode(k[0], Base64.DEFAULT);
                             mResult = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        }
+                    }
+                    if(a.contains("application/json\r\n\r\n")) {
+                        String[] i=a.split("application/json\r\n\r\n");
+                        if(i.length >1){
+                            JSONObject obj = new JSONObject(i[1]);
+                            Log.i("UUID",obj.getString("UUID"));
+                            Log.i("msg",obj.getString("msg"));
+                            Log.i("rc",obj.getString("rc"));
+                            mJsonResult = obj;
                         }
                     }
                 }
