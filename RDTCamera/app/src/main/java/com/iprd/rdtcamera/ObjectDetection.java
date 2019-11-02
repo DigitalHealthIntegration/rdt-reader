@@ -49,6 +49,17 @@ public class ObjectDetection {
     public void setBottomThreshold(double bot){
         mBottomThreshold = bot;
     }
+    ObjectDetection(MappedByteBuffer mappedbuffer){
+       try {
+            tf_options.setNumThreads(4);
+            mTflite = new Interpreter(mappedbuffer, tf_options);
+            if (mTflite != null) {
+                Log.d("Loaded model File", "length = ");
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
     ObjectDetection(byte[] bytes){
         //File modelFile = new File("/mnt/sdcard/mgd/tflite.lite");
         //mTflite = new Interpreter(modelFile);
@@ -57,10 +68,8 @@ public class ObjectDetection {
         byteBuffer.put(bytes);
         try {
             tf_options.setNumThreads(4);
-
 //            NnApiDelegate nnapiDel = new NnApiDelegate();
 //            tf_options.addDelegate(nnapiDel);
-
             mTflite = new Interpreter(byteBuffer, tf_options);
             if (mTflite != null) {
                 Log.d("Loaded model File", "length = ");
