@@ -54,6 +54,7 @@ public class ActivityVideo extends AppCompatActivity {
     String videoPath;
     Button mSelectVideo;
     Button mPlayPause;
+    Button mGetResult;
     ImageView mShowImage,mRdtImage;
     Button preferenceSettingBtn;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
@@ -87,7 +88,7 @@ public class ActivityVideo extends AppCompatActivity {
         setContentView(R.layout.activity_video);
         mCyclicProgressBar = findViewById(R.id.loader);
         mRdtImage = findViewById(R.id.rdt);
-
+        mGetResult = findViewById(R.id.getResult);
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,6 +103,7 @@ public class ActivityVideo extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
         rdtAPIBuilder = rdtAPIBuilder.setModel(mMappedByteBuffer);
         mShowImageData = Utils.ApplySettings(this, rdtAPIBuilder, null);
@@ -116,8 +118,9 @@ public class ActivityVideo extends AppCompatActivity {
         mSelectVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            mRdtImage.setVisibility(View.INVISIBLE);
+                mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
+                mGetResult.setVisibility(View.INVISIBLE);
                 mRunningloop = false;
                 mPlayPause.setText("");
                 try {
@@ -128,17 +131,12 @@ public class ActivityVideo extends AppCompatActivity {
                 SelectVideo();
             }
         });
-        mPlayPause = (Button) findViewById(R.id.PlayPause);
-        mPlayPause.setOnClickListener(new View.OnClickListener() {
+
+        mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            if (mState == PlayPause.PLAY) {
-                mState = PlayPause.PAUSE;
-                setFilePickerVisibility(true);
-                mPlayPause.setText("PAUSE");
                 mCyclicProgressBar.setVisibility(View.VISIBLE);
                 mCyclicProgressBar.bringToFront();
-
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
                 byte[] byteArray = stream.toByteArray();
@@ -147,16 +145,25 @@ public class ActivityVideo extends AppCompatActivity {
                 try{
                     Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage);
                     mr.execute();
-                    Bitmap ret = mr.getResult();
-                    if(ret != null) Log.i("Maddy",ret.getWidth()+"x"+ret.getHeight());
                 }catch(Exception ex){
                     ex.printStackTrace();
                 }
-
+            }
+        });
+        mPlayPause = (Button) findViewById(R.id.PlayPause);
+        mPlayPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            if (mState == PlayPause.PLAY) {
+                mState = PlayPause.PAUSE;
+                setFilePickerVisibility(true);
+                mPlayPause.setText("PAUSE");
+                mGetResult.setVisibility(View.VISIBLE);
             } else if (mRunningloop) {
                 mState = PlayPause.PLAY;
                 setFilePickerVisibility(false);
                 mPlayPause.setText("");
+                mGetResult.setVisibility(View.INVISIBLE);
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
             }

@@ -39,21 +39,26 @@ public class Httpok extends AsyncTask<String, Void, String> {
         this.metaDataStr = metaDataStr;
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
+        mResult=null;
     }
 
     @Override
     protected String doInBackground(String... strings) {
         try {
+            //Thread.sleep(10000);
             httpOkPostMultipartAndJson();
         } catch (IOException e) {
             e.printStackTrace();
         }
+//         catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         return null;
     }
 
     @Override
     protected void onPostExecute(String result) {
-        Log.i("HTTPOK","ONPOSTEXECUTE");
+//        Log.i("HTTPOK","ONPOSTEXECUTE");
         if(null != mProgressBar){
             mProgressBar.setVisibility(View.INVISIBLE);
             if(mResult != null){
@@ -65,7 +70,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     }
     @Override
     protected void onPreExecute() {
-        Log.i("HTTPOK","ONPREEXECUTE");
+//        Log.i("HTTPOK","ONPREEXECUTE");
         if(null != mProgressBar){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
@@ -87,7 +92,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
         Response response = client.newCall(request).execute();
         String res = response.body().string();
-        System.out.println(">>>>>>>>"+res);
+//        System.out.println(">>>>>>>>"+res);
         Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {

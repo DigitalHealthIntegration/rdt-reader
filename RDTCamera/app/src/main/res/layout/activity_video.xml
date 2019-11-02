@@ -7,6 +7,19 @@
 
 
     <Button
+        android:id="@+id/getResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="Get Result"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
         android:id="@+id/preferenceSettingBtn"
         android:layout_width="19dp"
         android:layout_height="34dp"
@@ -18,29 +31,30 @@
 
     <ProgressBar
         android:id="@+id/loader"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:indeterminate="true"
         android:visibility="invisible"
+        android:indeterminateTint="@color/colorBlue"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.982"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.444" />
+        app:layout_constraintVertical_bias="0.5" />
 
     <ImageView
         android:id="@+id/rdt"
-        android:layout_width="147dp"
-        android:layout_height="399dp"
+        android:layout_width="75dp"
+        android:layout_height="0dp"
         android:src="@drawable/rect"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.984"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.355" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <ImageView
         android:id="@+id/ShowImage"
@@ -59,23 +73,27 @@
         android:id="@+id/SelectFile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
         android:text="Select Video"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.013"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/PlayPause"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="473dp"
+        android:layout_height="303dp"
         android:background="@android:color/transparent"
+        android:padding="5dp"
         android:text=""
-        app:layout_constraintBottom_toBottomOf="parent"
+
+        app:layout_constraintBottom_toTopOf="@+id/SelectFile"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

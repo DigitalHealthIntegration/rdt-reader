@@ -18,6 +18,7 @@ import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
 import static com.iprd.rdtcamera.Utils.saveImage;
 import static org.opencv.core.Core.BORDER_REFLECT101;
+import static org.opencv.core.Core.LINE_4;
 import static org.opencv.core.Core.LINE_AA;
 import static org.opencv.core.Core.mean;
 import static org.opencv.core.Core.meanStdDev;
@@ -91,10 +92,10 @@ public class RdtAPI {
 
     public void SetText(String message,AcceptanceStatus status){
         Scalar sr= new Scalar(255,0,0,0);
-        Scalar sg= new Scalar(0,255,0,0);
+        Scalar sg= new Scalar(0,0,255,0);
         Scalar s;
         s = (status.mRDTFound)?sg:sr;
-        putText(mLocalcopy,message,new Point((mLocalcopy.cols()>>2)*3, 50),0, 1,s,2,LINE_AA,false);
+        putText(mLocalcopy,message,new Point((mLocalcopy.cols()>>2), mLocalcopy.rows()-50),0, 1,s,2,LINE_4,false);
     }
 
 
