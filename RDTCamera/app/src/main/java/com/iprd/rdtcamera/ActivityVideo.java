@@ -35,6 +35,7 @@ import org.jcodec.api.JCodecException;
 import org.jcodec.common.AndroidUtil;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Picture;
+import org.jcodec.scale.BitmapUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -256,10 +257,21 @@ public class ActivityVideo extends AppCompatActivity {
                     break;
                 } else {
                     System.out.println(picture.getWidth() + "x" + picture.getHeight() + " " + picture.getColor());
+                    long st = System.currentTimeMillis();
+
                     mCapFrame = AndroidUtil.toBitmap(picture);
                     Log.i("Madhav", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
+                    long et = System.currentTimeMillis()- st;
+                    Log.i("Bitmap Conversion Time "," "+ et);
+
+                    st = System.currentTimeMillis();
                     final AcceptanceStatus status = mRdtApi.checkFrame(mCapFrame);
-                    String frNoSB = count + " S[" + mRdtApi.getSharpness() + "]" + "B[" + mRdtApi.getBrightness() + "]";
+                    et = System.currentTimeMillis()- st;
+                    Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
+                    Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
+                    Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
+                    Log.i("Total Processing Time "," "+ et);
+                    String frNoSB = "F["+count + "]\nS[" + mRdtApi.getSharpness() + "]\n" + "B[" + mRdtApi.getBrightness() + "]";
                     mRdtApi.SetText(frNoSB, status);
                     final Bitmap ret = mRdtApi.getLocalcopyAsBitmap();
                     runOnUiThread(new Runnable() {

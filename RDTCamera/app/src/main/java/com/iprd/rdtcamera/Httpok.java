@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -77,7 +78,15 @@ public class Httpok extends AsyncTask<String, Void, String> {
                 mImageView.setVisibility(View.VISIBLE);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
-                Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
+                if(mJsonResult!=null){
+                    String str="";
+                    try {
+                        str = mJsonResult.getString("msg")+"\n"+mJsonResult.getString("rc");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
