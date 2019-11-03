@@ -188,13 +188,11 @@ public class ObjectDetection {
             //Image to draw roi in
             Bitmap bmp = null;
 
-            long startTime = System.nanoTime();
-
+            long startTime = System.currentTimeMillis();
             mTflite.run(input, output);
-            long endTime = System.nanoTime();
-            long MethodeDuration = (endTime - startTime);
-            float timetaken = MethodeDuration / 1000000.0f;
-            Log.i("mTfliteTime", String.valueOf(timetaken));
+            long MethodeDuration = System.currentTimeMillis()-startTime;
+
+            //Log.i("mTfliteTime", String.valueOf(MethodeDuration));
 
 //            AcceptanceStatus ret = update(mat.getNativeObjAddr());
 //            if(null != ret ) Log.d("RDT FOUND ",ret.mRDTFound?"1":"0");

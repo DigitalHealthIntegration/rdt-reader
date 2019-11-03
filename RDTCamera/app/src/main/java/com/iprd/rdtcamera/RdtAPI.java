@@ -37,6 +37,19 @@ public class RdtAPI {
     private short mSharpness;
     Mat mLocalcopy;
     boolean mPlaybackMode;
+    long mTensorFlowProcessTime;
+    long mPreProcessingTime;
+    long mPostProcessingTime;
+
+    public long getPostProcessingTime() {
+        return mPostProcessingTime;
+    }
+    public long getPreProcessingTime() {
+        return mPreProcessingTime;
+    }
+    public long getTensorFlowProcessTime() {
+        return mTensorFlowProcessTime;
+    }
 
     public boolean isPlaybackMode() {
         return mPlaybackMode;
@@ -172,11 +185,16 @@ public class RdtAPI {
         AcceptanceStatus ret= new AcceptanceStatus();
 
         try {
+            long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
-            //Log.d("INPUT",capFrame.getWidth()+"x"+capFrame.getHeight());
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
+            mPreProcessingTime  = System.currentTimeMillis()-st;
+
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
+            mTensorFlowProcessTime = System.currentTimeMillis();
             Rect roi = mTensorFlow.update(greyMat, rdtFound);
+            mTensorFlowProcessTime =  System.currentTimeMillis()-mTensorFlowProcessTime;
+            mPostProcessingTime  = System.currentTimeMillis();
             ret.mRDTFound = rdtFound[0].booleanValue();
             if (ret.mRDTFound) {
                 roi.width = (roi.width - roi.x);
@@ -218,6 +236,7 @@ public class RdtAPI {
             greyMat.release();
             matinput.release();
             mInprogress = false;
+            mPostProcessingTime = System.currentTimeMillis()-mPostProcessingTime;
         }
         return ret;
     }

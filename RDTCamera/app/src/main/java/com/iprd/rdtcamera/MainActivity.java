@@ -309,6 +309,9 @@ public class MainActivity extends AppCompatActivity {
                 status.mBrightness = mRdtApi.getBrightness();
             }
             long et = System.currentTimeMillis()-st;
+            Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
+            Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
+            Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
             Log.i("Total Processing Time "," "+ et);
             runOnUiThread(new Runnable() {
                 @Override
