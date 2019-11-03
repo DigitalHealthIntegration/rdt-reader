@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -231,6 +232,12 @@ public class ActivityVideo extends AppCompatActivity {
 
     private void playVideo(String videoFilename) {
         try {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), "Tap on centre of screen to pause video", Toast.LENGTH_LONG).show();
+                }
+            });
             setFilePickerVisibility(false);
             mRunningloop = true;
             mState = PlayPause.PLAY;
