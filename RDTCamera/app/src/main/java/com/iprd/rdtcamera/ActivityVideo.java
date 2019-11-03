@@ -140,10 +140,11 @@ public class ActivityVideo extends AppCompatActivity {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
                 byte[] byteArray = stream.toByteArray();
-                String urlString = "http://192.168.1.2:9000/align";
+                String urlString = "http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
                 String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                 try{
                     Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage);
+                    mr.setCtx(getApplicationContext());
                     mr.execute();
                 }catch(Exception ex){
                     ex.printStackTrace();

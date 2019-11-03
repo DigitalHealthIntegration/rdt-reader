@@ -1,5 +1,6 @@
 package com.iprd.rdtcamera;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -29,6 +31,12 @@ public class Httpok extends AsyncTask<String, Void, String> {
     ProgressBar mProgressBar=null;
     ImageView mImageView=null;
     JSONObject mJsonResult=null;
+
+    public void setCtx(Context mCtx) {
+        this.mCtx = mCtx;
+    }
+
+    Context mCtx=null;
 
     public Bitmap getResult() {
         return mResult;
@@ -69,6 +77,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
                 mImageView.setVisibility(View.VISIBLE);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
+                Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -119,6 +128,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
                             Log.i("msg",obj.getString("msg"));
                             Log.i("rc",obj.getString("rc"));
                             mJsonResult = obj;
+
                         }
                     }
                 }
@@ -128,7 +138,8 @@ public class Httpok extends AsyncTask<String, Void, String> {
             }
         }
     }
-}
+
+  }
 
 /*
  String folderPath = "/sdcard/aa/mgd/";
