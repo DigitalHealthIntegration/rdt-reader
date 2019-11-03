@@ -1,7 +1,12 @@
 package com.iprd.rdtcamera;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.opencv.core.CvException;
@@ -11,9 +16,12 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 
 public class Utils {
 
@@ -63,4 +71,66 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
+    public static Short ApplySettings(Context c, RdtAPI.RdtAPIBuilder builder,RdtAPI rdt) {
+        double mTopTh = ObjectDetection.mTopThreshold;
+        double mBotTh = ObjectDetection.mBottomThreshold;
+        Short mShowImageData=0;
+        Config config= new Config();
+        boolean mSaveNegativeData= false;
+        try {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
+            config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
+            config.mMinScale = Short.parseShort(prefs.getString("mMinScale", config.mMinScale+""));
+            config.mXMin = Short.parseShort(prefs.getString("mXMin",  config.mXMin+""));
+            config.mXMax = Short.parseShort(prefs.getString("mXMax", config.mXMax+""));
+            config.mYMin = Short.parseShort(prefs.getString("mYMin", config.mYMin+""));
+            config.mYMax = Short.parseShort(prefs.getString("mYMax", config.mYMax+""));
+            config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", config.mMinSharpness +""));
+            config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
+            config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
+            mTopTh = Float.parseFloat(prefs.getString("mTopTh", mTopTh+""));
+            mBotTh = Float.parseFloat(prefs.getString("mBotTh", mBotTh+""));
+            mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
+            short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
+            if(t!=0) mSaveNegativeData =true;
+        }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
+            Log.i("RDT","Exception in  Shared Pref switching to default");
+            config.setDefaults();
+            mShowImageData = 0;
+            mSaveNegativeData = false;
+        }
+        if(builder != null) {
+            builder.setMinBrightness(config.mMinBrightness);
+            builder.setMaxBrightness(config.mMaxBrightness);
+            builder.setMinScale(config.mMinScale);
+            builder.setMaxScale(config.mMaxScale);
+            builder.setMinSharpness(config.mMinSharpness);
+            builder.setXMax(config.mXMax);
+            builder.setXMin(config.mXMin);
+            builder.setYMax(config.mYMax);
+            builder.setYMin(config.mYMin);
+        }
+        if(rdt !=null){
+            rdt.getTensorFlow().setBottomThreshold(mBotTh);
+            rdt.getTensorFlow().setTopThreshold(mTopTh);
+            rdt.setSaveNegativeData(mSaveNegativeData);
+        }
+        return mShowImageData;
+    }
+
+    public static MappedByteBuffer loadModelFile(AssetManager assetManager, String modelPath) {
+        try {
+            AssetFileDescriptor fileDescriptor = assetManager.openFd(modelPath);
+            FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+            FileChannel fileChannel = inputStream.getChannel();
+            long startOffset = fileDescriptor.getStartOffset();
+            long declaredLength = fileDescriptor.getDeclaredLength();
+            return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
+        }catch (Exception ex){
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
 }

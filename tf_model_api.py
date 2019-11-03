@@ -3,10 +3,19 @@
 """
 import sys
 import os
+from settings import RDT_GIT_ROOT
 
 path = os.path.join(os.getcwd(),"tensorflow-yolov3")
 sys.path.append(path)
 
+path = os.path.join(RDT_GIT_ROOT,"tensorflow-yolov3")
+sys.path.append(path)
+
+jpg1Path = os.path.join(RDT_GIT_ROOT,"1.jpg")
+jpg2Path = os.path.join(RDT_GIT_ROOT,"2.jpg")
+
+#sys.path.append("C:\\Users\\developer\\Anaconda_3\\rdt-reader\\tensorflow-yolov3")
+                
 import json
 import cv2 as cv
 import numpy as np
@@ -19,7 +28,7 @@ from core.config import cfg
 import tensorflow as tf
 
 class YOLO:
-    def __init__(self, input_size=512,numClasses=4,weightsPath="tensorflow-yolov3/models/Flu_audere/1"):
+    def __init__(self, input_size=512,numClasses=4,weightsPath="rdt-reader/tensorflow-yolov3/models/Flu_audere/1"):
         """This function initializes the YOLO model and warms it up and returns predictor function handle
             
             Args:
@@ -40,7 +49,8 @@ class YOLO:
     def __hit_model(self):
         """This function tests the tf model and returns the predict function handler
         """
-        temp_inp_yolo = cv.imread("1.jpg")
+        #temp_inp_yolo = cv.imread("C:\\Users\\developer\\Anaconda_3\\rdt-reader\\1.jpg")
+        temp_inp_yolo = cv.imread(jpg1Path)
         org_image = np.copy(temp_inp_yolo)
         org_h, org_w, _ = org_image.shape
 
@@ -97,7 +107,7 @@ class YOLO:
 
 
 class LineDetector:
-    def __init__(self, input_size=[500,100],numClasses=4,weightsPath="tensorflow-yolov3/models/Flu_audere_line/1"):
+    def __init__(self, input_size=[500,100],numClasses=4,weightsPath="rdt-reader/tensorflow-yolov3/models/Flu_audere_line/1"):
         """This function initializes the Line detector model and warms it up and returns predictor function handle
             
             Args:
@@ -119,7 +129,8 @@ class LineDetector:
         """
 
     
-        img = cv.imread("2.jpg")
+        #img = cv.imread("C:\\Users\\developer\\Anaconda_3\\rdt-reader\\2.jpg")
+        img = cv.imread(jpg2Path)
         img=cv.resize(img,(100,2000))
         img = img[1500:1520,:,:]
         img = img/ 255.0

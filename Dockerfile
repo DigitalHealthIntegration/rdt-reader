@@ -10,22 +10,23 @@ RUN apt-get update --fix-missing \
   curl \
   git git-lfs \
   libgl1-mesa-glx \
-  wget
-
-ENV CONDA=/opt/miniconda3
-RUN mkdir -p /opt \
- && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-      -O /opt/install-miniconda.sh \
- && /bin/bash /opt/install-miniconda.sh -b -p ${CONDA}
-
+  wget \
+  vim 
+ 
 RUN useradd --create-home --shell /bin/bash ${USER}
 ENV HOME=/home/${USER}
+
+ENV CONDA=${HOME}/miniconda3
+RUN  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+      -O ${HOME}/install-miniconda.sh \
+ && /bin/bash ${HOME}/install-miniconda.sh -b -p ${CONDA}
 
 COPY . ${HOME}/rdt-reader
 RUN chown -R ${USER}:${USER} ${HOME}/rdt-reader
 
 USER ${USER}
 WORKDIR ${HOME}
+USER root
 
 RUN echo ". ${CONDA}/etc/profile.d/conda.sh" >> ${HOME}/.bash_profile \
  && cat ${HOME}/.bash_profile
@@ -33,8 +34,14 @@ RUN echo ". ${CONDA}/etc/profile.d/conda.sh" >> ${HOME}/.bash_profile \
 SHELL [ "/bin/bash", "--login", "-c" ]
 WORKDIR ${HOME}/rdt-reader
 
-RUN conda create --name rdt-reader --file "$HOME/rdt-reader/spec-file_linux.txt" python=3.6
-RUN echo "Set up environment based on $HOME/rdt-reader/spec-file_linux.txt"
+#we use conda env create by reading a yml file. we can do this using a text file as well.
+#please discuss if you want to use that instead.
+#RUN conda create --name rdt-reader --file "${HOME}/rdt-reader/spec-file_linux_nogpu.txt" python=3.6
+RUN conda env create --file "${HOME}/rdt-reader/rdtEnv.yml" python=3.6
+CMD conda activate rdt-reader 
 
-CMD conda activate rdt-reader \
- && python flasker.py
+
+
+
+
+ 

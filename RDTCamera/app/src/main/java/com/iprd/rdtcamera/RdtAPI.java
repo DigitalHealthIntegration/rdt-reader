@@ -6,44 +6,111 @@ import android.util.Log;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+
+import java.nio.MappedByteBuffer;
 
 import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
 import static com.iprd.rdtcamera.Utils.saveImage;
 import static org.opencv.core.Core.BORDER_REFLECT101;
+import static org.opencv.core.Core.LINE_4;
+import static org.opencv.core.Core.LINE_AA;
 import static org.opencv.core.Core.mean;
 import static org.opencv.core.Core.meanStdDev;
 import static org.opencv.core.CvType.CV_16S;
 import static org.opencv.imgproc.Imgproc.Laplacian;
 import static org.opencv.imgproc.Imgproc.cvtColor;
+import static org.opencv.imgproc.Imgproc.putText;
+import static org.opencv.imgproc.Imgproc.rectangle;
 
 public class RdtAPI {
-    Config mConfig;
-    AcceptanceStatus mAcceptanceStatus=new AcceptanceStatus();
-    ObjectDetection mTensorFlow=null;
-    boolean mInprogress = false;
-    short mBrightness,mSharpness;
-    boolean mSaveNegativeData=false;
+    private Config mConfig;
+    private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
+    private ObjectDetection mTensorFlow;//=null;
+    private boolean mInprogress;// = false;
+    private short mBrightness;
+    private short mSharpness;
+    Mat mLocalcopy;
+    boolean mPlaybackMode;
+    long mTensorFlowProcessTime;
+    long mPreProcessingTime;
+    long mPostProcessingTime;
+
+    public long getPostProcessingTime() {
+        return mPostProcessingTime;
+    }
+    public long getPreProcessingTime() {
+        return mPreProcessingTime;
+    }
+    public long getTensorFlowProcessTime() {
+        return mTensorFlowProcessTime;
+    }
+
+    public boolean isPlaybackMode() {
+        return mPlaybackMode;
+    }
+
+    public void setmPlaybackMode(boolean mPlaybackMode) {
+        this.mPlaybackMode = mPlaybackMode;
+    }
+
+
+    public void setSaveNegativeData(boolean mSaveNegativeData) {
+        this.mSaveNegativeData = mSaveNegativeData;
+    }
+
+    private boolean mSaveNegativeData; //=false;
+
+    public Config getConfig() {
+        return mConfig;
+    }
 
     public void setSaveImages(boolean b){
-        if(mTensorFlow!= null)mTensorFlow.setSaveImages(b);
+        mTensorFlow.setSaveImages(b);
+    }
+    public AcceptanceStatus getAcceptanceStatus() {
+        return mAcceptanceStatus;
     }
 
-    public void setTopThreshold(double top){
-        if(mTensorFlow!= null)mTensorFlow.setTopThreshold(top);
-    }
-    public void setBottomThreshold(double bot){
-        if(mTensorFlow!= null)mTensorFlow.setBottomThreshold(bot);
+    public ObjectDetection getTensorFlow() {
+        return mTensorFlow;
     }
 
-
-    public boolean isInProgress(){
+    public boolean isInprogress() {
         return mInprogress;
     }
+
+    public short getBrightness() {
+        return mBrightness;
+    }
+
+    public short getSharpness() {
+        return mSharpness;
+    }
+
+    public boolean isSaveNegativeData() {
+        return mSaveNegativeData;
+    }
+
+    public Bitmap getLocalcopyAsBitmap() {
+        Bitmap b = Bitmap.createBitmap(mLocalcopy.cols(), mLocalcopy.rows(), Bitmap.Config.ARGB_8888);
+        org.opencv.android.Utils.matToBitmap(mLocalcopy, b);
+        return b;
+    }
+
+    public void SetText(String message,AcceptanceStatus status){
+        Scalar sr= new Scalar(255,0,0,0);
+        Scalar sg= new Scalar(0,0,255,0);
+        Scalar s;
+        s = (status.mRDTFound)?sg:sr;
+        putText(mLocalcopy,message,new Point((mLocalcopy.cols()>>2), mLocalcopy.rows()-50),0, 1,s,2,LINE_4,false);
+    }
+
 
     private boolean computeBlur(Mat greyImage,AcceptanceStatus ret) {
         Mat laplacian=new Mat();
@@ -109,12 +176,7 @@ public class RdtAPI {
     }
 
 
-    public void init(Config c) {
-        mConfig = c;
-        mTensorFlow = new ObjectDetection(mConfig.mTfliteB);
-    }
-
-    public AcceptanceStatus update(Bitmap capFrame) {
+    public AcceptanceStatus checkFrame(Bitmap capFrame) {
         mInprogress = true;
         mBrightness = -1;
         mSharpness = -1;
@@ -123,11 +185,16 @@ public class RdtAPI {
         AcceptanceStatus ret= new AcceptanceStatus();
 
         try {
+            long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
-            //Log.d("INPUT",capFrame.getWidth()+"x"+capFrame.getHeight());
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
+            mPreProcessingTime  = System.currentTimeMillis()-st;
+
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
+            mTensorFlowProcessTime = System.currentTimeMillis();
             Rect roi = mTensorFlow.update(greyMat, rdtFound);
+            mTensorFlowProcessTime =  System.currentTimeMillis()-mTensorFlowProcessTime;
+            mPostProcessingTime  = System.currentTimeMillis();
             ret.mRDTFound = rdtFound[0].booleanValue();
             if (ret.mRDTFound) {
                 roi.width = (roi.width - roi.x);
@@ -145,15 +212,15 @@ public class RdtAPI {
                 ret.mBoundingBoxWidth = (short) (roi.width);
                 ret.mBoundingBoxHeight = (short) (roi.height);
                 ret.mRDTFound = rdtFound[0].booleanValue();
+                if(mPlaybackMode) rectangle(matinput, new Point(roi.x, roi.y), new Point(roi.x+roi.width, roi.y+roi.height), new Scalar(255,0, 0,0),4,LINE_AA,0);
+            }
+            if(mPlaybackMode) {
+                mLocalcopy = matinput.clone();
             }
 
             if (!rdtFound[0].booleanValue()) return ret;
-            //  if (!computeDistortion())return mAcceptanceStatus;
-            //Log.d("........ROI "," "+roi.x +"x"+roi.y + "x" +roi.width + "x" +roi.height);
 
             Mat imageROI = greyMat.submat(roi);
-            // mTensorFlow.SaveROIImage(imageROI,0,0,imageROI.width(),imageROI.height());
-
             if (!computeBlur(imageROI,ret)) {
                 return ret;
             }
@@ -161,6 +228,7 @@ public class RdtAPI {
                 return ret;
             }
         } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             if(((!ret.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData&&ret.mRDTFound)){
                 saveImage(capFrame,"Color");
@@ -168,15 +236,97 @@ public class RdtAPI {
             greyMat.release();
             matinput.release();
             mInprogress = false;
+            mPostProcessingTime = System.currentTimeMillis()-mPostProcessingTime;
         }
         return ret;
-   }
-
-    public  void setConfig(Config c) {
-        mConfig = c;
     }
 
-    public void term() {
+
+    // private constructor , so that, we can only access via Builder
+    private RdtAPI( RdtAPIBuilder rdtAPIBuilder){
+        mPlaybackMode=false;
+        this.mConfig = rdtAPIBuilder.mConfig;
+        this.mTensorFlow = new ObjectDetection(this.mConfig.mMappedByteBuffer);
+    }
+
+    public static class RdtAPIBuilder {
+        private Config mConfig;
+
+        public  RdtAPIBuilder(){
+            mConfig = new Config();
+        }
+
+        public RdtAPIBuilder setModel(MappedByteBuffer model){
+            mConfig.setmMappedByteBuffer(model);
+            return this;
+        }
+
+//        public RdtAPIBuilder mConfig(Config mConfig) {
+//            this.mConfig = mConfig;
+//            return this;
+//        }
+
+        public RdtAPI build() {
+            RdtAPI rdtAPI =  new RdtAPI(this);
+            //validateUserObject(rdtAPI1);
+            return rdtAPI;
+        }
+
+//        public RdtAPIBuilder setByteModel(byte[] mTfliteB) {
+//            mConfig.setmTfliteB(mTfliteB);
+//            return this;
+//        }
+
+        public RdtAPIBuilder setMinBrightness(float mMinBrightness) {
+            mConfig.setmMinBrightness(mMinBrightness);
+            return this;
+        }
+
+        public RdtAPIBuilder setMaxBrightness(float mMaxBrightness) {
+            mConfig.setmMaxBrightness(mMaxBrightness);
+            return this;
+        }
+
+        public RdtAPIBuilder setMinSharpness(float mMinSharpness) {
+            mConfig.setmMinSharpness(mMinSharpness);
+            return this;
+        }
+
+        public RdtAPIBuilder setYMax(short mYMax) {
+            mConfig.setmYMax(mYMax);
+            return this;
+        }
+
+        public RdtAPIBuilder setYMin(short mYMin) {
+            mConfig.setmYMin(mYMin);
+            return this;
+        }
+
+        public RdtAPIBuilder setXMax(short mXMax) {
+            mConfig.setmXMax(mXMax);
+            return this;
+        }
+
+        public RdtAPIBuilder setXMin(short mXMin) {
+            mConfig.setmXMin(mXMin);
+            return this;
+        }
+
+        public RdtAPIBuilder setMinScale(short mMinScale) {
+            mConfig.setmMinScale(mMinScale);
+            return this;
+        }
+
+        public RdtAPIBuilder setMaxScale(short mMaxScale) {
+            mConfig.setmMaxScale(mMaxScale);
+            return this;
+        }
+
+        private void validateUserObject(RdtAPI rdtAPI) {
+            //Do some basic validations to check
+            //if user object does not break any assumption of system
+        }
 
     }
+
 }
