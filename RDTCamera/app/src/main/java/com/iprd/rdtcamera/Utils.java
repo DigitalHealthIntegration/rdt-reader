@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -71,7 +72,25 @@ public class Utils {
             e.printStackTrace();
         }
     }
+    public static Mat rotateFrame(Mat in, int rotation)
+    {
+        Mat out = in;
 
+        if (rotation == 90)
+        {
+            out = in.t();
+            Core.flip(out, out, 1);
+
+        }
+
+        else if (rotation == -90)
+        {
+            out = in.t();
+            Core.flip(out, out, 0);
+
+        }
+        return out;
+    }
     public static Short ApplySettings(Context c, RdtAPI.RdtAPIBuilder builder,RdtAPI rdt) {
         double mTopTh = ObjectDetection.mTopThreshold;
         double mBotTh = ObjectDetection.mBottomThreshold;

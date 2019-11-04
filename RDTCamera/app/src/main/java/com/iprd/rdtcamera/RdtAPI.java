@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
 import org.opencv.core.Point;
@@ -182,35 +183,35 @@ public class RdtAPI {
         mSharpness = -1;
         Mat matinput = new Mat();
         Mat greyMat = new Mat();
+        Mat greyMatResized = new Mat();
+
         AcceptanceStatus ret= new AcceptanceStatus();
 
         try {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
+            greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
+
+            org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
+            Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
+
+            Imgproc.resize(greyMat,greyMatResized,sz);
+
             mPreProcessingTime  = System.currentTimeMillis()-st;
 
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
             mTensorFlowProcessTime = System.currentTimeMillis();
-            Rect roi = mTensorFlow.update(greyMat, rdtFound);
+            Rect roi = mTensorFlow.update(greyMatResized, rdtFound);
             mTensorFlowProcessTime =  System.currentTimeMillis()-mTensorFlowProcessTime;
             mPostProcessingTime  = System.currentTimeMillis();
             ret.mRDTFound = rdtFound[0].booleanValue();
             if (ret.mRDTFound) {
-                roi.width = (roi.width - roi.x);
-                roi.height = roi.height - roi.y;
-                roi.x = Math.max(0, roi.x);
-                roi.y = Math.max(0, roi.y);
-                roi.width = Math.max(0, roi.width);
-                roi.height = Math.max(0, roi.height);
 
-                roi.width = Math.min(greyMat.cols() - roi.x, roi.width);
-                roi.height = Math.min(greyMat.rows() - roi.y, roi.height);
-
-                ret.mBoundingBoxX = (short) roi.x;
-                ret.mBoundingBoxY = (short) roi.y;
-                ret.mBoundingBoxWidth = (short) (roi.width);
-                ret.mBoundingBoxHeight = (short) (roi.height);
+                ret.mBoundingBoxY = (short) (roi.x/1280.0f*greyMat.width());
+                ret.mBoundingBoxX = (short) (roi.y/720.0f*greyMat.height());
+                ret.mBoundingBoxHeight = (short) (roi.width/1280.0f*greyMat.width());
+                ret.mBoundingBoxWidth= (short) (roi.height/720.0f*greyMat.height());
                 ret.mRDTFound = rdtFound[0].booleanValue();
                 if(mPlaybackMode) rectangle(matinput, new Point(roi.x, roi.y), new Point(roi.x+roi.width, roi.y+roi.height), new Scalar(255,0, 0,0),4,LINE_AA,0);
             }
@@ -220,13 +221,13 @@ public class RdtAPI {
 
             if (!rdtFound[0].booleanValue()) return ret;
 
-            Mat imageROI = greyMat.submat(roi);
-            if (!computeBlur(imageROI,ret)) {
-                return ret;
-            }
-            if (!computeBrightness(imageROI,ret)) {
-                return ret;
-            }
+//            Mat imageROI = greyMat.submat(roi);
+//            if (!computeBlur(imageROI,ret)) {
+//                return ret;
+//            }
+//            if (!computeBrightness(imageROI,ret)) {
+//                return ret;
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -246,7 +247,8 @@ public class RdtAPI {
     private RdtAPI( RdtAPIBuilder rdtAPIBuilder){
         mPlaybackMode=false;
         this.mConfig = rdtAPIBuilder.mConfig;
-        this.mTensorFlow = new ObjectDetection(this.mConfig.mMappedByteBuffer);
+        if(this.mConfig.mMappedByteBuffer != null)this.mTensorFlow = new ObjectDetection(this.mConfig.mMappedByteBuffer);
+        if(this.mConfig.mTfliteB != null)this.mTensorFlow = new ObjectDetection(this.mConfig.mTfliteB);
     }
 
     public static class RdtAPIBuilder {
@@ -272,10 +274,10 @@ public class RdtAPI {
             return rdtAPI;
         }
 
-//        public RdtAPIBuilder setByteModel(byte[] mTfliteB) {
-//            mConfig.setmTfliteB(mTfliteB);
-//            return this;
-//        }
+        public RdtAPIBuilder setByteModel(byte[] mTfliteB) {
+            mConfig.setmTfliteB(mTfliteB);
+            return this;
+        }
 
         public RdtAPIBuilder setMinBrightness(float mMinBrightness) {
             mConfig.setmMinBrightness(mMinBrightness);

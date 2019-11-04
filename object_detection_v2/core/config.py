@@ -10,7 +10,7 @@ cfg                             = __C
 __C.RDT_Reader                        = edict()
 
 # Set the class name
-__C.RDT_Reader.CLASSES                = "D:/source/repos/object_detection_mobile_v2/dataset/classes/rdt.names"
+__C.RDT_Reader.CLASSES                = "D:/source/repos/object_detection_mobile_v2/dataset/classes/rdt_rot.names"
 __C.RDT_Reader.ORIGINAL_WEIGHT        = ""
 __C.RDT_Reader.DEMO_WEIGHT            = ""
 
@@ -20,7 +20,7 @@ __C.TRAIN                       = edict()
 __C.TRAIN.BATCH_SIZE            = 2
 __C.TRAIN.LABEL_PATH            = "D:/source/repos/object_detection_mobile_v2/dataset/labels_seg_tr"
 __C.TRAIN.IMAGE_PATH            = "D:/source/repos/object_detection_mobile_v2/dataset/images_seg_tr"
-__C.TRAIN.INPUT_SIZE            = (180,320)
+__C.TRAIN.INPUT_SIZE            = (360,640)
 __C.TRAIN.MOVING_AVE_DECAY      = 0.9995
 __C.TRAIN.DATA_AUG              = True
 __C.TRAIN.LEARN_RATE_INIT       = 1e-4
@@ -29,15 +29,15 @@ __C.TRAIN.WARMUP_EPOCHS         = 2
 __C.TRAIN.FISRT_STAGE_EPOCHS    = 5
 __C.TRAIN.SECOND_STAGE_EPOCHS   = 20
 __C.TRAIN.INITIAL_WEIGHT        = "D:/source/repos/object_detection_mobile_v2/model_save.hdf5"
-__C.TRAIN.UPSAMPLE              = 4
+__C.TRAIN.UPSAMPLE              = 2
 __C.TRAIN.QUANT_DELAY           = 2
-__C.TRAIN.OUTDATA           = "D:/source/repos/object_detection_mobile_v2/output_check/"
+__C.TRAIN.OUTDATA           = "D:/source/repos/object_detection_mobile_v2/output_check/ssd_data/"
 __C.TRAIN.PREDICTION_SCALE   = [0.5]
-__C.TRAIN.NUMBER_CLASSES   = 4
-__C.TRAIN.ANCHOR_ASPECTRATIO   = [[[18,32],[20,42],[21,48],[17,20]]]
+__C.TRAIN.NUMBER_CLASSES   = 31
+__C.TRAIN.ANCHOR_ASPECTRATIO   = [[[30,70],[68,68],[44,74],[28,52]]]
 __C.TRAIN.IOU_THRESH   = 0.5
 __C.TRAIN.NUMBER_BLOCKS            = [10,19]
-__C.TRAIN.LABEL_FILE_YOLO          ="rdt_train_crop.txt"
+__C.TRAIN.LABEL_FILE_YOLO          ="rdt_train_crop_rot.txt"
 
 
 
@@ -48,17 +48,17 @@ __C.TEST                        = edict()
 __C.TEST.LABEL_PATH            = "D:/source/repos/object_detection_mobile_v2/dataset/labels_seg_tr"
 __C.TEST.IMAGE_PATH            = "D:/source/repos/object_detection_mobile_v2/dataset/images_seg_te"
 __C.TEST.BATCH_SIZE             = 1
-__C.TEST.INPUT_SIZE             = (180,320)
+__C.TEST.INPUT_SIZE             = (360,640)
 __C.TEST.DATA_AUG               = False
 __C.TEST.WRITE_IMAGE            = True
 __C.TEST.WRITE_IMAGE_PATH       = "D:/source/repos/object_detection_mobile_v2/dataset/detection"
 __C.TEST.WRITE_IMAGE_SHOW_LABEL = True
-__C.TEST.WEIGHT_FILE            = "D:/source/repos/object_detection_mobile_v2/model_save.hdf5"
+__C.TEST.WEIGHT_FILE            = "D:/source/repos/rdt-reader/Model_KH_EXP/model_save_rot_360x640_smaller.hdf5"
 __C.TEST.QUANTIZED_WEIGHT_FILE  = "D:/source/repos/object_detection_mobile_v2/eval_model/model_save_server.hdf5"
 __C.TEST.SHOW_LABEL             = True
 __C.TEST.UPSAMPLE               = 1
 __C.TEST.EVAL_MODEL_PATH        = "D:/source/repos/object_detection_mobile_v2/eval_model"
-__C.TEST.LABEL_FILE_YOLO          ="object_detection_v2/rdt_test_crop.txt"
+__C.TEST.LABEL_FILE_YOLO          ="rdt_test_crop_rot.txt"
 
 
 
