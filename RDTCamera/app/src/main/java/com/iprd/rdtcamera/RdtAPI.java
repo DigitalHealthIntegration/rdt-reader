@@ -41,6 +41,13 @@ public class RdtAPI {
     long mPreProcessingTime;
     long mPostProcessingTime;
 
+    public long getDivideTime(){
+        return mTensorFlow.getDivideTime();
+    }
+    public long getTfliteTime(){
+        return mTensorFlow.getTfliteTime();
+    }
+
     public long getPostProcessingTime() {
         return mPostProcessingTime;
     }

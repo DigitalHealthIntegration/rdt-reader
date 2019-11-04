@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import static org.opencv.core.CvType.CV_32FC1;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class ObjectDetection {
@@ -34,6 +35,15 @@ public class ObjectDetection {
     Interpreter mTflite;
     Interpreter.Options tf_options = new Interpreter.Options();
 
+    public long getTfliteTime() {
+        return mTfLiteDuration;
+    }
+
+    public long getDivideTime() {
+        return mDivideTime;
+    }
+    long mTfLiteDuration;
+    long mDivideTime;
     boolean mSaveImage=false;
     public void setSaveImages(boolean b){
         mSaveImage =b;
@@ -164,25 +174,31 @@ public class ObjectDetection {
     Rect update(Mat inputmat,Boolean [] rdt) {
         Rect ret = new Rect(-1, -1, -1, -1);
         try {
+            long st  = System.currentTimeMillis();
+
             int[] roi = new int[4];
             int width = inputmat.cols();
             int height = inputmat.rows();
-
             //Resize image to 256x256 for the neural network
             Mat greyMat = new Mat();
             org.opencv.core.Size sz = new org.opencv.core.Size(256, 256);
             Imgproc.resize(inputmat, greyMat, sz);
 
+            byte [] b = new byte[greyMat.channels()*greyMat.cols()*greyMat.rows()];
+            greyMat.get(0,0,b); // get all the pixels
+
+            float alpha = 1/255.0f;
             //Feed image pixels in normalized form to the input
             float[][][][] input = new float[1][256][256][1];
+            int k = 0;
             for (int i = 0; i < 256; i++) {
                 for (int j = 0; j < 256; j++) {
-                    double[] pixelvalue = greyMat.get(i, j);
-                    // Log.d("val"+i+"x"+j, String.valueOf(pixelvalue[0]));
-//                    double normalized = (double) (greyMat.get(i,j)/255.0);
-                    input[0][i][j][0] = (float) (pixelvalue[0] / 255.0);
+                    //double[] pixelvalue = res.get(i, j);
+                    input[0][i][j][0] = ((b[k++]& 0xff)*alpha);// (pixelvalue[0]);// / 255.0);
                 }
             }
+            mDivideTime  = System.currentTimeMillis()-st;
+
             //Initialize output buffer
             float[][][][] output = new float[1][225][5][7];
             //Image to draw roi in
@@ -190,7 +206,7 @@ public class ObjectDetection {
 
             long startTime = System.currentTimeMillis();
             mTflite.run(input, output);
-            long MethodeDuration = System.currentTimeMillis()-startTime;
+            mTfLiteDuration = System.currentTimeMillis()-startTime;
 
             //Log.i("mTfliteTime", String.valueOf(MethodeDuration));
 
