@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -109,7 +110,12 @@ public class Httpok extends AsyncTask<String, Void, String> {
     }
 
     private void httpOkPostMultipartAndJson() throws IOException {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient.Builder b = new OkHttpClient.Builder();
+        b.connectTimeout(5,TimeUnit.SECONDS);
+        b.readTimeout(30, TimeUnit.SECONDS);
+        b.writeTimeout(30, TimeUnit.SECONDS);
+        OkHttpClient client =  b.build();
+
         //File imagefile = new File(folderPath+""+imgName);
         RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("metadata", metaDataStr)
@@ -128,8 +134,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
         if (response.isSuccessful()) {
             try {
                 String[] s = res.split("Content-Type:");
-                for (String a : s) {
-                    if(a.contains("image/jpeg\r\n\r\n")) {
+                for (String a : s) { if(a.contains("image/jpeg\r\n\r\n")) {
                         String[] i=a.split("image/jpeg\r\n\r\n");
                         if(i.length >1){
                             String[] k=i[1].split("--");
