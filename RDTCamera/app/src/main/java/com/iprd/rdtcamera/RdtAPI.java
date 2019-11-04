@@ -122,8 +122,8 @@ public class RdtAPI {
         int yoff = 100;
         message.split("\n");
         for (String s1: message.split("\n")) {
-            putText(mLocalcopy,s1,new Point((mLocalcopy.cols()*3)>>2,yoff ),0, 1,s,3,LINE_4,false);
-            yoff += 40;
+            putText(mLocalcopy,s1,new Point((mLocalcopy.cols()*3)>>2,yoff ),0, 3,s,2,LINE_AA,false);
+            yoff += 90;
         }
     }
 

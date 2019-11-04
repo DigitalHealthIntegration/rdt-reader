@@ -129,6 +129,7 @@ public class ActivityVideo extends AppCompatActivity {
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
+                mResultView.setVisibility(View.INVISIBLE);
                 mRunningloop = false;
                 mPlayPause.setText("");
                 try {
