@@ -3,6 +3,7 @@ package com.iprd.rdtcamera;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -12,6 +13,7 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
@@ -64,7 +66,7 @@ public class ActivityVideo extends AppCompatActivity {
     Short mShowImageData;
     Bitmap mCapFrame;
     ProgressBar mCyclicProgressBar;
-
+    SharedPreferences prefs;
 
     PlayPause mState = PlayPause.PAUSE;
     boolean mRunningloop = false;
@@ -99,6 +101,8 @@ public class ActivityVideo extends AppCompatActivity {
                 startActivity(i);
             }
         });
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
         MappedByteBuffer mMappedByteBuffer = null;
         try {
             mMappedByteBuffer = Utils.loadModelFile(getAssets(), "tflite.lite");
@@ -142,7 +146,8 @@ public class ActivityVideo extends AppCompatActivity {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
                 byte[] byteArray = stream.toByteArray();
-                String urlString = "http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
+
+                String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");//"http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
                 String guid = String.valueOf(java.util.UUID.randomUUID());
                 String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                 try{
@@ -261,7 +266,7 @@ public class ActivityVideo extends AppCompatActivity {
                     long st = System.currentTimeMillis();
 
                     mCapFrame = AndroidUtil.toBitmap(picture);
-                    Log.i("Madhav", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
+                    Log.i("IPRD", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
                     long et = System.currentTimeMillis()- st;
                     Log.i("Bitmap Conversion Time "," "+ et);
 
