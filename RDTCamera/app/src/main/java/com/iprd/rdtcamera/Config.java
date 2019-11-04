@@ -12,7 +12,7 @@ public class Config{
     public float mMinSharpness;
     public float mMaxBrightness;
     public float mMinBrightness;
-//    public byte[] mTfliteB;
+    public byte[] mTfliteB;
     public MappedByteBuffer mMappedByteBuffer;
 
     public Config() {
@@ -36,9 +36,9 @@ public class Config{
         this.mMappedByteBuffer = mMappedByteBuffer;
     }
 
-//    public void setmTfliteB(byte[] mTfliteB) {
-//        //this.mTfliteB = mTfliteB;
-//    }
+    public void setmTfliteB(byte[] mTfliteB) {
+        this.mTfliteB = mTfliteB;
+    }
 
     public void setmMinBrightness(float mMinBrightness) {
         this.mMinBrightness = mMinBrightness;
