@@ -47,6 +47,10 @@ public class RdtAPI {
     public long getTfliteTime(){
         return mTensorFlow.getTfliteTime();
     }
+    public long getROIFindingTime() {
+        return mTensorFlow.getROIFindingTime();
+    }
+
 
     public long getPostProcessingTime() {
         return mPostProcessingTime;
@@ -258,7 +262,11 @@ public class RdtAPI {
     private RdtAPI( RdtAPIBuilder rdtAPIBuilder){
         mPlaybackMode=false;
         this.mConfig = rdtAPIBuilder.mConfig;
-        this.mTensorFlow = new ObjectDetection(this.mConfig.mMappedByteBuffer);
+        if(this.mConfig.mMappedByteBuffer != null) {
+            this.mTensorFlow = new ObjectDetection(this.mConfig.mMappedByteBuffer);
+        }else{
+            this.mTensorFlow = new ObjectDetection(this.mConfig.mTfliteB);
+        }
     }
 
     public static class RdtAPIBuilder {
@@ -284,10 +292,10 @@ public class RdtAPI {
             return rdtAPI;
         }
 
-//        public RdtAPIBuilder setByteModel(byte[] mTfliteB) {
-//            mConfig.setmTfliteB(mTfliteB);
-//            return this;
-//        }
+        public RdtAPIBuilder setByteModel(byte[] mTfliteB) {
+            mConfig.setmTfliteB(mTfliteB);
+            return this;
+        }
 
         public RdtAPIBuilder setMinBrightness(float mMinBrightness) {
             mConfig.setmMinBrightness(mMinBrightness);

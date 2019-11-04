@@ -42,6 +42,10 @@ public class ObjectDetection {
     public long getDivideTime() {
         return mDivideTime;
     }
+    public long getROIFindingTime() {
+        return mROIFindingTime;
+    }
+    long mROIFindingTime;
     long mTfLiteDuration;
     long mDivideTime;
     boolean mSaveImage=false;
@@ -64,7 +68,7 @@ public class ObjectDetection {
             tf_options.setNumThreads(4);
             mTflite = new Interpreter(mappedbuffer, tf_options);
             if (mTflite != null) {
-                Log.d("Loaded model File", "length = ");
+                Log.d("Loaded model File", "length = "+mappedbuffer.capacity());
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -82,7 +86,7 @@ public class ObjectDetection {
 //            tf_options.addDelegate(nnapiDel);
             mTflite = new Interpreter(byteBuffer, tf_options);
             if (mTflite != null) {
-                Log.d("Loaded model File", "length = ");
+                Log.d("Loaded model File", "length = "+ byteBuffer.capacity());
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -208,6 +212,7 @@ public class ObjectDetection {
             mTflite.run(input, output);
             mTfLiteDuration = System.currentTimeMillis()-startTime;
 
+            mROIFindingTime = System.currentTimeMillis();
             //Log.i("mTfliteTime", String.valueOf(MethodeDuration));
 
 //            AcceptanceStatus ret = update(mat.getNativeObjAddr());
@@ -285,6 +290,9 @@ public class ObjectDetection {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+        finally {
+            mROIFindingTime = System.currentTimeMillis()-mROIFindingTime;
         }
         if(mSaveImage) {
             if(rdt[0] == false){

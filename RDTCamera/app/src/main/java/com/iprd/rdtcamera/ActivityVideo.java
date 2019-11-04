@@ -259,8 +259,6 @@ public class ActivityVideo extends AppCompatActivity {
                     System.out.println(picture.getWidth() + "x" + picture.getHeight() + " " + picture.getColor());
                     long st = System.currentTimeMillis();
 
-
-
                     mCapFrame = AndroidUtil.toBitmap(picture);
                     Log.i("Madhav", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
                     long et = System.currentTimeMillis()- st;
@@ -272,6 +270,8 @@ public class ActivityVideo extends AppCompatActivity {
 
                     Log.i("Pre Divide Time ",""+ mRdtApi.getDivideTime());
                     Log.i("TfLite Time ",""+ mRdtApi.getTfliteTime());
+                    Log.i("ROI Finding Time ",""+ mRdtApi.getROIFindingTime());
+
                     Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
                     Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
                     Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());

@@ -14,7 +14,6 @@ import static org.junit.Assert.*;
  */
 public class ExampleUnitTest {
     byte[] mtfliteBytes = null;
-
     byte[] ReadAssests() throws IOException {
         InputStream is=this.getClass().getClassLoader().getResourceAsStream("tflite.lite");
         //InputStream in = this.getClass().getClassLoader().getResourceAsStream("myFile.txt");
@@ -26,17 +25,19 @@ public class ExampleUnitTest {
 
     @Test
     public void rdtTest1() {
-        RdtAPI mRdtApi;
-
-
         Config c = new Config();
         try {
             c.mTfliteB = ReadAssests();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mRdtApi = new RdtAPI();
-        mRdtApi.init(c);
+        RdtAPI mRdtApi;
+        RdtAPI.RdtAPIBuilder builder;
+        builder = new RdtAPI.RdtAPIBuilder();
+        builder = builder.setByteModel(c.mTfliteB);
+
+        mRdtApi = builder.build();
+
 
         assertEquals(4, 2 + 2);
     }

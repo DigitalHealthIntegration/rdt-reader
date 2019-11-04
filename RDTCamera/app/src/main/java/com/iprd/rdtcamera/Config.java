@@ -29,7 +29,7 @@ public class Config{
         mMinSharpness = 500.0f;
         mMaxBrightness = 210.0f;
         mMinBrightness = 110.0f;
-        //mTfliteB=null;
+        mTfliteB=null;
         mMappedByteBuffer=null;
     }
     public void setmMappedByteBuffer(MappedByteBuffer mMappedByteBuffer) {

@@ -46,15 +46,32 @@ public class RdtTest {
         }
         return mtfliteBytes;
     }
+    byte[] mtfliteBytes = null;
+    byte[] ReadAssests() throws IOException {
+        InputStream is=this.getClass().getClassLoader().getResourceAsStream("tflite.lite");
+        //InputStream in = this.getClass().getClassLoader().getResourceAsStream("myFile.txt");
+        mtfliteBytes=new byte[is.available()];
+        is.read( mtfliteBytes);
+        is.close();
+        return mtfliteBytes;
+    }
+
 
     @Test
     public void rdtTest1() {
-        RdtAPI mRdtApi;
         Config c = new Config();
-        c.mTfliteB = ReadFile("/tflite.lite");
-        assertTrue("Unable to read tflite file ",c.mTfliteB!=null);
-        mRdtApi = new RdtAPI();
-        mRdtApi.init(c);
+        try {
+            c.mTfliteB = ReadAssests();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        RdtAPI mRdtApi;
+        RdtAPI.RdtAPIBuilder builder;
+        builder = new RdtAPI.RdtAPIBuilder();
+        builder = builder.setByteModel(c.mTfliteB);
+
+        mRdtApi = builder.build();
+
 //        mTopTh = 0.9f;
 //        mBotTh = 0.7f;
 //        mRdtApi.setTopThreshold(mTopTh);
@@ -64,25 +81,25 @@ public class RdtTest {
         byte[] blob = ReadFile("/NotFound0.jpg");
         assertTrue("Unable to read /NotFound0.jpg ",blob !=null);
         Bitmap capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
-        AcceptanceStatus status = mRdtApi.update(capFrame);
+        AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
         assertTrue("RDT is found in NotFound0.jpg ",!status.mRDTFound);
 
         blob = ReadFile("/NotFound1.jpg");
         assertTrue("Unable to read /NotFound1.jpg ",blob !=null);
         capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
-        status = mRdtApi.update(capFrame);
+        status = mRdtApi.checkFrame(capFrame);
         assertTrue("RDT is found in NotFound1.jpg ",!status.mRDTFound);
 
         blob = ReadFile("/Found0.jpg");
         assertTrue("Unable to read /Found0.jpg ",blob !=null);
         capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
-        status = mRdtApi.update(capFrame);
+        status = mRdtApi.checkFrame(capFrame);
         assertTrue("RDT is not found in NotFound0.jpg ",status.mRDTFound);
 
         blob = ReadFile("/Found1.jpg");
         assertTrue("Unable to read /Found1.jpg ",blob !=null);
         capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
-        status = mRdtApi.update(capFrame);
+        status = mRdtApi.checkFrame(capFrame);
         assertTrue("RDT is not found in Found1.jpg ",status.mRDTFound);
 
     }
