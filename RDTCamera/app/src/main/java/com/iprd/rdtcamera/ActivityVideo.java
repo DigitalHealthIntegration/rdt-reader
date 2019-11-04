@@ -60,6 +60,7 @@ public class ActivityVideo extends AppCompatActivity {
     Button mPlayPause;
     Button mGetResult;
     ImageView mShowImage,mRdtImage;
+    TextView mResultView;
     Button preferenceSettingBtn;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
     private RdtAPI mRdtApi;
@@ -93,6 +94,7 @@ public class ActivityVideo extends AppCompatActivity {
         mCyclicProgressBar = findViewById(R.id.loader);
         mRdtImage = findViewById(R.id.rdt);
         mGetResult = findViewById(R.id.getResult);
+        mResultView = findViewById(R.id.ResultView);
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,7 +153,7 @@ public class ActivityVideo extends AppCompatActivity {
                 String guid = String.valueOf(java.util.UUID.randomUUID());
                 String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                 try{
-                    Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage);
+                    Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage,mResultView);
                     mr.setCtx(getApplicationContext());
                     mr.execute();
                 }catch(Exception ex){
@@ -172,6 +174,7 @@ public class ActivityVideo extends AppCompatActivity {
                 mState = PlayPause.PLAY;
                 setFilePickerVisibility(false);
                 mPlayPause.setText("");
+                mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);

@@ -203,15 +203,15 @@ public class MainActivity extends AppCompatActivity {
         mode = (Switch) findViewById(R.id.mode);
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    mode.setChecked(false);
-                    Intent i = new Intent(MainActivity.this, ActivityVideo.class);
-                    i.putExtra("videoPath","aaaaaa");
-                    i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
-                    startActivity(i);
-                } else {
-                    Log.d(">>Mode Switch<<","OFF");
-                }
+            if (isChecked) {
+                mode.setChecked(false);
+                Intent i = new Intent(MainActivity.this, ActivityVideo.class);
+                i.putExtra("videoPath","aaaaaa");
+                i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
+                startActivity(i);
+            } else {
+                Log.d(">>Mode Switch<<","OFF");
+            }
             }
         });
     }
