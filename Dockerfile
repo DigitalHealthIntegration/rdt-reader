@@ -38,7 +38,11 @@ WORKDIR ${HOME}/rdt-reader
 #please discuss if you want to use that instead.
 #RUN conda create --name rdt-reader --file "${HOME}/rdt-reader/spec-file_linux_nogpu.txt" python=3.6
 RUN conda env create --file "${HOME}/rdt-reader/rdtEnv.yml" python=3.6
-CMD conda activate rdt-reader 
+ENTRYPOINT bash /home/rdtreader/rdt-reader/initShell.sh && \
+    conda activate rdt-reader && \
+    python3 /home/rdtreader/rdt-reader/django_server/manage.py makemigrations && \
+    python3 /home/rdtreader/rdt-reader/django_server/manage.py migrate && \
+    python3 /home/rdtreader/rdt-reader/django_server/manage.py runserver 9000
 
 
 
