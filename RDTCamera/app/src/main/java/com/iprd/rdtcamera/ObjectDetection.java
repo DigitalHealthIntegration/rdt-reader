@@ -9,7 +9,6 @@ import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.nnapi.NnApiDelegate;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -29,27 +28,37 @@ public class ObjectDetection {
     private static int [] cannonicalCpattern={596,746,895};
     private static int [] cannonicalInfl={699,874,1048};
     private static int [] cannonicalA_C_Mid={349,449,538};
-    private static double refRatio = (874.0-152.0)/(746.0-152.0);
-    private static int[] aspectAnchors =new int[]{15, 35, 34,34, 11, 37, 14, 26};//Larger one is for l360x640 model  new int[]{30, 70, 68, 68, 44, 74, 28, 52};
-    private static int[] numberBlocks = new int[]{5,9};
-    private static int numberClasses = 31;
+    private static double refRatio = (cannonicalInfl[1]-cannonicalArrow[1])/(cannonicalCpattern[1]-cannonicalArrow[1]);
+
+    //OD_180x320_5x9.lite
     private static int[] inputSize = {180,320};
+    private static int[] aspectAnchors =new int[]{15, 35, 34,34, 11, 37, 14, 26};//Larger one is for 360x640 model  new int[]{30, 70, 68, 68, 44, 74, 28, 52};
+    private static int[] numberBlocks = new int[]{5,9};
+    private static float deviationThresh=0.1f;
+    private static int pyrlevelcnt =2;
+
+    //OD_360x640_10x19 or _slow.lite
+//    private static int[] inputSize = {360,640};
+//    private static int[] aspectAnchors = new int[]{30, 70, 68, 68, 44, 74, 28, 52};
+//    private static int[] numberBlocks = new int[]{10,19};
+//    private static float deviationThresh=0.01f;
+//    private static int pyrlevelcnt =1
+
+    private static int numberClasses = 31;
     private static int[] resizeFactor = {inputSize[0]/numberBlocks[0],inputSize[1]/numberBlocks[1]};
-    private static int[] orientationIndices={0,1,2,6,7,8,9,10,14,15};
     private static float[] orientationAngles={0,22.5f,45,135,157.5f,180,202.5f,225,315,337.5f};
     protected ByteBuffer imgData =  ByteBuffer.allocateDirect(inputSize[0]*inputSize[1]*4);
 
 
     private static int numberAnchors=aspectAnchors.length/2;
     private double calculatedAngleRotation=0.0;
-    private double scaleFactor=0.0;
     private double A_C_to_L = 1.624579124579125;
     private double L_to_W = 0.0601036269430052;
     private double ref_hyp = 35 ;
     private boolean found =false;
     public double[] RDT_C = {0.0,0.0};
-    public static double mTopThreshold = 0.9;
-    public static double mBottomThreshold = 0.7;
+    public static double mThreshold = 0.9;
+
     private float widthFactor = (float) (1.0/inputSize[1]*1280);
     private float heightFactor = (float) (1.0/inputSize[0]*720);
     Interpreter mTflite;
@@ -65,11 +74,9 @@ public class ObjectDetection {
 
     public org.opencv.core.RotatedRect rotatedRect;
     public void setTopThreshold(double top){
-        mTopThreshold = top;
+        mThreshold = top;
     }
-    public void setBottomThreshold(double bot){
-        mBottomThreshold = bot;
-    }
+
     ObjectDetection(MappedByteBuffer mappedbuffer){
        try {
             tf_options.setNumThreads(4);
@@ -142,19 +149,14 @@ public class ObjectDetection {
         }
         return argmax;
     }
+    //This input shooud be 1280x720 in following RDT direction and Grey scale
+    //<<<----|| || || CCC Influenza
     Rect update(Mat inputmat,Boolean [] rdt) {
         Rect ret = new Rect(-1, -1, -1, -1);
         try {
-            int[] roi = new int[4];
-            int width = inputmat.cols();
-            int height = inputmat.rows();
-
-            //Resize image to 256x256 for the neural network
             Mat greyMat = new Mat();
-
-            Imgproc.pyrDown(inputmat, greyMat);
-
-            Imgproc.pyrDown(greyMat, greyMat);
+            if(pyrlevelcnt >=1)Imgproc.pyrDown(inputmat, greyMat);
+            if(pyrlevelcnt >=2) Imgproc.pyrDown(greyMat, greyMat);
 
             //Feed image pixels in normalized form to the input
             float[][][][] input = new float[1][inputSize[0]][inputSize[1]][1];
@@ -167,35 +169,24 @@ public class ObjectDetection {
             //Initialize output buffer
             float[][][][] output = new float[1][numberBlocks[0]*numberBlocks[1]][numberAnchors][numberClasses+4];
             //Image to draw roi in
-            Bitmap bmp = null;
-
             long startTime = System.currentTimeMillis();
             int[] dim = {1,inputSize[0],inputSize[1],1};
             mTflite.resizeInput(0,dim);
             mTflite.run(imgData, output);
-            long MethodeDuration = System.currentTimeMillis()-startTime;
+            long MethodDuration = System.currentTimeMillis()-startTime;
 
             //Log.i("mTfliteTime", String.valueOf(MethodeDuration));
-
-//            AcceptanceStatus ret = update(mat.getNativeObjAddr());
-//            if(null != ret ) Log.d("RDT FOUND ",ret.mRDTFound?"1":"0");
-//            Log.d("TF","done");
-//           [[[20,10],[10,20],[30,30],[25,20],[20,25]]]
-
             ArrayList<HashMap<Float, Vector<Float>>> vectorTableArrow = new ArrayList<HashMap<Float, Vector<Float>>>();
             ArrayList<HashMap<Float, Vector<Float>>> vectorTableCpattern = new ArrayList<HashMap<Float, Vector<Float>>>();
             ArrayList<HashMap<Float, Vector<Float>>> vectorTableInfluenza = new ArrayList<HashMap<Float, Vector<Float>>>();
-
 //            float resizeFactor = 256.0f / 15.0f;
             for (int row = 0; row < numberBlocks[0]; row++) {
                 for (int col = 0; col < numberBlocks[1]; col++) {
                     for (int j = 0; j < numberAnchors; j++) {
                         int computedIndex = row * numberBlocks[1] + col;
-
                         int targetClass = ArgMax(Arrays.copyOfRange(output[0][computedIndex][j],0,31));
                             float confidence = output[0][computedIndex][j][targetClass];
-                            if (confidence> mTopThreshold) {
-
+                            if (confidence> mThreshold) {
                                 int offsetStartIndex = numberClasses;
                                 float cx = (float) ((col + 0.5) * resizeFactor[1] + output[0][computedIndex][j][offsetStartIndex] * inputSize[1])*widthFactor;
                                 float cy = (float) ((row + 0.5) * resizeFactor[0] + output[0][computedIndex][j][offsetStartIndex+1] * inputSize[0])*heightFactor;
@@ -248,7 +239,6 @@ public class ObjectDetection {
         }
         if(true) {
             if(rdt[0] == true){
-
                Utils.SaveROIImage(inputmat, ret.x,ret.y,ret.x+ret.width,ret.y+ret.height);
                Log.i("ROI",ret.x +"x" + ret.y + " " + ret.width+"x"+ret.height);
             }
@@ -257,12 +247,10 @@ public class ObjectDetection {
     }
     private double euclidianDistance(float[] p1,float[] p2){
         return Math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]));
-
     }
     private boolean detect(float[] C_arrow, float[] C_Cpattern, float[] C_Infl){
         boolean found = false;
         boolean borderCase = false;
-
         //scale
         double A_I = euclidianDistance(C_arrow, C_Infl);
         double A_C = euclidianDistance(C_arrow,C_Cpattern);
@@ -274,9 +262,7 @@ public class ObjectDetection {
         double angleDegree = Math.toDegrees(angleRadian);
         if (angleDegree<0){
             angleDegree+=360;
-
         }
-
         if(C_arrow[2]==C_Infl[2] && C_arrow[2]==C_Cpattern[2]&&C_Cpattern[2]==C_Infl[2]){
             Log.d("Condition 1","Passed!!!"+" Angle arrow : "+C_arrow[2]+"Angle computed : "+angleDegree);
             if(angleDegree>350 && C_arrow[2]==0){
@@ -284,18 +270,13 @@ public class ObjectDetection {
             }
             if(Math.abs(C_arrow[2] - angleDegree)<22.5){
                 Log.d("Condition 2","Passed!!!"+" Ref ratio : "+refRatio+"ratio computed : "+predictedRatio);
-
-                if(Math.abs(predictedRatio-refRatio)<0.1){
+                if(Math.abs(predictedRatio-refRatio)<deviationThresh){
                     Log.d("Condition 3","Passed!!!");
-
                     found=true;
                     calculatedAngleRotation=angleDegree;
-                    scaleFactor =  449.0/ Math.sqrt((C_Cpattern[0]-C_arrow[0])*(C_Cpattern[0]-C_arrow[0])+(C_Cpattern[1]-C_arrow[1])*(C_Cpattern[1]-C_arrow[1]));
-
                 }
             }
         }
-
         return found;
     }
 
@@ -330,8 +311,6 @@ public class ObjectDetection {
                             float infConf = (float) iElement.getKey();
                             cxcywha = (Vector) iElement.getValue();
                             float []C_Inlf= {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
-
-
                             cnt_i++;
 
                             found=detect(C_arrow,C_Cpattern,C_Inlf);
@@ -358,7 +337,6 @@ public class ObjectDetection {
                                 Size sz= new Size(L_predicted, W_predicted);
                                 rotatedRect = new org.opencv.core.RotatedRect(rdt_c,sz,calculatedAngleRotation);
                                 roi = rotatedRect.boundingRect();
-
                                 Log.d("ROI:","X : "+roi.x+"Y : "+roi.y+"W : "+roi.width+"H : "+roi.height);
 //                                roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
                                 break;
@@ -382,13 +360,7 @@ public class ObjectDetection {
                 exit=true;
             }
         }
-
-
         return roi;
     }
-
-
-
-
 }
 

@@ -92,8 +92,8 @@ public class Utils {
         return out;
     }
     public static Short ApplySettings(Context c, RdtAPI.RdtAPIBuilder builder,RdtAPI rdt) {
-        double mTopTh = ObjectDetection.mTopThreshold;
-        double mBotTh = ObjectDetection.mBottomThreshold;
+        double mTopTh = ObjectDetection.mThreshold;
+        //double mBotTh = ObjectDetection.mBottomThreshold;
         Short mShowImageData=0;
         Config config= new Config();
         boolean mSaveNegativeData= false;
@@ -109,7 +109,7 @@ public class Utils {
             config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
             config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
             mTopTh = Float.parseFloat(prefs.getString("mTopTh", mTopTh+""));
-            mBotTh = Float.parseFloat(prefs.getString("mBotTh", mBotTh+""));
+            //mBotTh = Float.parseFloat(prefs.getString("mBotTh", mBotTh+""));
             mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
             short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
             if(t!=0) mSaveNegativeData =true;
@@ -131,7 +131,7 @@ public class Utils {
             builder.setYMin(config.mYMin);
         }
         if(rdt !=null){
-            rdt.getTensorFlow().setBottomThreshold(mBotTh);
+            //rdt.getTensorFlow().setBottomThreshold(mBotTh);
             rdt.getTensorFlow().setTopThreshold(mTopTh);
             rdt.setSaveNegativeData(mSaveNegativeData);
         }
