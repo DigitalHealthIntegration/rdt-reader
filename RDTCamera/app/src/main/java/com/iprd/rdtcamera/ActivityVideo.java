@@ -49,6 +49,7 @@ import static android.Manifest.permission_group.CAMERA;
 
 public class ActivityVideo extends AppCompatActivity {
     private static final int PICK_VIDEO_REQUEST = 1001;
+    private static final String mModelFileName="OD_180x320.lite";
     static String TAG = ActivityVideo.class.getName();
     enum PlayPause {PLAY, PAUSE};
     Uri mVideoUri;
@@ -100,7 +101,7 @@ public class ActivityVideo extends AppCompatActivity {
         });
         MappedByteBuffer mMappedByteBuffer = null;
         try {
-            mMappedByteBuffer = Utils.loadModelFile(getAssets(), "tflite.lite");
+            mMappedByteBuffer = Utils.loadModelFile(getAssets(), mModelFileName);
         } catch (Exception e) {
             e.printStackTrace();
         }

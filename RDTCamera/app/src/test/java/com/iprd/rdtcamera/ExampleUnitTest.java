@@ -35,8 +35,10 @@ public class ExampleUnitTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+/*
         mRdtApi = new RdtAPI();
         mRdtApi.init(c);
+*/
 
         assertEquals(4, 2 + 2);
     }
