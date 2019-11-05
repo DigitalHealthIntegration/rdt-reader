@@ -150,7 +150,7 @@ public class ActivityVideo extends AppCompatActivity {
                 mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
                 byte[] byteArray = stream.toByteArray();
 
-                String urlString = "http://10.102.10.97:9000/align";//prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");//"http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
+                String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");//"http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
                 String guid = String.valueOf(java.util.UUID.randomUUID());
                 String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                 try{
