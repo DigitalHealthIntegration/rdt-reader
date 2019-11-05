@@ -32,6 +32,12 @@ public class ObjectDetection {
     Point C_Infl_predicted = new Point(0, 0);
     Mat tmp_for_draw = null;
 
+    public void setSavePoints(boolean mSavePoints) {
+        this.mSavePoints = mSavePoints;
+    }
+
+    boolean mSavePoints=false;
+
     //OD_180x320_5x9.lite
 //    private static int[] inputSize = {180,320};
 //    private static int[] aspectAnchors =new int[]{15, 35, 34,34, 11, 37, 14, 26};//Larger one is for 360x640 model  new int[]{30, 70, 68, 68, 44, 74, 28, 52};
@@ -160,8 +166,11 @@ public class ObjectDetection {
     //This input shooud be 1280x720 in following RDT direction and Grey scale
     //<<<----|| || || CCC Influenza
     Rect update(Mat inputmat, Boolean[] rdt) {
-        tmp_for_draw=new Mat();
-        Imgproc.cvtColor(inputmat, tmp_for_draw, Imgproc.COLOR_GRAY2RGBA, 4);
+        if(mSavePoints) {
+            tmp_for_draw = new Mat();
+            Imgproc.cvtColor(inputmat, tmp_for_draw, Imgproc.COLOR_GRAY2RGBA, 4);
+        }
+
         Rect ret = new Rect(-1, -1, -1, -1);
         try {
             Mat greyMat = new Mat();
@@ -245,8 +254,8 @@ public class ObjectDetection {
         }
         if (true) {
             if (rdt[0] == true) {
-                Utils.SaveROIImage(inputmat, ret.x, ret.y, ret.x + ret.width, ret.y + ret.height);
-                Utils.SavecentersImage(tmp_for_draw);
+                if(mSaveImage)Utils.SaveROIImage(inputmat, ret.x, ret.y, ret.x + ret.width, ret.y + ret.height);
+                if(mSavePoints)Utils.SavecentersImage(tmp_for_draw);
                 Log.i("ROI", ret.x + "x" + ret.y + " " + ret.width + "x" + ret.height);
             }
         }
@@ -337,9 +346,11 @@ public class ObjectDetection {
 
                                     Log.d("Cpattern", String.valueOf(C_Cpattern[0] + " inf index " + cnt_i + " INfl len " + Infl.size()));
 
-                                    Imgproc.circle(tmp_for_draw, C_arrow_predicted, 5, new Scalar(0, 0, 255), 5);
-                                    Imgproc.circle(tmp_for_draw, C_Cpattern_predicted, 5, new Scalar(0, 255, 0), 5);
-                                    Imgproc.circle(tmp_for_draw, C_Infl_predicted, 5, new Scalar(255, 0, 0), 5);
+                                    if(mSavePoints) {
+                                        Imgproc.circle(tmp_for_draw, C_arrow_predicted, 5, new Scalar(0, 0, 255), 5);
+                                        Imgproc.circle(tmp_for_draw, C_Cpattern_predicted, 5, new Scalar(0, 255, 0), 5);
+                                        Imgproc.circle(tmp_for_draw, C_Infl_predicted, 5, new Scalar(255, 0, 0), 5);
+                                    }
                                     found = detect(C_arrow, C_Cpattern, C_Inlf);
 
                                     if (found == true) {

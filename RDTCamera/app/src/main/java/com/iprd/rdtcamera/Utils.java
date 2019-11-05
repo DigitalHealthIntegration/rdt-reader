@@ -13,6 +13,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -80,6 +81,26 @@ public class Utils {
             e.printStackTrace();
         }
     }
+    public static Rect rotateRect(Mat in, Rect roi, int rotation){
+        Rect ret= new Rect();
+        if (rotation == -90)
+        {
+            ;//flip
+            ret.x= roi.x;
+            ret.y=in.height()-roi.y;
+            ret.width = roi.width;
+            ret.height = roi.height;
+            //transpose
+            int temp = ret.x;
+            ret.x = ret.y;
+            ret.y = temp;
+            temp = ret.width;
+            ret.width = ret.height;
+            ret.height = temp;
+        }
+        return ret;
+    }
+
     public static Mat rotateFrame(Mat in, int rotation)
     {
         Mat out = in;

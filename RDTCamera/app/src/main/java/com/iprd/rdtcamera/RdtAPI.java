@@ -17,6 +17,8 @@ import java.nio.MappedByteBuffer;
 import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
+import static com.iprd.rdtcamera.Utils.SaveMatrix;
+import static com.iprd.rdtcamera.Utils.rotateRect;
 import static com.iprd.rdtcamera.Utils.saveImage;
 import static org.opencv.core.Core.BORDER_REFLECT101;
 import static org.opencv.core.Core.LINE_4;
@@ -62,6 +64,9 @@ public class RdtAPI {
         this.mPlaybackMode = mPlaybackMode;
     }
 
+    public void setSavePoints(boolean b){
+        mTensorFlow.setSavePoints(b);
+    }
 
     public void setSaveNegativeData(boolean mSaveNegativeData) {
         this.mSaveNegativeData = mSaveNegativeData;
@@ -193,8 +198,9 @@ public class RdtAPI {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
+            //SaveMatrix(greyMat,"Input");
             greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
-
+            //SaveMatrix(greyMat,"rotated-90");
             org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
             Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
 
@@ -208,11 +214,12 @@ public class RdtAPI {
             mPostProcessingTime  = System.currentTimeMillis();
             ret.mRDTFound = rdtFound[0].booleanValue();
             if (ret.mRDTFound) {
+                roi = rotateRect(greyMatResized,roi,-90);
 
-                ret.mBoundingBoxY = (short) (roi.x/1280.0f*greyMat.width());
-                ret.mBoundingBoxX = (short) (roi.y/720.0f*greyMat.height());
-                ret.mBoundingBoxHeight = (short) (roi.width/1280.0f*greyMat.width());
-                ret.mBoundingBoxWidth= (short) (roi.height/720.0f*greyMat.height());
+                ret.mBoundingBoxX = (short) (roi.x/1280.0f*greyMat.width());
+                ret.mBoundingBoxY = (short) (roi.y/720.0f*greyMat.height());
+                ret.mBoundingBoxWidth= (short) (roi.width/1280.0f*greyMat.width());
+                ret.mBoundingBoxHeight =(short) (roi.height/720.0f*greyMat.height());
                 ret.mRDTFound = rdtFound[0].booleanValue();
                 if(mPlaybackMode) rectangle(matinput, new Point(roi.x, roi.y), new Point(roi.x+roi.width, roi.y+roi.height), new Scalar(255,0, 0,0),4,LINE_AA,0);
             }
