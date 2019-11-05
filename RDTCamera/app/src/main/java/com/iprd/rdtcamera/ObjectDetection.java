@@ -48,7 +48,7 @@ public class ObjectDetection {
     private double ref_hyp = 35 ;
     private boolean found =false;
     public double[] RDT_C = {0.0,0.0};
-    public static double mTopThreshold = 0.0;
+    public static double mTopThreshold = 0.9;
     public static double mBottomThreshold = 0.7;
     private float widthFactor = (float) (1.0/inputSize[1]*1280);
     private float heightFactor = (float) (1.0/inputSize[0]*720);
@@ -285,7 +285,7 @@ public class ObjectDetection {
             if(Math.abs(C_arrow[2] - angleDegree)<22.5){
                 Log.d("Condition 2","Passed!!!"+" Ref ratio : "+refRatio+"ratio computed : "+predictedRatio);
 
-                if(Math.abs(predictedRatio-refRatio)<0.09){
+                if(Math.abs(predictedRatio-refRatio)<0.01){
                     Log.d("Condition 3","Passed!!!");
 
                     found=true;
