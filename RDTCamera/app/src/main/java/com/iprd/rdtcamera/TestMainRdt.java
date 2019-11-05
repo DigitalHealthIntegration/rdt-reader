@@ -70,13 +70,13 @@ public class TestMainRdt {
     private static ArrayList<String> getImageList(String folderPath) {
         ArrayList<String> ar = new ArrayList<>();
         try {
-            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 Files.walk(Paths.get(folderPath))
                         .filter(path -> Files.isRegularFile(path))
                         .forEach(a->ar.add(a.toString()));
-            /*}else{
+            }else{
                 System.out.println("Min SDK should be 26");
-            }*/
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
