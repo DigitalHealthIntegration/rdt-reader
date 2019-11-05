@@ -31,10 +31,15 @@ public class TestMainRdt {
     }
 
     private static void postRequest(String urlString, String metaDataStr, String folderPath, ArrayList<String> files) {
+        if(files.size() == 0){
+            System.out.println("files size : "+files.size());
+            return;
+        }
         index = index+1;
         String imgName = files.get(index).substring(files.get(index).lastIndexOf("/")+1);
         File imagefile = new File(files.get(index));//(folderPath + "" + imgName);
 
+        System.out.println(index+"------------->>>>>>>>>>>"+files.get(index));
 
         OkHttpClient.Builder b = new OkHttpClient.Builder();
         b.connectTimeout(5,TimeUnit.SECONDS);
