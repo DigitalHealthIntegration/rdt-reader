@@ -49,7 +49,7 @@ import static android.Manifest.permission_group.CAMERA;
 
 public class ActivityVideo extends AppCompatActivity {
     private static final int PICK_VIDEO_REQUEST = 1001;
-    private static final String mModelFileName="OD_180x320.lite";
+    private static final String mModelFileName="OD_180x320_5x9.lite";
     static String TAG = ActivityVideo.class.getName();
     enum PlayPause {PLAY, PAUSE};
     Uri mVideoUri;
