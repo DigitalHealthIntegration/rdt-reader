@@ -69,7 +69,7 @@ import static org.opencv.imgproc.Imgproc.floodFill;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
-    private static final String mModelFileName="OD_360x640_10x19_slow.lite";
+    private static final String mModelFileName="OD_180x320_5x9.lite";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
 

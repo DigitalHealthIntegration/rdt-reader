@@ -24,6 +24,8 @@ import static org.opencv.core.Core.LINE_AA;
 import static org.opencv.core.Core.mean;
 import static org.opencv.core.Core.meanStdDev;
 import static org.opencv.core.CvType.CV_16S;
+import static org.opencv.imgproc.Imgproc.INTER_CUBIC;
+import static org.opencv.imgproc.Imgproc.INTER_LANCZOS4;
 import static org.opencv.imgproc.Imgproc.Laplacian;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.putText;
@@ -196,8 +198,7 @@ public class RdtAPI {
             org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
             Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
 
-            Imgproc.resize(greyMat,greyMatResized,sz);
-
+            Imgproc.resize(greyMat,greyMatResized,sz,0.0,0.0,INTER_CUBIC);
             mPreProcessingTime  = System.currentTimeMillis()-st;
 
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};

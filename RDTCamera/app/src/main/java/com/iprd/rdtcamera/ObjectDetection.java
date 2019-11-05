@@ -30,10 +30,10 @@ public class ObjectDetection {
     private static int [] cannonicalInfl={699,874,1048};
     private static int [] cannonicalA_C_Mid={349,449,538};
     private static double refRatio = (874.0-152.0)/(746.0-152.0);
-    private static int[] aspectAnchors = new int[]{30, 70, 68, 68, 44, 74, 28, 52}; //Larger one is for l360x640 model new int[]{15, 35, 34,34, 11, 37, 14, 26};
-    private static int[] numberBlocks = new int[]{10,19};
+    private static int[] aspectAnchors =new int[]{15, 35, 34,34, 11, 37, 14, 26};//Larger one is for l360x640 model  new int[]{30, 70, 68, 68, 44, 74, 28, 52};
+    private static int[] numberBlocks = new int[]{5,9};
     private static int numberClasses = 31;
-    private static int[] inputSize = {360,640};
+    private static int[] inputSize = {180,320};
     private static int[] resizeFactor = {inputSize[0]/numberBlocks[0],inputSize[1]/numberBlocks[1]};
     private static int[] orientationIndices={0,1,2,6,7,8,9,10,14,15};
     private static float[] orientationAngles={0,22.5f,45,135,157.5f,180,202.5f,225,315,337.5f};
@@ -154,7 +154,7 @@ public class ObjectDetection {
 
             Imgproc.pyrDown(inputmat, greyMat);
 
-//            Imgproc.pyrDown(greyMat, greyMat);
+            Imgproc.pyrDown(greyMat, greyMat);
 
             //Feed image pixels in normalized form to the input
             float[][][][] input = new float[1][inputSize[0]][inputSize[1]][1];
@@ -285,7 +285,7 @@ public class ObjectDetection {
             if(Math.abs(C_arrow[2] - angleDegree)<22.5){
                 Log.d("Condition 2","Passed!!!"+" Ref ratio : "+refRatio+"ratio computed : "+predictedRatio);
 
-                if(Math.abs(predictedRatio-refRatio)<0.01){
+                if(Math.abs(predictedRatio-refRatio)<0.1){
                     Log.d("Condition 3","Passed!!!");
 
                     found=true;
