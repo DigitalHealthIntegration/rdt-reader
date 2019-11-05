@@ -17,7 +17,7 @@ class ObjectDetection(object):
         self.weightsFile      = weightsFile
         self.resize_dim       = tuple(cfg.TEST.INPUT_SIZE) 
         self.number_anchors   = len(cfg.TRAIN.ANCHOR_ASPECTRATIO[0])
-
+        self.numberBlocks = cfg.TRAIN.NUMBER_BLOCKS
         self.model            = self.__build_network__imgClass()
     def __build_network__(self):   
         """This function returns a keras model.
@@ -170,23 +170,23 @@ class ObjectDetection(object):
 
 
 
-            conv1 = keras.layers.Conv2D(32,(5,5), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(inputs)
-            conv2 = keras.layers.Conv2D(32,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv1)
+            conv1 = keras.layers.Conv2D(16,(5,5), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(inputs)
+            conv2 = keras.layers.Conv2D(16,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv1)
             maxpool1 = keras.layers.MaxPooling2D((2,2))(conv2)
             drop1 = keras.layers.Dropout(0.2)(maxpool1)
-            conv3 = keras.layers.Conv2D(64,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(drop1)
-            conv4 = keras.layers.Conv2D(64,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv3)
+            conv3 = keras.layers.Conv2D(32,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(drop1)
+            conv4 = keras.layers.Conv2D(32,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv3)
             maxpool2 = keras.layers.MaxPooling2D((4,4))(conv4)
             drop2 = keras.layers.Dropout(0.2)(maxpool2)
             
-            conv5 = keras.layers.Conv2D(128,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(drop2)
+            conv5 = keras.layers.Conv2D(64,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(drop2)
             maxpool3 = keras.layers.MaxPooling2D((4,4))(conv5)
             drop3 = keras.layers.Dropout(0.2)(maxpool3)
             conv6 = keras.layers.Conv2D(self.number_anchors*(self.num_class+4),(3,3), padding='same',activation='linear',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(drop3)
             #drop2 = keras.layers.Dropout(0.2)(conv4)
             print("conv 6",conv6.shape)
 
-            reshapeOut = layers.Reshape((10*19,self.number_anchors,(self.num_class+4)))(conv6)
+            reshapeOut = layers.Reshape((self.numberBlocks[0]*self.numberBlocks[1],self.number_anchors,(self.num_class+4)))(conv6)
             # for i in range(self.num_class+4):
             reshapeOutClass = reshapeOut[:,:,:,0:self.num_class]
             reshapeOutReg = reshapeOut[:,:,:,self.num_class:]

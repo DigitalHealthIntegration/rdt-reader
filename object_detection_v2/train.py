@@ -118,7 +118,7 @@ class Test(object):
         # self.testset             = data_loader.loadDataObjSSD('test')
         self.checkpoint_name     = cfg.TEST.EVAL_MODEL_PATH+"/eval.ckpt"
         self.model_path          = cfg.TEST.EVAL_MODEL_PATH+"/model/"
-        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_small.lite"
+        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_180x320.lite"
         self.initial_weight      = cfg.TEST.WEIGHT_FILE
         self.output_node_names   = ["define_loss/reshapedOutput"]
         self.learn_rate_init     = cfg.TRAIN.LEARN_RATE_INIT
@@ -128,7 +128,8 @@ class Test(object):
         self.warmup_periods      = cfg.TRAIN.WARMUP_EPOCHS
         # self.trainset            = data_loader.loadData('train')
         # self.testset             = data_loader.loadData('test')
-        
+        self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
+
         # self.steps_per_period    = len(self.trainset)
         self.quant_delay         = cfg.TRAIN.QUANT_DELAY
         self.quantizedPb         = cfg.TEST.QUANTIZED_WEIGHT_FILE
@@ -143,9 +144,11 @@ class Test(object):
         
 
     def createTflite(self):
-
+        print(self.model.summary())
         lite = tf.lite.TFLiteConverter.from_keras_model(self.model)
-        lite.optimizations = [tf.lite.Optimize.DEFAULT]
+        lite.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+        lite.representative_dataset = self.representative_dataset_gen
+
         # lite.target_spec.supported_types = [tf.lite.constants.FLOAT16]
         tflite_quant_model = lite.convert()
         open(self.eval_tflite, "wb").write(tflite_quant_model)
@@ -205,6 +208,15 @@ class Test(object):
         # return only the bounding boxes that were picked using the
         # integer data type
         return boxes[pick].astype("int")
+    
+    def representative_dataset_gen(self):
+        for _ in range(500):
+            inp,tr,na= self.testset
+            img = inp[_]
+            img = np.reshape(img,(1,self.resize_dim[0],self.resize_dim[1],1))
+
+            # print(img.shape)
+            yield [img]
 
     def runOntest(self):
         predictions=self.model.predict(self.testset[0])
