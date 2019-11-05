@@ -9,6 +9,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.nnapi.NnApiDelegate;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -29,14 +30,16 @@ public class ObjectDetection {
     private static int [] cannonicalInfl={699,874,1048};
     private static int [] cannonicalA_C_Mid={349,449,538};
     private static double refRatio = (874.0-152.0)/(746.0-152.0);
-    private static int[] aspectAnchors = new int[]{30, 70, 68, 68, 44, 74, 28, 52};
-    private static int[] numberBlocks = new int[]{10,19};
+    private static int[] aspectAnchors = new int[]{15, 35, 34,34, 11, 37, 14, 26};//new int[]{30, 70, 68, 68, 44, 74, 28, 52};
+    private static int[] numberBlocks = new int[]{5,9};
     private static int numberClasses = 31;
-    private static int[] inputSize = {360,640};
+    private static int[] inputSize = {180,320};
     private static int[] resizeFactor = {inputSize[0]/numberBlocks[0],inputSize[1]/numberBlocks[1]};
     private static int[] orientationIndices={0,1,2,6,7,8,9,10,14,15};
     private static float[] orientationAngles={0,22.5f,45,135,157.5f,180,202.5f,225,315,337.5f};
-    protected ByteBuffer imgData =  ByteBuffer.allocateDirect(inputSize[0]*inputSize[1]*4);;
+    protected ByteBuffer imgData =  ByteBuffer.allocateDirect(inputSize[0]*inputSize[1]*4);
+
+
     private static int numberAnchors=aspectAnchors.length/2;
     private double calculatedAngleRotation=0.0;
     private double scaleFactor=0.0;
@@ -74,6 +77,7 @@ public class ObjectDetection {
             if (mTflite != null) {
                 Log.d("Loaded model File", "length = ");
             }
+           imgData.order(ByteOrder.nativeOrder());
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -92,6 +96,7 @@ public class ObjectDetection {
             if (mTflite != null) {
                 Log.d("Loaded model File", "length = ");
             }
+            imgData.order(ByteOrder.nativeOrder());
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -148,22 +153,26 @@ public class ObjectDetection {
             Mat greyMat = new Mat();
 
             Imgproc.pyrDown(inputmat, greyMat);
+
+            Imgproc.pyrDown(greyMat, greyMat);
+
             //Feed image pixels in normalized form to the input
             float[][][][] input = new float[1][inputSize[0]][inputSize[1]][1];
-//            convertMattoTfLiteInput(greyMat);
-            for (int i = 0; i < inputSize[0]; i++) {
-                for (int j = 0; j < inputSize[1]; j++) {
-                    input[0][i][j][0] = (float) (greyMat.get(i,j)[0]/255.0);
-                }
-            }
+            convertMattoTfLiteInput(greyMat);
+//            for (int i = 0; i < inputSize[0]; i++) {
+//                for (int j = 0; j < inputSize[1]; j++) {
+//                    input[0][i][j][0] = (float) (greyMat.get(i,j)[0]/255.0);
+//                }
+//            }
             //Initialize output buffer
             float[][][][] output = new float[1][numberBlocks[0]*numberBlocks[1]][numberAnchors][numberClasses+4];
             //Image to draw roi in
             Bitmap bmp = null;
 
             long startTime = System.currentTimeMillis();
-
-            mTflite.run(input, output);
+            int[] dim = {1,inputSize[0],inputSize[1],1};
+            mTflite.resizeInput(0,dim);
+            mTflite.run(imgData, output);
             long MethodeDuration = System.currentTimeMillis()-startTime;
 
             //Log.i("mTfliteTime", String.valueOf(MethodeDuration));
@@ -276,7 +285,7 @@ public class ObjectDetection {
             if(Math.abs(C_arrow[2] - angleDegree)<22.5){
                 Log.d("Condition 2","Passed!!!"+" Ref ratio : "+refRatio+"ratio computed : "+predictedRatio);
 
-                if(Math.abs(predictedRatio-refRatio)<0.01){
+                if(Math.abs(predictedRatio-refRatio)<0.09){
                     Log.d("Condition 3","Passed!!!");
 
                     found=true;
