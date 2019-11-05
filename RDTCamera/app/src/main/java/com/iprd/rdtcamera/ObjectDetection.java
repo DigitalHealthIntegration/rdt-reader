@@ -5,6 +5,7 @@ import android.util.Log;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
@@ -29,6 +30,8 @@ public class ObjectDetection {
     Point C_arrow_predicted = new Point(0, 0);
     Point C_Cpattern_predicted = new Point(0, 0);
     Point C_Infl_predicted = new Point(0, 0);
+    Mat tmp_for_draw = null;
+
     //OD_180x320_5x9.lite
 //    private static int[] inputSize = {180,320};
 //    private static int[] aspectAnchors =new int[]{15, 35, 34,34, 11, 37, 14, 26};//Larger one is for 360x640 model  new int[]{30, 70, 68, 68, 44, 74, 28, 52};
@@ -157,6 +160,8 @@ public class ObjectDetection {
     //This input shooud be 1280x720 in following RDT direction and Grey scale
     //<<<----|| || || CCC Influenza
     Rect update(Mat inputmat, Boolean[] rdt) {
+        tmp_for_draw=new Mat();
+        Imgproc.cvtColor(inputmat, tmp_for_draw, Imgproc.COLOR_GRAY2RGBA, 4);
         Rect ret = new Rect(-1, -1, -1, -1);
         try {
             Mat greyMat = new Mat();
@@ -241,7 +246,7 @@ public class ObjectDetection {
         if (true) {
             if (rdt[0] == true) {
                 Utils.SaveROIImage(inputmat, ret.x, ret.y, ret.x + ret.width, ret.y + ret.height);
-                Utils.SavecentersImage(inputmat, C_arrow_predicted, C_Cpattern_predicted, C_Infl_predicted);
+                Utils.SavecentersImage(tmp_for_draw);
                 Log.i("ROI", ret.x + "x" + ret.y + " " + ret.width + "x" + ret.height);
             }
         }
@@ -257,7 +262,7 @@ public class ObjectDetection {
         //C_Cpattern[0] = x C_Cpattern[1] = y
         //C_Infl[0] = x C_Infl[1] = y
 
-        boolean found = false;
+        boolean found = true;
         boolean borderCase = false;
         //scale
         double A_I = euclidianDistance(C_arrow, C_Infl);
@@ -293,83 +298,87 @@ public class ObjectDetection {
         //Log.d("detection","done");
         Rect roi = new Rect(-1, -1, -1, -1);
         boolean exit = false;
-        found = false;
+//        found = false;
         calculatedAngleRotation = 0.0;
         int cnt_arr = 0;
+        int cnt_c = 0;
+        int cnt_i = 0;
+
         float[] C_arrow_best;
         float[] C_Cpattern_best;
         float[] C_infl_best;
-        while (!exit) {
+        while (cnt_arr<Arrow.size()) {
+            cnt_c=0;
             try {
                 for (Map.Entry arrowElement : Arrow.get(cnt_arr).entrySet()) {
-                    int cnt_c = 0;
-
                     float arrowconf = (float) arrowElement.getKey();
                     Vector cxcywha = (Vector) arrowElement.getValue();
                     float[] C_arrow = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
 
-                    for (Map.Entry cElement : Cpattern.get(cnt_c).entrySet()) {
-                        int cnt_i = 0;
-                        float Cconf = (float) cElement.getKey();
-                        cxcywha = (Vector) cElement.getValue();
-                        float[] C_Cpattern = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
 
-                        for (Map.Entry iElement : Infl.get(cnt_i).entrySet()) {
-                            float infConf = (float) iElement.getKey();
-                            cxcywha = (Vector) iElement.getValue();
-                            float[] C_Inlf = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
-                            cnt_i++;
+                    while (cnt_c < Cpattern.size()) {
+                        cnt_i=0;
+                        for (Map.Entry cElement : Cpattern.get(cnt_c).entrySet()) {
+                            float Cconf = (float) cElement.getKey();
+                            cxcywha = (Vector) cElement.getValue();
+                            float[] C_Cpattern = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
 
-                            found = detect(C_arrow, C_Cpattern, C_Inlf);
-                            if (found == true) {
-                                Log.d("Entered", "FOUND!!!");
+                            while (cnt_i < Infl.size()) {
+                                for (Map.Entry iElement : Infl.get(cnt_i).entrySet()) {
+                                    float infConf = (float) iElement.getKey();
+                                    cxcywha = (Vector) iElement.getValue();
+                                    float[] C_Inlf = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
+                                    C_arrow_predicted.x = C_arrow[0];
+                                    C_arrow_predicted.y = C_arrow[1];
+                                    C_Cpattern_predicted.x = C_Cpattern[0];
+                                    C_Cpattern_predicted.y = C_Cpattern[1];
+                                    C_Infl_predicted.x = C_Inlf[0];
+                                    C_Infl_predicted.y = C_Inlf[1];
 
-                                C_arrow_best = C_arrow;
-                                C_Cpattern_best = C_Cpattern;
-                                C_infl_best = C_Inlf;
-                                C_arrow_predicted.x = C_arrow_best[0];
-                                C_arrow_predicted.y = C_arrow_best[1];
-                                C_Cpattern_predicted.x = C_Cpattern_best[0];
-                                C_Cpattern_predicted.y = C_Cpattern_best[1];
-                                C_Infl_predicted.x = C_infl_best[0];
-                                C_Infl_predicted.y = C_infl_best[1];
+                                    Log.d("Cpattern", String.valueOf(C_Cpattern[0] + " inf index " + cnt_i + " INfl len " + Infl.size()));
+
+                                    Imgproc.circle(tmp_for_draw, C_arrow_predicted, 5, new Scalar(0, 0, 255), 5);
+                                    Imgproc.circle(tmp_for_draw, C_Cpattern_predicted, 5, new Scalar(0, 255, 0), 5);
+                                    Imgproc.circle(tmp_for_draw, C_Infl_predicted, 5, new Scalar(255, 0, 0), 5);
+                                    found = detect(C_arrow, C_Cpattern, C_Inlf);
+
+                                    if (found == true) {
+                                        Log.d("Entered", "FOUND!!!");
+
+                                        C_arrow_best = C_arrow;
+                                        C_Cpattern_best = C_Cpattern;
+                                        C_infl_best = C_Inlf;
 
 
-                                double[] A_C_mid_pred = {C_arrow_best[0] + (C_Cpattern_best[0] - C_arrow_best[0]) / 2, C_arrow_best[1] + (C_Cpattern_best[1] - C_arrow_best[1]) / 2};
-                                double A_C_pred = euclidianDistance(C_arrow_best, C_Cpattern_best);
+                                        double[] A_C_mid_pred = {C_arrow_best[0] + (C_Cpattern_best[0] - C_arrow_best[0]) / 2, C_arrow_best[1] + (C_Cpattern_best[1] - C_arrow_best[1]) / 2};
+                                        double A_C_pred = euclidianDistance(C_arrow_best, C_Cpattern_best);
 
-                                double L_predicted = A_C_pred * A_C_to_L;
-                                double W_predicted = L_predicted * L_to_W;
-                                double tmpangle = 0;
-                                if (calculatedAngleRotation > 180) {
-                                    tmpangle = calculatedAngleRotation - 360;
-                                }
-                                double angleRads = Math.toRadians(tmpangle);
-                                RDT_C[0] = A_C_mid_pred[0] + ref_hyp * Math.cos(angleRads);
-                                RDT_C[1] = A_C_mid_pred[1] + ref_hyp * Math.sin(angleRads);
-                                Point rdt_c = new Point(RDT_C[0], RDT_C[1]);
-                                Size sz = new Size(L_predicted, W_predicted);
-                                rotatedRect = new org.opencv.core.RotatedRect(rdt_c, sz, calculatedAngleRotation);
-                                roi = rotatedRect.boundingRect();
-                                Log.d("ROI:", "X : " + roi.x + "Y : " + roi.y + "W : " + roi.width + "H : " + roi.height);
+                                        double L_predicted = A_C_pred * A_C_to_L;
+                                        double W_predicted = L_predicted * L_to_W;
+                                        double tmpangle = 0;
+                                        if (calculatedAngleRotation > 180) {
+                                            tmpangle = calculatedAngleRotation - 360;
+                                        }
+                                        double angleRads = Math.toRadians(tmpangle);
+                                        RDT_C[0] = A_C_mid_pred[0] + ref_hyp * Math.cos(angleRads);
+                                        RDT_C[1] = A_C_mid_pred[1] + ref_hyp * Math.sin(angleRads);
+                                        Point rdt_c = new Point(RDT_C[0], RDT_C[1]);
+                                        Size sz = new Size(L_predicted, W_predicted);
+                                        rotatedRect = new org.opencv.core.RotatedRect(rdt_c, sz, calculatedAngleRotation);
+                                        roi = rotatedRect.boundingRect();
+                                        Log.d("ROI:", "X : " + roi.x + "Y : " + roi.y + "W : " + roi.width + "H : " + roi.height);
 //                                roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
-                                break;
+//                                break;
+                                    }
+                                }
+                                cnt_i += 1;
                             }
-                        }
-                        if (found == true) {
-                            break;
-                        }
 
+                        }
+                        cnt_c+=1;
                     }
-                    if (found == true) {
-                        break;
-                    }
-                    cnt_c++;
                 }
-                cnt_arr++;
-                if (cnt_arr == 100 || found == true) {
-                    exit = true;
-                }
+                cnt_arr+=1;
             } catch (IndexOutOfBoundsException e) {
                 exit = true;
             }

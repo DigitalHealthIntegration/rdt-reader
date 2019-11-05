@@ -44,12 +44,8 @@ public class Utils {
         SaveMatrix(tmp,"Grey");
         tmp.release();
     }
-    public static void SavecentersImage(Mat greyMat, Point center_arrow,Point center_cpattern,Point center_infl) {
-        Mat tmp = new Mat();
-        Imgproc.cvtColor(greyMat, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
-        Imgproc.circle(tmp, center_arrow,10 ,new Scalar(0, 0, 255), 1);
-        Imgproc.circle(tmp, center_cpattern,10 ,new Scalar(0, 255,0), 1);
-        Imgproc.circle(tmp, center_infl,10 ,new Scalar(255, 0, 0), 1);
+    public static void SavecentersImage(Mat tmp) {
+
         SaveMatrix(tmp,"Grey_centers");
         tmp.release();
     }
