@@ -236,7 +236,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                                     # croppedImg = cv2.resize(croppedImg,resize_dim)
                                     # cv2.imwrite(rootPathForOutputCheckImages+ str(i)+obj["tags"][0]+element,croppedImg)
                                 # break
-                    if ind==7000 and dataset_type=="train":
+                    if ind==10000 and dataset_type=="train":
                         break
                     elif ind==7000 and dataset_type=="test":
                         break
@@ -591,7 +591,7 @@ def returnAugmentationObj(percentageOfChance=0.5):
             sometimes(iaa.Affine(
                 translate_percent={"x": (-0.05, 0.05),"y": (-0.05, 0.05)}, # translate by -x to +x percent (per axis)
                 #rotate=(-180, 180), # rotate by -x to +x degrees
-                # scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
+                scale={"x": (0.9, 1.1), "y": (0.9, 1.1)},
             )),
             # iaa.PerspectiveTransform(scale=(0.01, 0.016)) # Add perscpective transform
 

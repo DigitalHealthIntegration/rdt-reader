@@ -20,7 +20,7 @@ __C.TRAIN                       = edict()
 __C.TRAIN.BATCH_SIZE            = 2
 __C.TRAIN.LABEL_PATH            = "D:/source/repos/object_detection_mobile_v2/dataset/labels_seg_tr"
 __C.TRAIN.IMAGE_PATH            = "D:/source/repos/object_detection_mobile_v2/dataset/images_seg_tr"
-__C.TRAIN.INPUT_SIZE            = (180,320)
+__C.TRAIN.INPUT_SIZE            = (180,720)
 __C.TRAIN.MOVING_AVE_DECAY      = 0.9995
 __C.TRAIN.DATA_AUG              = True
 __C.TRAIN.LEARN_RATE_INIT       = 1e-4
@@ -34,9 +34,9 @@ __C.TRAIN.QUANT_DELAY           = 2
 __C.TRAIN.OUTDATA           = "D:/source/repos/object_detection_mobile_v2/output_check/ssd_data/"
 __C.TRAIN.PREDICTION_SCALE   = [0.5]
 __C.TRAIN.NUMBER_CLASSES   = 31
-__C.TRAIN.ANCHOR_ASPECTRATIO   = [[[15,35],[34,34],[22,37],[14,26]]]#[[[30,70],[68,68],[44,74],[28,52]]]
+__C.TRAIN.ANCHOR_ASPECTRATIO   =[[[15,35],[34,34],[22,37],[14,26]]] #[[[30,70],[68,68],[44,74],[28,52]]]
 __C.TRAIN.IOU_THRESH   = 0.5
-__C.TRAIN.NUMBER_BLOCKS            = [5,9]
+__C.TRAIN.NUMBER_BLOCKS            = [5,9]#[10,19]
 __C.TRAIN.LABEL_FILE_YOLO          ="rdt_train_crop_rot.txt"
 
 

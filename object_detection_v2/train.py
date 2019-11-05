@@ -127,8 +127,8 @@ class Test(object):
         self.second_stage_epochs = cfg.TRAIN.SECOND_STAGE_EPOCHS
         self.warmup_periods      = cfg.TRAIN.WARMUP_EPOCHS
         # self.trainset            = data_loader.loadData('train')
-        # self.testset             = data_loader.loadData('test')
         self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
+        # self.trainset             = data_loader.loadDataObjSSDFromYoloFormat('train')
 
         # self.steps_per_period    = len(self.trainset)
         self.quant_delay         = cfg.TRAIN.QUANT_DELAY
@@ -146,10 +146,8 @@ class Test(object):
     def createTflite(self):
         print(self.model.summary())
         lite = tf.lite.TFLiteConverter.from_keras_model(self.model)
-        lite.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+        lite.optimizations = [tf.lite.Optimize.DEFAULT]
         lite.representative_dataset = self.representative_dataset_gen
-
-        # lite.target_spec.supported_types = [tf.lite.constants.FLOAT16]
         tflite_quant_model = lite.convert()
         open(self.eval_tflite, "wb").write(tflite_quant_model)
 
@@ -210,7 +208,7 @@ class Test(object):
         return boxes[pick].astype("int")
     
     def representative_dataset_gen(self):
-        for _ in range(500):
+        for _ in range(len(self.testset[0])):
             inp,tr,na= self.testset
             img = inp[_]
             img = np.reshape(img,(1,self.resize_dim[0],self.resize_dim[1],1))
