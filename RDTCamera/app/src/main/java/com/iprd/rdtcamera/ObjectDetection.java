@@ -55,9 +55,9 @@ public class ObjectDetection {
     private double calculatedAngleRotation=0.0;
     private double A_C_to_L = 1.624579124579125;
     private double L_to_W = 0.0601036269430052;
-    private double ref_hyp = 35 ;
+    private static double ref_hyp = 35 ;
     private boolean found =false;
-    public float[] RDT_C = {0.0f,0.0f};
+
     public static double mThreshold = 0.9;
 
     private float widthFactor = (float) (1.0/inputSize[1]*1280);
@@ -246,28 +246,28 @@ public class ObjectDetection {
         }
         return ret;
     }
-    private double euclidianDistance(float[] p1,float[] p2){
+    private static double euclidianDistance(float[] p1,float[] p2){
         return Math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]));
     }
 
-    private Point rotatePoint(Point inp,double angleRadian){
+    private static Point rotatePoint(Point inp,double angleRadian, Point RDT_C){
         Point p = new Point(0,0);
         float s = (float) Math.sin(angleRadian);
         float c = (float) Math.cos(angleRadian);
-        inp.x -= RDT_C[0];
-        inp.y -= RDT_C[1];
+        inp.x -= RDT_C.x;
+        inp.y -= RDT_C.y;
 
         float xnew = (float) (inp.x * c - inp.y * s);
         float ynew = (float) (inp.x * s + inp.y * c);
 
         // translate point back:
-        p.x = xnew + RDT_C[0];
-        p.y = ynew + RDT_C[1];
+        p.x = xnew + RDT_C.x;
+        p.y = ynew + RDT_C.y;
 
         return p;
     }
 
-    private double detect(float[] C_arrow, float[] C_Cpattern, float[] C_Infl){
+    public static double detect(float[] C_arrow, float[] C_Cpattern, float[] C_Infl){
         boolean found = false;
         /////
 
@@ -296,17 +296,18 @@ public class ObjectDetection {
         Point _diff = new Point(A_C_mid_pred.x-cannonicalA_C_Mid.x,A_C_mid_pred.y-cannonicalA_C_Mid.y);
 
 
+        Point RDT_C= new Point();
 
-        RDT_C[0] = (float) ((float) A_C_mid_pred.x+ref_hyp*Math.cos(angleRadian));
-        RDT_C[1] = (float) ((float) A_C_mid_pred.y+ref_hyp*Math.sin(angleRadian));
+        RDT_C.x = A_C_mid_pred.x+ref_hyp*Math.cos(angleRadian);
+        RDT_C.y = A_C_mid_pred.y+ref_hyp*Math.sin(angleRadian);
 
         Point C_arrow_scaled = new Point(C_arrow[0]*scale,C_arrow[1]*scale);
         Point C_Cpattern_scaled = new Point(C_Cpattern[0]*scale,C_Cpattern[1]*scale);
         Point C_Infl_scaled = new Point(C_Infl[0]*scale,C_Infl[1]*scale);
 
-        Point C_arrow_rotated = rotatePoint(C_arrow_scaled,angleRadian);
-        Point C_Cpattern_rotated = rotatePoint(C_Cpattern_scaled,angleRadian);
-        Point C_Infl_rotated = rotatePoint(C_Infl_scaled,angleRadian);
+        Point C_arrow_rotated = rotatePoint(C_arrow_scaled,angleRadian,RDT_C);
+        Point C_Cpattern_rotated = rotatePoint(C_Cpattern_scaled,angleRadian,RDT_C);
+        Point C_Infl_rotated = rotatePoint(C_Infl_scaled,angleRadian,RDT_C);
 
 
         Point C_arrow_translated = new Point(C_arrow_rotated.x-_diff.x,C_arrow_rotated.y-_diff.y);
@@ -320,7 +321,7 @@ public class ObjectDetection {
         double error_A = euclidianDistance(new float[]{cannonicalArrow[1],30.0f}, new float[]{(float) C_arrow_translated.x, (float) C_arrow_translated.y});
         double error_C = euclidianDistance(new float[]{cannonicalCpattern[1],30.0f}, new float[]{(float) C_Cpattern_translated.x, (float) C_Cpattern_translated.y});
         double error_I = euclidianDistance(new float[]{cannonicalInfl[1],30.0f}, new float[]{(float) C_Infl_translated.x, (float) C_Infl_translated.y});
-        Log.d("LME","Arrow "+error_A+" C "+error_C+" I "+error_I);
+//        Log.d("LME","Arrow "+error_A+" C "+error_C+" I "+error_I);
         double meanError = (error_A + error_C + error_I) / 3;
 
         return meanError;
@@ -400,9 +401,10 @@ public class ObjectDetection {
             tmpangle = calculatedAngleRotation - 360;
         }
         double angleRads = Math.toRadians(tmpangle);
-        RDT_C[0] = (float) (A_C_mid_pred[0] + ref_hyp * Math.cos(angleRads));
-        RDT_C[1] = (float) (A_C_mid_pred[1] + ref_hyp * Math.sin(angleRads));
-        Point rdt_c = new Point(RDT_C[0], RDT_C[1]);
+        Point rdt_c = new Point();
+        rdt_c.x = (A_C_mid_pred[0] + ref_hyp * Math.cos(angleRads));
+        rdt_c.y = (A_C_mid_pred[1] + ref_hyp * Math.sin(angleRads));
+
         Size sz = new Size(L_predicted, W_predicted);
         rotatedRect = new org.opencv.core.RotatedRect(rdt_c, sz, calculatedAngleRotation);
         roi = rotatedRect.boundingRect();
