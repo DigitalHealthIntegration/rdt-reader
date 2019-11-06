@@ -4,6 +4,7 @@ package com.iprd.rdtcamera;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -21,12 +22,15 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -37,6 +41,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,9 +57,15 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -72,9 +83,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String mModelFileName="tflite.lite";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
+    Button mGetResult;
+    TextView mResultView;
 
-    private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
-    private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    SharedPreferences prefs;
+    ProgressBar mCyclicProgressBar;
     private static final SparseIntArray DEFAULT_ORIENTATIONS = new SparseIntArray();
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     public static Size CAMERA2_PREVIEW_SIZE = new Size(1280, 720);
@@ -137,9 +151,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
-
+        mGetResult = findViewById(R.id.getResult);
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mRectView = findViewById(R.id.rdtRect);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
+        mCyclicProgressBar = findViewById(R.id.loader);
+        mResultView = findViewById(R.id.ResultView);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
         // preferences
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
@@ -212,6 +229,13 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Log.d(">>Mode Switch<<","OFF");
             }
+            }
+        });
+        mGetResult.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                System.out.println(">>>>>>>>>>>>HELLOOOOOOOOOO");
+                getRDTResultData(0);
             }
         });
     }
@@ -438,6 +462,115 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void getRDTResultData(int camId){
+        System.out.println(">>>>>>>>>>>>>hi hi hi >>>>>>>>>>>");
+        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try{
+            String cameraId = manager.getCameraIdList()[0];
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+            Size[] jpegSizes = null;
+            if (characteristics != null) {
+                jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getOutputSizes(ImageFormat.JPEG);
+            }
+            int width = 600;//4
+            int height = 400;//8
+            if (jpegSizes != null && 0 < jpegSizes.length) {
+                width = jpegSizes[0].getWidth();
+                height = jpegSizes[0].getHeight();
+            }
+
+            ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+            List<Surface> outputSurfaces = new ArrayList<Surface>(2);
+            outputSurfaces.add(reader.getSurface());
+            outputSurfaces.add(new Surface(mTextureView.getSurfaceTexture()));
+            final CaptureRequest.Builder captureBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            captureBuilder.addTarget(reader.getSurface());
+            captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+            // Orientation
+            int rotation = getWindowManager().getDefaultDisplay().getRotation();
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+
+            final File file = new File(Environment.getExternalStorageDirectory() + "/mgd/picpic"+".jpg");
+            ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
+                @Override
+                public void onImageAvailable(ImageReader reader) {
+                    Image image = null;
+                    try {
+                        image = reader.acquireLatestImage();
+                        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                        byte[] bytes = new byte[buffer.capacity()];
+                        buffer.get(bytes);
+                        rdtResults(bytes);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (image != null) {
+                            image.close();
+                        }
+                    }
+                }
+
+                private void rdtResults(byte[] bytes) throws IOException {
+                    OutputStream output = null;
+                    try {
+                        //
+                        /*ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+                        byte[] byteArray = stream.toByteArray();*/
+
+                        String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");//"http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
+                        String guid = String.valueOf(java.util.UUID.randomUUID());
+                        String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+                        try{
+                            Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,mRectView,mResultView);
+                            mr.setCtx(getApplicationContext());
+                            mr.execute();
+                        }catch(Exception ex){
+                            ex.printStackTrace();
+                        }
+                        //
+
+                    } finally {
+                        if (null != output) {
+                            output.close();
+                        }
+                    }
+                }
+            };
+
+            reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
+            final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                    super.onCaptureCompleted(session, request, result);
+                    Toast.makeText(MainActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
+                    startPreview();
+                    //mGetResult.setVisibility(View.INVISIBLE);
+                }
+            };
+            mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(CameraCaptureSession session) {
+                    try {
+                        session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onConfigureFailed(CameraCaptureSession session) {
+                }
+            }, mBackgroundHandler);
+
+
+        }catch(Exception e){
+            System.out.println(">>>>>>>>>>>");
+        }
+
+    }
     /**
      * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
      * This method should not to be called until the camera preview size is determined in
