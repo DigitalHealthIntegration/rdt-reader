@@ -14,7 +14,7 @@ import org.opencv.core.CvException;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
-import org.opencv.core.RotatedRect;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -45,42 +45,25 @@ public class Utils {
         Mat tmp = new Mat();
         Imgproc.cvtColor(greyMat, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
         Imgproc.rectangle(tmp, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 1);
-        Bitmap finalBitmap = null;
-        try {
-            //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
-            finalBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
-            org.opencv.android.Utils.matToBitmap(tmp, finalBitmap);
-            saveImage(finalBitmap,"Grey");
-        }
-        catch (CvException e){
-            Log.d("Exception",e.getMessage());
-        }
+        SaveMatrix(tmp,"Grey");
+        tmp.release();
+    }
+    public static void SavecentersImage(Mat tmp) {
+
+        SaveMatrix(tmp,"Grey_centers");
         tmp.release();
     }
 
-    public static void SaveROIImageRotatedRect(Mat greyMat, RotatedRect Rinp) {
-        Mat tmp = new Mat();
-        Imgproc.cvtColor(greyMat, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
-//        Imgproc.(tmp, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 1);
-
-        Scalar color = new Scalar(255.0);
-        List matPoints = new ArrayList();
-        Point[] points = new Point[4];
-        Rinp.points(points);
-        MatOfPoint matOfPoint=new MatOfPoint(points);
-        matPoints.add(matOfPoint);
-        Imgproc.polylines(tmp, matPoints,true,color,1);
+    public static void SaveMatrix(Mat tmp,String prefix) {
         Bitmap finalBitmap = null;
         try {
-            //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
             finalBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
             org.opencv.android.Utils.matToBitmap(tmp, finalBitmap);
-            saveImage(finalBitmap,"Grey");
+            saveImage(finalBitmap,prefix);
         }
         catch (CvException e){
             Log.d("Exception",e.getMessage());
         }
-        tmp.release();
     }
 
 
@@ -101,6 +84,25 @@ public class Utils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public static Rect rotateRect(Mat in, Rect roi, int rotation){
+        Rect ret= new Rect();
+        if (rotation == -90)
+        {
+            ;//flip
+            ret.x= roi.x;
+            ret.y=in.height()-roi.y;
+            ret.width = roi.width;
+            ret.height = roi.height;
+            //transpose
+            int temp = ret.x;
+            ret.x = ret.y;
+            ret.y = temp;
+            temp = ret.width;
+            ret.width = ret.height;
+            ret.height = temp;
+        }
+        return ret;
     }
     public static Mat rotateFrame(Mat in, int rotation)
     {

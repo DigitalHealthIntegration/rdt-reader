@@ -48,7 +48,7 @@ public class RdtTest {
     }
     byte[] mtfliteBytes = null;
     byte[] ReadAssests() throws IOException {
-        InputStream is=this.getClass().getClassLoader().getResourceAsStream("OD.lite");
+        InputStream is=this.getClass().getClassLoader().getResourceAsStream("OD_360x640_10x19_slow.lite");
         //InputStream in = this.getClass().getClassLoader().getResourceAsStream("myFile.txt");
         mtfliteBytes=new byte[is.available()];
         is.read( mtfliteBytes);
@@ -68,13 +68,16 @@ public class RdtTest {
         builder = new RdtAPI.RdtAPIBuilder();
         builder = builder.setByteModel(c.mTfliteB);
         mRdtApi = builder.build();
+        mRdtApi.setSavePoints(true);
+        mRdtApi.setSaveImages(true);
+
 //        mTopTh = 0.9f;
 //        mBotTh = 0.7f;
 //        mRdtApi.setTopThreshold(mTopTh);
 //        mRdtApi.setBottomThreshold(mBotTh);
 //        mRdtApi.mSaveNegativeData = mSaveNegativeData;
 
-        byte[] blob = ReadFile("/0_1f0566f5.jpg");
+        byte[] blob = ReadFile("/NotFound0.jpg");
         assertTrue("Unable to read /NotFound0.jpg ",blob !=null);
         Bitmap capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
         AcceptanceStatus status = mRdtApi.checkFrame(capFrame);

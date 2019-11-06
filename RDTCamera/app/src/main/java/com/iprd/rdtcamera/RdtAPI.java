@@ -17,6 +17,8 @@ import java.nio.MappedByteBuffer;
 import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
+import static com.iprd.rdtcamera.Utils.SaveMatrix;
+import static com.iprd.rdtcamera.Utils.rotateRect;
 import static com.iprd.rdtcamera.Utils.saveImage;
 import static org.opencv.core.Core.BORDER_REFLECT101;
 import static org.opencv.core.Core.LINE_4;
@@ -44,6 +46,15 @@ public class RdtAPI {
     long mPreProcessingTime;
     long mPostProcessingTime;
 
+    public void setRotation(boolean mSetRotation) {
+        this.mSetRotation = mSetRotation;
+    }
+    public void saveInput(boolean b) {
+        this.mSaveInput = b;
+    }
+    boolean mSaveInput=false;
+    boolean mSetRotation=false;
+
     public long getPostProcessingTime() {
         return mPostProcessingTime;
     }
@@ -62,6 +73,9 @@ public class RdtAPI {
         this.mPlaybackMode = mPlaybackMode;
     }
 
+    public void setSavePoints(boolean b){
+        mTensorFlow.setSavePoints(b);
+    }
 
     public void setSaveNegativeData(boolean mSaveNegativeData) {
         this.mSaveNegativeData = mSaveNegativeData;
@@ -193,8 +207,9 @@ public class RdtAPI {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
-            greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
-
+            if(mSaveInput)SaveMatrix(greyMat,"Input");
+            if(mSetRotation)greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
+            if(mSaveInput)SaveMatrix(greyMat,"rotated-90");
             org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
             Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
 
@@ -208,13 +223,22 @@ public class RdtAPI {
             mPostProcessingTime  = System.currentTimeMillis();
             ret.mRDTFound = rdtFound[0].booleanValue();
             if (ret.mRDTFound) {
+                if(mSetRotation){
+                    roi = rotateRect(greyMatResized, roi, -90);
+                }
 
-                ret.mBoundingBoxY = (short) ((1280-roi.x)/1280.0f*greyMat.width());
-                ret.mBoundingBoxX = (short) (roi.y/720.0f*greyMat.height());
-                ret.mBoundingBoxHeight = (short) (roi.width/1280.0f*greyMat.width());
-                ret.mBoundingBoxWidth= (short) (roi.height/720.0f*greyMat.height());
+                ret.mBoundingBoxX = (short) (roi.x*greyMat.width()/1280.0f);
+                ret.mBoundingBoxY = (short) (roi.y*greyMat.height()/720.0f);
+                ret.mBoundingBoxWidth= (short) (roi.width*greyMat.width()/1280.0f);
+                ret.mBoundingBoxHeight =(short) (roi.height*greyMat.height()/720.0f);
                 ret.mRDTFound = rdtFound[0].booleanValue();
-                if(mPlaybackMode) rectangle(matinput, new Point(roi.x, roi.y), new Point(roi.x+roi.width, roi.y+roi.height), new Scalar(255,0, 0,0),4,LINE_AA,0);
+                if(mPlaybackMode){
+                    float wfactor = matinput.cols()/1280.f;
+                    float hfactor = matinput.rows()/720f;
+                    //handle rotation TBD
+                    rectangle(matinput, new Point(roi.x*wfactor, roi.y*hfactor), new Point((roi.x+roi.width)*wfactor, (roi.y+roi.height)*hfactor), new Scalar(255,0, 0,0),4,LINE_AA,0);
+                    if(mSaveInput) SaveMatrix(matinput,"output");
+                }
             }
             if(mPlaybackMode) {
                 mLocalcopy = matinput.clone();

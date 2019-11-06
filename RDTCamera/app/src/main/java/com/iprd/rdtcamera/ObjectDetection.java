@@ -7,6 +7,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
@@ -43,6 +44,11 @@ public class ObjectDetection {
 //    private static int[] numberBlocks = new int[]{5,9};
 //    private static float deviationThresh=0.1f;
 //    private static int pyrlevelcnt =2;
+    public void setSavePoints(boolean SavePoints) {
+        this.mSavePoints = SavePoints;
+    }
+
+    boolean mSavePoints=false;
 
     //OD_360x640_10x19 or _slow.lite
     private static int[] inputSize = {360,640};
@@ -55,6 +61,10 @@ public class ObjectDetection {
     private static int[] resizeFactor = {inputSize[0]/numberBlocks[0],inputSize[1]/numberBlocks[1]};
     private static float[] orientationAngles={0,22.5f,45,135,157.5f,180,202.5f,225,315,337.5f};
     protected ByteBuffer imgData =  ByteBuffer.allocateDirect(inputSize[0]*inputSize[1]*4);
+    Mat tmp_for_draw = null;
+    Point C_arrow_predicted = new Point(0, 0);
+    Point C_Cpattern_predicted = new Point(0, 0);
+    Point C_Infl_predicted = new Point(0, 0);
 
 
     private static int numberAnchors=aspectAnchors.length/2;
@@ -158,6 +168,10 @@ public class ObjectDetection {
     //This input shooud be 1280x720 in following RDT direction and Grey scale
     //<<<----|| || || CCC Influenza
     Rect update(Mat inputmat,Boolean [] rdt) {
+		if(mSavePoints) {
+            tmp_for_draw = new Mat();
+            Imgproc.cvtColor(inputmat, tmp_for_draw, Imgproc.COLOR_GRAY2RGBA, 4);
+        }
         Rect ret = new Rect(-1, -1, -1, -1);
         try {
             Mat greyMat = new Mat();
@@ -240,13 +254,14 @@ public class ObjectDetection {
 
                 rdt[0] = found;
             }
+            if(mSavePoints)Utils.SavecentersImage(tmp_for_draw);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        if(true) {
-            if(rdt[0] == true){
-               Utils.SaveROIImageRotatedRect(inputmat, rotatedRect);
-               Log.i("ROI",ret.x +"x" + ret.y + " " + ret.width+"x"+ret.height);
+        if (true) {
+            if (rdt[0] == true) {
+                if(mSaveImage)Utils.SaveROIImage(inputmat, ret.x, ret.y, ret.x + ret.width, ret.y + ret.height);
+                Log.i("ROI", ret.x + "x" + ret.y + " " + ret.width + "x" + ret.height);
             }
         }
         return ret;
@@ -447,6 +462,20 @@ public class ObjectDetection {
                                     float[] C_Inlf = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
                                     cnt_i++;
 
+                                    C_arrow_predicted.x = C_arrow[0];
+                                    C_arrow_predicted.y = C_arrow[1];
+                                    C_Cpattern_predicted.x = C_Cpattern[0];
+                                    C_Cpattern_predicted.y = C_Cpattern[1];
+                                    C_Infl_predicted.x = C_Inlf[0];
+                                    C_Infl_predicted.y = C_Inlf[1];
+
+                                    Log.d("Cpattern", String.valueOf(C_Cpattern[0] + " inf index " + cnt_i + " INfl len " + Infl.size()));
+
+                                    if(mSavePoints) {
+                                        Imgproc.circle(tmp_for_draw, C_arrow_predicted, 5, new Scalar(0, 0, 255), 5);
+                                        Imgproc.circle(tmp_for_draw, C_Cpattern_predicted, 5, new Scalar(0, 255, 0), 5);
+                                        Imgproc.circle(tmp_for_draw, C_Infl_predicted, 5, new Scalar(255, 0, 0), 5);
+                                    }
                                     double tmperror = detect2(C_arrow, C_Cpattern, C_Inlf,scale_rot);
                                     Log.d("Least mean square", String.valueOf(tmperror));
                                     if (tmperror<minError) {
