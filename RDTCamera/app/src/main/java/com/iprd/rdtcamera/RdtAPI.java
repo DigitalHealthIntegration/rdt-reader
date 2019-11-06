@@ -209,7 +209,7 @@ public class RdtAPI {
             ret.mRDTFound = rdtFound[0].booleanValue();
             if (ret.mRDTFound) {
 
-                ret.mBoundingBoxY = (short) (roi.x/1280.0f*greyMat.width());
+                ret.mBoundingBoxY = (short) ((1280-roi.x)/1280.0f*greyMat.width());
                 ret.mBoundingBoxX = (short) (roi.y/720.0f*greyMat.height());
                 ret.mBoundingBoxHeight = (short) (roi.width/1280.0f*greyMat.width());
                 ret.mBoundingBoxWidth= (short) (roi.height/720.0f*greyMat.height());

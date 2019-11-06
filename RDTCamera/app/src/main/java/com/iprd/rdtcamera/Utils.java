@@ -12,7 +12,9 @@ import android.util.Log;
 import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -23,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Utils {
 
@@ -53,6 +57,32 @@ public class Utils {
         }
         tmp.release();
     }
+
+    public static void SaveROIImageRotatedRect(Mat greyMat, RotatedRect Rinp) {
+        Mat tmp = new Mat();
+        Imgproc.cvtColor(greyMat, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
+//        Imgproc.(tmp, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 1);
+
+        Scalar color = new Scalar(255.0);
+        List matPoints = new ArrayList();
+        Point[] points = new Point[4];
+        Rinp.points(points);
+        MatOfPoint matOfPoint=new MatOfPoint(points);
+        matPoints.add(matOfPoint);
+        Imgproc.polylines(tmp, matPoints,true,color,1);
+        Bitmap finalBitmap = null;
+        try {
+            //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
+            finalBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
+            org.opencv.android.Utils.matToBitmap(tmp, finalBitmap);
+            saveImage(finalBitmap,"Grey");
+        }
+        catch (CvException e){
+            Log.d("Exception",e.getMessage());
+        }
+        tmp.release();
+    }
+
 
     public static void saveImage(Bitmap m,String suff) {
         CreateDirectory();
