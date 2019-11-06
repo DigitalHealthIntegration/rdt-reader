@@ -3,6 +3,7 @@ package com.iprd.rdtcamera;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
@@ -27,7 +28,12 @@ public class ObjectDetection {
     private static float [] cannonicalArrow={121.0f,152.0f,182.0f};
     private static float [] cannonicalCpattern={596.0f,746.0f,895.0f};
     private static float [] cannonicalInfl={699.0f,874.0f,1048.0f};
+
     private static Point  cannonicalA_C_Mid= new Point(449.0f,30.0f);
+    private static Point  ref_A= new Point(cannonicalArrow[1]-cannonicalA_C_Mid.x,0.0f);
+    private static Point  ref_C= new Point(cannonicalCpattern[1]-cannonicalA_C_Mid.x,0.0f);
+    private static Point  ref_I= new Point(cannonicalInfl[1]-cannonicalA_C_Mid.x,0.0f);
+
     private static double ref_A_C = (cannonicalCpattern[1]-cannonicalArrow[1]);
     private static double scale = 0.0;
     private static double minError =100.0;
@@ -52,7 +58,6 @@ public class ObjectDetection {
 
 
     private static int numberAnchors=aspectAnchors.length/2;
-    private double calculatedAngleRotation=0.0;
     private double A_C_to_L = 1.624579124579125;
     private double L_to_W = 0.0601036269430052;
     private static double ref_hyp = 35 ;
@@ -267,6 +272,82 @@ public class ObjectDetection {
         return p;
     }
 
+    private static double lengthOfLine(Point p1, Point p2){
+        return Math.sqrt((p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y));
+    }
+
+    static double angleOfLine(Point p1, Point p2)
+    {
+        return Math.atan2((p2.y-p1.y),(p2.x-p1.x));
+    }
+    public static Point warpPoint(Point point, Mat R){
+        Point result= new Point();
+        result.x = point.x * R.get(0,0)[0] + point.y *  R.get(0,1)[0]+  R.get(0,2)[0];
+        result.y = point.x * R.get(1,0)[0] + point.y *  R.get(1,1)[0]+  R.get(1,2)[0];
+        return result;
+    }
+
+    public static Mat makeRMat(double scale, double theta, Point tr)
+    {
+        double cos_th=Math.cos(theta);
+        double sin_th=Math.sin(theta);
+
+        Mat R = new Mat(2,3, CvType.CV_32F);
+        R.put(0,0,cos_th*scale);R.put(0,1,0-sin_th*scale);R.put(0,2,tr.x);
+        R.put(1,0,sin_th*scale);R.put(1,1,cos_th*scale);R.put(1,2,tr.y);
+        return R;
+    }
+
+    public static double detect2(float[] a, float[] c, float[] i, Point scale_rot)
+    {
+        return detect2(new Point(a[0],a[1]),new Point(c[0],c[1]),new Point(i[0],i[1]), scale_rot);
+    }
+    public static double detect2(Point a, Point c, Point i, Point scale_rot)
+    {
+        //rotation
+        double th1=angleOfLine(a,c);
+        double th2=angleOfLine(a,i);
+        double theta=(th1+th2)/2;
+        if(theta<0) theta+=2*Math.PI;
+
+        //The inspection points rotate back so use -theta angle
+        double cos_th=Math.cos(-1*theta);
+        double sin_th=Math.sin(-1*theta);
+
+        //scale
+        double ac=lengthOfLine(a,c);
+        double ai=lengthOfLine(a,i);
+        double ac_can = cannonicalCpattern[1]-cannonicalArrow[1];
+        double ai_can = cannonicalInfl[1]-cannonicalArrow[1];
+
+        double s1=ac/ac_can;
+        double s2=ai/ai_can;
+        double scale=Math.sqrt(s1*s2);
+
+
+
+        Mat R = new Mat(2,3, CvType.CV_32F);
+        R.put(0,0,cos_th/scale);R.put(0,1,0-sin_th/scale);R.put(0,2,0);
+        R.put(1,0,sin_th/scale);R.put(1,1,cos_th/scale);R.put(1,2,0);
+
+        //Now warp the points
+        Point a1=warpPoint(a,R);
+        Point c1=warpPoint(c,R);
+        Point i1=warpPoint(i,R);
+
+        Point ac1_mid=new Point((a1.x+c1.x)/2,(a1.y+c1.y)/2);
+        //translate back to 0,0
+        a1=new Point(a1.x-ac1_mid.x,a1.y-ac1_mid.y);
+        c1=new Point(c1.x-ac1_mid.x,c1.y-ac1_mid.y);
+        i1=new Point(i1.x-ac1_mid.x,i1.y-ac1_mid.y);
+
+        scale_rot.x=scale;
+        scale_rot.y=theta;
+
+        //compute the MSE
+        return (lengthOfLine(ref_A,a1)+lengthOfLine(ref_C,c1)+lengthOfLine(ref_I,i1))/3;
+    }
+
     public static double detect(float[] C_arrow, float[] C_Cpattern, float[] C_Infl){
         boolean found = false;
         /////
@@ -334,13 +415,14 @@ public class ObjectDetection {
         Rect roi = new Rect(-1, -1, -1, -1);
         boolean exit = false;
         found = false;
-        calculatedAngleRotation=0.0;
         int cnt_arr = 0;
         int cnt_c=0;
         int cnt_i=0;
         float []C_arrow_best = new float[2];
         float []C_Cpattern_best=new float[2];
         float []C_infl_best=new float[2];
+        Point best_scale_rot= new Point();
+        Point scale_rot= new Point();
         while(cnt_arr<Arrow.size()){
             cnt_c=0;
             try{
@@ -365,7 +447,7 @@ public class ObjectDetection {
                                     float[] C_Inlf = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
                                     cnt_i++;
 
-                                    double tmperror = detect(C_arrow, C_Cpattern, C_Inlf);
+                                    double tmperror = detect2(C_arrow, C_Cpattern, C_Inlf,scale_rot);
                                     Log.d("Least mean square", String.valueOf(tmperror));
                                     if (tmperror<minError) {
                                         minError=tmperror;
@@ -374,6 +456,7 @@ public class ObjectDetection {
                                         C_arrow_best = C_arrow;
                                         C_Cpattern_best = C_Cpattern;
                                         C_infl_best = C_Inlf;
+                                        best_scale_rot=scale_rot.clone();
                                         //                                roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
 
                                     }
@@ -391,19 +474,22 @@ public class ObjectDetection {
             }
         cnt_arr++;
         }
+
+        //double scale=best_scale_rot.x;
+        double angleRads=best_scale_rot.y;
+        if(angleRads>Math.PI)
+            angleRads-=Math.PI*2;
+        double calculatedAngleRotation= Math.toDegrees(angleRads);
         double[] A_C_mid_pred = {C_arrow_best[0] + (C_Cpattern_best[0] - C_arrow_best[0]) / 2, C_arrow_best[1] + (C_Cpattern_best[1] - C_arrow_best[1]) / 2};
         double A_C_pred = euclidianDistance(C_arrow_best, C_Cpattern_best);
 
-        double L_predicted = A_C_pred * A_C_to_L;
+        double L_predicted = A_C_pred * A_C_to_L*1.1;
         double W_predicted = L_predicted * L_to_W;
-        double tmpangle = 0;
-        if (calculatedAngleRotation > 180) {
-            tmpangle = calculatedAngleRotation - 360;
-        }
-        double angleRads = Math.toRadians(tmpangle);
+
         Point rdt_c = new Point();
+
         rdt_c.x = (A_C_mid_pred[0] + ref_hyp * Math.cos(angleRads));
-        rdt_c.y = (A_C_mid_pred[1] + ref_hyp * Math.sin(angleRads));
+        rdt_c.y = (A_C_mid_pred[1] - ref_hyp * Math.sin(angleRads));
 
         Size sz = new Size(L_predicted, W_predicted);
         rotatedRect = new org.opencv.core.RotatedRect(rdt_c, sz, calculatedAngleRotation);
