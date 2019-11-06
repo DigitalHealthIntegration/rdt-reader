@@ -257,7 +257,7 @@ public class RdtAPI {
             e.printStackTrace();
         } finally {
             if(((!ret.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData&&ret.mRDTFound)){
-                saveImage(capFrame,"Color");
+//                saveImage(capFrame,"Color");
             }
             greyMat.release();
             matinput.release();
