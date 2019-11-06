@@ -18,4 +18,5 @@ sed --in-place \
     -e "s|D:/source/repos|/home/rdtreader|g" \
     "tensorflow-yolov3/core/config.py"
 
+#docker image build --build-arg -f ./Dockerfile -t iprd-rdt-reader .
 docker image build -f ./Dockerfile -t iprd-rdt-reader .
