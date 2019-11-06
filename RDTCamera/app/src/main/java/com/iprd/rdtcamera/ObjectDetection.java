@@ -169,6 +169,7 @@ public class ObjectDetection {
     //This input shooud be 1280x720 in following RDT direction and Grey scale
     //<<<----|| || || CCC Influenza
     Rect update(Mat inputmat,Boolean [] rdt) {
+        found = false;
 		if(mSavePoints) {
             tmp_for_draw = new Mat();
             Imgproc.cvtColor(inputmat, tmp_for_draw, Imgproc.COLOR_GRAY2RGBA, 4);
@@ -255,7 +256,7 @@ public class ObjectDetection {
 
                 rdt[0] = found;
             }
-            if(mSavePoints){
+            if(mSavePoints && found ){
                 Imgproc.rectangle(tmp_for_draw, new Point(ret.x, ret.y), new Point(ret.x + ret.width, ret.y + ret.height), new Scalar(255, 0, 255), 1);
                 Utils.SavecentersImage(tmp_for_draw);
             }
