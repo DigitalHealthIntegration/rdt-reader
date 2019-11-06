@@ -30,6 +30,7 @@ public class ObjectDetection {
     private static Point  cannonicalA_C_Mid= new Point(449.0f,30.0f);
     private static double ref_A_C = (cannonicalCpattern[1]-cannonicalArrow[1]);
     private static double scale = 0.0;
+    private static double angleDegree = 0.0;
     private static double minError =100.0;
     //OD_180x320_5x9.lite
 //    private static int[] inputSize = {180,320};
@@ -153,6 +154,7 @@ public class ObjectDetection {
     //This input shooud be 1280x720 in following RDT direction and Grey scale
     //<<<----|| || || CCC Influenza
     Rect update(Mat inputmat,Boolean [] rdt) {
+        minError=100;
         Rect ret = new Rect(-1, -1, -1, -1);
         try {
             Mat greyMat = new Mat();
@@ -252,8 +254,8 @@ public class ObjectDetection {
 
     private static Point rotatePoint(Point inp,double angleRadian, Point RDT_C){
         Point p = new Point(0,0);
-        float s = (float) Math.sin(angleRadian);
-        float c = (float) Math.cos(angleRadian);
+        float s = (float) Math.sin(-angleRadian);
+        float c = (float) Math.cos(-angleRadian);
         inp.x -= RDT_C.x;
         inp.y -= RDT_C.y;
 
@@ -282,7 +284,7 @@ public class ObjectDetection {
 
         //rotate
         double angleRadian = Math.atan2(y,x) ;
-        double angleDegree = Math.toDegrees(angleRadian);
+        angleDegree = Math.toDegrees(angleRadian);
 
         if (angleDegree<0){
             angleDegree+=360;
@@ -291,19 +293,24 @@ public class ObjectDetection {
         //translate
 
 
-        Point A_C_mid_pred = new Point(C_arrow[0]+(C_Cpattern[0]-C_arrow[0])/2,C_arrow[1]+(C_Cpattern[1]-C_arrow[1])/2);
+
+        Point C_arrow_scaled = new Point(C_arrow[0]*scale,C_arrow[1]*scale);
+        Point C_Cpattern_scaled = new Point(C_Cpattern[0]*scale,C_Cpattern[1]*scale);
+        Point C_Infl_scaled = new Point(C_Infl[0]*scale,C_Infl[1]*scale);
+
+
+        Point A_C_mid_pred = new Point(C_arrow_scaled.x+(C_Cpattern_scaled.x-C_arrow_scaled.x)/2,C_arrow_scaled.y+(C_Cpattern_scaled.y-C_arrow_scaled.y)/2);
 
         Point _diff = new Point(A_C_mid_pred.x-cannonicalA_C_Mid.x,A_C_mid_pred.y-cannonicalA_C_Mid.y);
 
 
         Point RDT_C= new Point();
 
-        RDT_C.x = A_C_mid_pred.x+ref_hyp*Math.cos(angleRadian);
-        RDT_C.y = A_C_mid_pred.y+ref_hyp*Math.sin(angleRadian);
+        RDT_C.x = A_C_mid_pred.x;//+ref_hyp*Math.cos(angleRadian);
+        RDT_C.y = A_C_mid_pred.y;//+ref_hyp*Math.sin(angleRadian);
+//        Log.d("RDT_center","Center rdt_x "+RDT_C.x+" Center rdt_y "+RDT_C.y+" A_C pred x"+A_C_mid_pred.x+" A_C pred y"+A_C_mid_pred.y+" Angle "+angleDegree);
 
-        Point C_arrow_scaled = new Point(C_arrow[0]*scale,C_arrow[1]*scale);
-        Point C_Cpattern_scaled = new Point(C_Cpattern[0]*scale,C_Cpattern[1]*scale);
-        Point C_Infl_scaled = new Point(C_Infl[0]*scale,C_Infl[1]*scale);
+
 
         Point C_arrow_rotated = rotatePoint(C_arrow_scaled,angleRadian,RDT_C);
         Point C_Cpattern_rotated = rotatePoint(C_Cpattern_scaled,angleRadian,RDT_C);
@@ -314,7 +321,7 @@ public class ObjectDetection {
         Point C_Cpattern_translated = new Point(C_Cpattern_rotated.x-_diff.x,C_Cpattern_rotated.y-_diff.y);
         Point C_Infl_translated = new Point(C_Infl_rotated.x-_diff.x,C_Infl_rotated.y-_diff.y);
 
-//        Log.d("C_arrow_","C_arrow_real_x "+cannonicalArrow[1]+" C_arrow_predicted_x "+C_arrow_translated.x);
+//        Log.d("C_arrow_","C_arrow_real_x "+cannonicalArrow[1]+" C_arrow_predicted_x "+C_arrow_translated.x+" Angle "+angleDegree+" scale "+scale);
 //        Log.d("C_pattern_","C_pattern_real_x "+cannonicalCpattern[1]+" C_pattern_predicted_x "+C_Cpattern_translated.x);
 //        Log.d("C_arrow_","C_Infl_real_x "+cannonicalInfl[1]+" C_Infl_predicted_x "+C_Infl_translated.x);
 
@@ -374,6 +381,7 @@ public class ObjectDetection {
                                         C_arrow_best = C_arrow;
                                         C_Cpattern_best = C_Cpattern;
                                         C_infl_best = C_Inlf;
+                                        calculatedAngleRotation=angleDegree;
                                         //                                roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
 
                                     }
