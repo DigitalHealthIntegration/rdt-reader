@@ -234,7 +234,6 @@ public class ObjectDetection {
                                 else if (typeOfFeat==0){
                                     vectorTableInfluenza.add(hMap);
                                 }
-
                         }
                     }
                 }
@@ -493,7 +492,6 @@ public class ObjectDetection {
                                         C_Cpattern_best = C_Cpattern;
                                         C_infl_best = C_Inlf;
                                         best_scale_rot=scale_rot.clone();
-                                        calculatedAngleRotation=angleDegree;
                                         //                                roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
 
                                     }

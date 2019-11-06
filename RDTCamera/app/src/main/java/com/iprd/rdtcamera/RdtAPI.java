@@ -207,9 +207,9 @@ public class RdtAPI {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
-            if(mSaveInput)SaveMatrix(greyMat,"Input");
+            //if(mSaveInput)SaveMatrix(greyMat,"Input");
             if(mSetRotation)greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
-            if(mSaveInput)SaveMatrix(greyMat,"rotated-90");
+            //if(mSaveInput)SaveMatrix(greyMat,"rotated-90");
             org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
             Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
 
