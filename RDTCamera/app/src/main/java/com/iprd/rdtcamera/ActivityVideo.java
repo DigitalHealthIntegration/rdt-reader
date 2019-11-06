@@ -119,7 +119,7 @@ public class ActivityVideo extends AppCompatActivity {
         mRdtApi.setmPlaybackMode(true);
         mRdtApi.saveInput(true);
         mRdtApi.setSavePoints(true);
-        mRdtApi.setSaveImages(true);
+        //mRdtApi.setSaveImages(true);
 
         mShowImage = (ImageView) findViewById(R.id.ShowImage);
         mSelectVideo = (Button) findViewById(R.id.SelectFile);

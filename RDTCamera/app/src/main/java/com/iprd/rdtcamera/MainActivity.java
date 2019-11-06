@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         mRdtApi = rdtAPIBuilder.build();
         mRdtApi.setRotation(true);
 
-        mRdtApi.setSaveImages(true);
+        //mRdtApi.setSaveImages(true);
         mRdtApi.setSavePoints(true);
 
         //call the setter for saving functions
