@@ -32,8 +32,8 @@ public class ObjectDetection {
     Point C_Infl_predicted = new Point(0, 0);
     Mat tmp_for_draw = null;
 
-    public void setSavePoints(boolean mSavePoints) {
-        this.mSavePoints = mSavePoints;
+    public void setSavePoints(boolean SavePoints) {
+        this.mSavePoints = SavePoints;
     }
 
     boolean mSavePoints=false;
@@ -249,13 +249,13 @@ public class ObjectDetection {
                 ret = locateRdt(vectorTableArrow, vectorTableCpattern, vectorTableInfluenza);
                 rdt[0] = found;
             }
+            if(mSavePoints)Utils.SavecentersImage(tmp_for_draw);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         if (true) {
             if (rdt[0] == true) {
                 if(mSaveImage)Utils.SaveROIImage(inputmat, ret.x, ret.y, ret.x + ret.width, ret.y + ret.height);
-                if(mSavePoints)Utils.SavecentersImage(tmp_for_draw);
                 Log.i("ROI", ret.x + "x" + ret.y + " " + ret.width + "x" + ret.height);
             }
         }

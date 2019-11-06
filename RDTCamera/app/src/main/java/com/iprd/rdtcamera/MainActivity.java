@@ -162,10 +162,16 @@ public class MainActivity extends AppCompatActivity {
         }
         rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
         rdtAPIBuilder = rdtAPIBuilder.setModel(mMappedByteBuffer);
+
         mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,null);
         mRdtApi = rdtAPIBuilder.build();
+        mRdtApi.setRotation(true);
+
+        //mRdtApi.setSaveImages(true);
+        //mRdtApi.setSavePoints(true);
 
         //call the setter for saving functions
+
         Utils.ApplySettings(this,null,mRdtApi);
         /// Set Torch button
         torch = (Switch) findViewById(R.id.torch);
@@ -305,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
 
         private void ProcessBitmap(Bitmap capFrame) {
             long st  = System.currentTimeMillis();
+
             final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
             if(mShowImageData != 0){
                 status.mSharpness = mRdtApi.getSharpness();

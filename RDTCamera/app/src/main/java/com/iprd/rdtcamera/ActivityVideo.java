@@ -49,7 +49,10 @@ import static android.Manifest.permission_group.CAMERA;
 
 public class ActivityVideo extends AppCompatActivity {
     private static final int PICK_VIDEO_REQUEST = 1001;
-    private static final String mModelFileName="OD_180x320_5x9.lite";
+//    private static final String mModelFileName="OD_180x320_5x9.lite";
+//    private static final String mModelFileName="OD_360x640_10x19.lite";
+    private static final String mModelFileName="OD_360x640_10x19_slow.lite";
+
     static String TAG = ActivityVideo.class.getName();
     enum PlayPause {PLAY, PAUSE};
     Uri mVideoUri;
@@ -114,6 +117,9 @@ public class ActivityVideo extends AppCompatActivity {
         //call the setter for saving functions
         Utils.ApplySettings(this, null, mRdtApi);
         mRdtApi.setmPlaybackMode(true);
+//        mRdtApi.saveInput(true);
+//        mRdtApi.setSavePoints(true);
+//        mRdtApi.setSaveImages(true);
 
         mShowImage = (ImageView) findViewById(R.id.ShowImage);
         mSelectVideo = (Button) findViewById(R.id.SelectFile);
