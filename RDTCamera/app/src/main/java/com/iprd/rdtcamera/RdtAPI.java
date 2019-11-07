@@ -39,7 +39,8 @@ public class RdtAPI {
     private Config mConfig;
     private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
     private ObjectDetection mTensorFlow;//=null;
-    private boolean mInprogress;// = false;
+    private static boolean mInprogress = false;
+    private static boolean mRDTProcessing = false;
     private short mBrightness;
     private short mSharpness;
     Mat mLocalcopy;
@@ -226,11 +227,14 @@ public class RdtAPI {
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
             Mat warpmat = FindMotion(greyMat);
             if(warpmat!=null) {
-                if (Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY) {
+                Log.i("Tx-Ty",warpmat.get(0, 2)[0] +"x"+warpmat.get(1, 2)[0]);
+                if (Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY) {
                     ret.mSteady = TOO_HIGH;
                     mPreProcessingTime = System.currentTimeMillis() - st;
                     Log.i("Motion Detected", "Too much Motion");
                     return ret;
+                }else{
+                    ret.mSteady = GOOD;
                 }
             }
 
@@ -239,44 +243,16 @@ public class RdtAPI {
             Imgproc.resize(greyMat,greyMatResized,sz,0.0,0.0,INTER_CUBIC);
             mPreProcessingTime  = System.currentTimeMillis()-st;
 
-            Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
-            mTensorFlowProcessTime = System.currentTimeMillis();
-            Rect detectedRoi = mTensorFlow.update(greyMatResized, rdtFound);
-            mTensorFlowProcessTime =  System.currentTimeMillis()-mTensorFlowProcessTime;
-            mPostProcessingTime  = System.currentTimeMillis();
-            ret.mRDTFound = rdtFound[0].booleanValue();
-            if (ret.mRDTFound) {
-                Rect roi = detectedRoi.clone();
-                if(mSetRotation){
-                    roi = rotateRect(greyMatResized, roi, -90);
-                }
-                ret.mRDTFound = rdtFound[0].booleanValue();
-                if(true){
-                    float wfactor = 0;
-                    float hfactor = 0;
-                    if(mPlaybackMode) {
-                         wfactor = matinput.cols() / 1280.f;
-                         hfactor = matinput.rows() / 720f;
-                    }else{
-                        wfactor = matinput.cols() / 720.0f;
-                        hfactor = matinput.rows() / 1280f;
-                    }
-                    //handle rotation TBD
-                    if(mSaveInput || mPlaybackMode) rectangle(matinput, new Point(roi.x*wfactor, roi.y*hfactor), new Point((roi.x+roi.width)*wfactor, (roi.y+roi.height)*hfactor), new Scalar(255,0, 0,0),4,LINE_AA,0);
-                    if(mSaveInput) SaveMatrix(matinput,"output");
-
-                    ret.mBoundingBoxX = (short) (roi.x*wfactor);
-                    ret.mBoundingBoxY = (short) (roi.y*hfactor);
-                    ret.mBoundingBoxWidth= (short) (roi.width*wfactor);
-                    ret.mBoundingBoxHeight =(short) (roi.height*hfactor);
-                }
+            //process frame
+            Rect detectedRoi=null;
+            boolean rdtfound= false;
+            if(!mRDTProcessing) {
+                 detectedRoi = ProcessRDT(ret, matinput, greyMatResized);
             }
             if(mPlaybackMode) {
                 mLocalcopy = matinput.clone();
             }
-
-            if (!rdtFound[0].booleanValue()) return ret;
-
+            if (!ret.mRDTFound) return ret;
             Mat imageROI = greyMatResized.submat(detectedRoi);
             if (!computeBlur(imageROI,ret)) {
                 return ret;
@@ -298,6 +274,49 @@ public class RdtAPI {
         return ret;
     }
 
+    private Rect ProcessRDT(AcceptanceStatus retStatus,Mat inputmat,Mat reszgreymat){
+        mRDTProcessing = true;
+        Rect detectedRoi=null;
+        try {
+            Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
+            long updatetimest = System.currentTimeMillis();
+            detectedRoi = mTensorFlow.update(reszgreymat, rdtFound);
+            mTensorFlowProcessTime = System.currentTimeMillis() - updatetimest;
+            mPostProcessingTime = System.currentTimeMillis();
+            retStatus.mRDTFound = rdtFound[0].booleanValue();
+            if (retStatus.mRDTFound) {
+                Rect roi = detectedRoi.clone();
+                if (mSetRotation) {
+                    roi = rotateRect(reszgreymat, roi, -90);
+                }
+                float wfactor = 0;
+                float hfactor = 0;
+                if (mPlaybackMode) {
+                    wfactor = inputmat.cols() / 1280.f;
+                    hfactor = inputmat.rows() / 720f;
+                } else {
+                    wfactor = inputmat.cols() / 720.0f;
+                    hfactor = inputmat.rows() / 1280f;
+                }
+                //handle rotation TBD
+                if (mSaveInput || mPlaybackMode)
+                    rectangle(inputmat, new Point(roi.x * wfactor, roi.y * hfactor), new Point((roi.x + roi.width) * wfactor, (roi.y + roi.height) * hfactor), new Scalar(255, 0, 0, 0), 4, LINE_AA, 0);
+                if (mSaveInput) SaveMatrix(inputmat, "output");
+
+                retStatus.mBoundingBoxX = (short) (roi.x * wfactor);
+                retStatus.mBoundingBoxY = (short) (roi.y * hfactor);
+                retStatus.mBoundingBoxWidth = (short) (roi.width * wfactor);
+                retStatus.mBoundingBoxHeight = (short) (roi.height * hfactor);
+            }
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+        }
+        finally {
+            mRDTProcessing = false;
+        }
+        return detectedRoi;
+    }
     // private constructor , so that, we can only access via Builder
     private RdtAPI( RdtAPIBuilder rdtAPIBuilder){
         mPlaybackMode=false;

@@ -36,8 +36,8 @@ public class ImageRegistration {
         final int warp_mode = MOTION_EUCLIDEAN;
         Mat warpMatrix = Mat.eye(2,3,CV_32F);
        try {
-            int numIter = 5;
-            double terminationEps = 1e-10;
+            int numIter = 500;
+            double terminationEps = 1e-3;
             TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
             findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, ins);
         }catch(Exception e){

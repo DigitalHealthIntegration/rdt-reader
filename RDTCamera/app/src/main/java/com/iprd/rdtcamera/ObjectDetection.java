@@ -254,8 +254,8 @@ public class ObjectDetection {
                 if(ret.width <0) ret.width =0;
                 if(ret.height <0) ret.height =0;
 
-                if(ret.x+ret.width > tmp_for_draw.cols()) ret.width = tmp_for_draw.cols()-ret.x;
-                if(ret.y+ret.height > tmp_for_draw.rows()) ret.height = tmp_for_draw.rows()-ret.y;
+                if((ret.x+ret.width) > inputmat.cols()) ret.width = inputmat.cols()-ret.x;
+                if((ret.y+ret.height) > inputmat.rows()) ret.height = inputmat.rows()-ret.y;
 
                 Imgproc.rectangle(tmp_for_draw, new Point(ret.x, ret.y), new Point(ret.x + ret.width, ret.y + ret.height), new Scalar(255, 0, 255), 1);
                 Utils.SavecentersImage(tmp_for_draw);
@@ -265,6 +265,9 @@ public class ObjectDetection {
         }
         if (true) {
             if (rdt[0] == true) {
+                if((ret.x+ret.width)> 1280){
+                    boolean r = true;
+                }
                 Log.i("ROI", ret.x + "x" + ret.y + " " + ret.width + "x" + ret.height);
             }
         }
