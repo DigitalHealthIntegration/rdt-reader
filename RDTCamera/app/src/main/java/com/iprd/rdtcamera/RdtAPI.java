@@ -17,6 +17,7 @@ import java.nio.MappedByteBuffer;
 import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
+import static com.iprd.rdtcamera.ImageRegistration.getTransformation;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static com.iprd.rdtcamera.Utils.rotateRect;
 import static com.iprd.rdtcamera.Utils.saveImage;
@@ -31,6 +32,7 @@ import static org.opencv.imgproc.Imgproc.INTER_LANCZOS4;
 import static org.opencv.imgproc.Imgproc.Laplacian;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.putText;
+import static org.opencv.imgproc.Imgproc.pyrDown;
 import static org.opencv.imgproc.Imgproc.rectangle;
 
 public class RdtAPI {
@@ -41,6 +43,7 @@ public class RdtAPI {
     private short mBrightness;
     private short mSharpness;
     Mat mLocalcopy;
+    Mat mRefPyr=null;
     boolean mPlaybackMode;
     long mTensorFlowProcessTime;
     long mPreProcessingTime;
@@ -192,6 +195,27 @@ public class RdtAPI {
         return true;
     }
 
+    private Mat FindMotion(Mat inp){
+        Mat ref = new Mat();
+        pyrDown(inp, ref);
+        pyrDown(ref, ref);
+        pyrDown(ref, ref);
+        //pyrDown(ref, ref);
+        Mat warpMatrix=null;
+        if(mRefPyr!= null) {
+            warpMatrix = getTransformation(mRefPyr, ref);
+//            double scale = Math.sqrt(warpMatrix.get(0,0)[0]*warpMatrix.get(0,0)[0]+warpMatrix.get(0,1)[0]*warpMatrix.get(0,1)[0]);
+//            Log.d("Scale ", String.valueOf(scale));
+//            Log.d("Madhav 0x0", String.valueOf(warpMatrix.get(0,0)[0]));
+//            Log.d("Madhav 0x1", String.valueOf(warpMatrix.get(0,1)[0]));
+//            Log.d("Madhav 1x0", String.valueOf(warpMatrix.get(1,0)[0]));
+//            Log.d("Madhav 1x1", String.valueOf(warpMatrix.get(1,1)[0]));
+            Log.d("Madhav Tx", String.valueOf(warpMatrix.get(0,2)[0]));
+            Log.d("Madhav Ty", String.valueOf(warpMatrix.get(1,2)[0]));
+        }
+        mRefPyr = ref.clone();
+        return warpMatrix;
+    }
 
     public AcceptanceStatus checkFrame(Bitmap capFrame) {
         mInprogress = true;
@@ -200,19 +224,27 @@ public class RdtAPI {
         Mat matinput = new Mat();
         Mat greyMat = new Mat();
         Mat greyMatResized = new Mat();
+        Mat mPrevious;
 
         AcceptanceStatus ret= new AcceptanceStatus();
-
         try {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
-            //if(mSaveInput)SaveMatrix(greyMat,"Input");
+            Mat warpmat = FindMotion(greyMat);
+            if(warpmat!=null) {
+                if (Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY) {
+                    ret.mSteady = TOO_HIGH;
+                    mPreProcessingTime = System.currentTimeMillis() - st;
+                    Log.i("Motion Detected", "Too much Motion");
+                    return ret;
+                }
+            }
+
             if(mSetRotation)greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
             //if(mSaveInput)SaveMatrix(greyMat,"rotated-90");
             org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
             //Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
-
             Imgproc.resize(greyMat,greyMatResized,sz,0.0,0.0,INTER_CUBIC);
             mPreProcessingTime  = System.currentTimeMillis()-st;
 
@@ -226,18 +258,27 @@ public class RdtAPI {
                 if(mSetRotation){
                     roi = rotateRect(greyMatResized, roi, -90);
                 }
-
-                ret.mBoundingBoxX = (short) (roi.x*greyMat.width()/1280.0f);
-                ret.mBoundingBoxY = (short) (roi.y*greyMat.height()/720.0f);
-                ret.mBoundingBoxWidth= (short) (roi.width*greyMat.width()/1280.0f);
-                ret.mBoundingBoxHeight =(short) (roi.height*greyMat.height()/720.0f);
                 ret.mRDTFound = rdtFound[0].booleanValue();
-                if(mPlaybackMode){
-                    float wfactor = matinput.cols()/1280.f;
-                    float hfactor = matinput.rows()/720f;
+                if(true){
+                    float wfactor = 0;
+                    float hfactor = 0;
+                    if(mPlaybackMode) {
+                         wfactor = matinput.cols() / 1280.f;
+                         hfactor = matinput.rows() / 720f;
+                    }else{
+                        wfactor = matinput.cols() / 720.0f;
+                        hfactor = matinput.rows() / 1280f;
+                    }
+                    if(mSaveInput)SaveMatrix(greyMat,"Input");
                     //handle rotation TBD
-                    rectangle(matinput, new Point(roi.x*wfactor, roi.y*hfactor), new Point((roi.x+roi.width)*wfactor, (roi.y+roi.height)*hfactor), new Scalar(255,0, 0,0),4,LINE_AA,0);
+                    if(mSaveInput || mPlaybackMode) rectangle(matinput, new Point(roi.x*wfactor, roi.y*hfactor), new Point((roi.x+roi.width)*wfactor, (roi.y+roi.height)*hfactor), new Scalar(255,0, 0,0),4,LINE_AA,0);
                     if(mSaveInput) SaveMatrix(matinput,"output");
+
+                    ret.mBoundingBoxX = (short) (roi.x*wfactor);
+                    ret.mBoundingBoxY = (short) (roi.y*hfactor);
+                    ret.mBoundingBoxWidth= (short) (roi.width*wfactor);
+                    ret.mBoundingBoxHeight =(short) (roi.height*hfactor);
+
                 }
             }
             if(mPlaybackMode) {
@@ -266,7 +307,6 @@ public class RdtAPI {
         }
         return ret;
     }
-
 
     // private constructor , so that, we can only access via Builder
     private RdtAPI( RdtAPIBuilder rdtAPIBuilder){

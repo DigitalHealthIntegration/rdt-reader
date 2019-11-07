@@ -89,18 +89,13 @@ public class Utils {
         Rect ret= new Rect();
         if (rotation == -90)
         {
-            ;//flip
-            ret.x= roi.x;
-            ret.y=in.height()-roi.y;
-            ret.width = roi.width;
-            ret.height = roi.height;
-            //transpose
-            int temp = ret.x;
-            ret.x = ret.y;
-            ret.y = temp;
-            temp = ret.width;
-            ret.width = ret.height;
-            ret.height = temp;
+            //transpose and flip
+            ret.x = roi.y;
+            ret.y = roi.x;
+            ret.width = roi.height;
+            ret.height = roi.width;
+            //now flip
+            ret.x = in.height() -( roi.y+roi.height);
         }
         return ret;
     }
@@ -112,7 +107,6 @@ public class Utils {
         {
             out = in.t();
             Core.flip(out, out, 1);
-
         }
 
         else if (rotation == -90)
@@ -182,6 +176,14 @@ public class Utils {
             ex.printStackTrace();
             return null;
         }
+    }
+
+    public static int clampToMin(int x, int inp){
+        return inp<0?0:inp;
+    }
+
+    public static int clampToMax(int inp,int max){
+        return inp>max?max:inp;
     }
 
 }

@@ -15,6 +15,7 @@ public class AcceptanceStatus {
     public boolean mRDTFound;// was an RDT found by the coarse finder
     public short mBoundingBoxX, mBoundingBoxY;
     public short mBoundingBoxWidth, mBoundingBoxHeight;
+    public short mSteady;
 
     AcceptanceStatus() {
         setDefaultStatus();
@@ -42,5 +43,6 @@ public class AcceptanceStatus {
         mDisplacementY = NOT_COMPUTED;
         mPerspectiveDistortion = NOT_COMPUTED;
         mBoundingBoxX = mBoundingBoxY= mBoundingBoxWidth=mBoundingBoxHeight=-1;
+        mSteady = NOT_COMPUTED;
     }
 };

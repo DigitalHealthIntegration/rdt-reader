@@ -248,6 +248,14 @@ public class ObjectDetection {
                 rdt[0] = found;
             }
             if(mSavePoints && found ){
+                if(ret.x <0) ret.x = 0;
+                if(ret.y <0) ret.y = 0;
+                if(ret.width <0) ret.width =0;
+                if(ret.height <0) ret.height =0;
+
+                if(ret.x+ret.width > tmp_for_draw.cols()) ret.width = tmp_for_draw.cols()-ret.x;
+                if(ret.y+ret.height > tmp_for_draw.rows()) ret.height = tmp_for_draw.rows()-ret.y;
+
                 Imgproc.rectangle(tmp_for_draw, new Point(ret.x, ret.y), new Point(ret.x + ret.width, ret.y + ret.height), new Scalar(255, 0, 255), 1);
                 Utils.SavecentersImage(tmp_for_draw);
             }
@@ -256,7 +264,6 @@ public class ObjectDetection {
         }
         if (true) {
             if (rdt[0] == true) {
-                if(mSaveImage)Utils.SaveROIImage(inputmat, ret.x, ret.y, ret.x + ret.width, ret.y + ret.height);
                 Log.i("ROI", ret.x + "x" + ret.y + " " + ret.width + "x" + ret.height);
             }
         }
@@ -467,7 +474,7 @@ public class ObjectDetection {
                                     C_Cpattern_predicted.y = C_Cpattern[1];
                                     C_Infl_predicted.x = C_Inlf[0];
                                     C_Infl_predicted.y = C_Inlf[1];
-                                    Log.d("Cpattern", String.valueOf(C_Cpattern[0] + " inf index " + cnt_i + " INfl len " + Infl.size()));
+                                    //Log.d("Cpattern", String.valueOf(C_Cpattern[0] + " inf index " + cnt_i + " INfl len " + Infl.size()));
 
                                     if(mSavePoints) {
                                         Imgproc.circle(tmp_for_draw, C_arrow_predicted, 5, new Scalar(0, 0, 255), 5);
@@ -475,11 +482,11 @@ public class ObjectDetection {
                                         Imgproc.circle(tmp_for_draw, C_Infl_predicted, 5, new Scalar(255, 0, 0), 5);
                                     }
                                     double tmperror = detect2(C_arrow, C_Cpattern, C_Inlf,scale_rot);
-                                    Log.d("Least mean square", String.valueOf(tmperror));
+                                    //Log.d("Least mean square", String.valueOf(tmperror));
                                     if (tmperror<minError) {
                                         minError=tmperror;
                                         found = true;
-                                        Log.d("Entered", "New min");
+                                        //Log.d("Entered", "New min");
                                         C_arrow_best = C_arrow;
                                         C_Cpattern_best = C_Cpattern;
                                         C_infl_best = C_Inlf;
@@ -520,7 +527,7 @@ public class ObjectDetection {
         Size sz = new Size(L_predicted, W_predicted);
         rotatedRect = new org.opencv.core.RotatedRect(rdt_c, sz, calculatedAngleRotation);
         roi = rotatedRect.boundingRect();
-        Log.d("ROI:", "X : " + roi.x + "Y : " + roi.y + "W : " + roi.width + "H : " + roi.height);
+        //Log.d("ROI:", "X : " + roi.x + "Y : " + roi.y + "W : " + roi.width + "H : " + roi.height);
 
         return roi;
     }
