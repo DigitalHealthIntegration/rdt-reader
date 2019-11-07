@@ -6,6 +6,7 @@ import android.util.Log;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Point3;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -318,9 +319,10 @@ public class ObjectDetection {
 
     public static double detect2(float[] a, float[] c, float[] i, Point scale_rot)
     {
-        return detect2(new Point(a[0],a[1]),new Point(c[0],c[1]),new Point(i[0],i[1]), scale_rot);
+        Point3 orientations = new Point3(a[2],c[2],i[2]);
+        return detect2(new Point(a[0],a[1]),new Point(c[0],c[1]),new Point(i[0],i[1]), orientations, scale_rot);
     }
-    public static double detect2(Point a, Point c, Point i, Point scale_rot)
+    public static double detect2(Point a, Point c, Point i, Point3 orientations, Point out_scale_rot)
     {
         //rotation
         double th1=angleOfLine(a,c);
@@ -328,9 +330,12 @@ public class ObjectDetection {
         double theta=(th1+th2)/2;
         if(theta<0) theta+=2*Math.PI;
 
-        //The inspection points rotate back so use -theta angle
-        double cos_th=Math.cos(-1*theta);
-        double sin_th=Math.sin(-1*theta);
+        //avoid feature orientations which are very different from theta
+        double theta_deg=Math.toDegrees(theta);
+        if(angle_constraint(orientations.x,theta_deg)||angle_constraint(orientations.y,theta_deg) ||angle_constraint(orientations.z,theta_deg))
+        {
+            return Double.MAX_VALUE;
+        }
 
         //scale
         double ac=lengthOfLine(a,c);
@@ -342,7 +347,16 @@ public class ObjectDetection {
         double s2=ai/ai_can;
         double scale=Math.sqrt(s1*s2);
 
+        //avoid scales which are very different from each other
+        double scale_disparity=s1/s2;
+        if(scale_disparity>1.25 || scale_disparity<0.75)
+        {
+            return Double.MAX_VALUE;
+        }
 
+        //The inspection points rotate back so use -theta angle
+        double cos_th=Math.cos(-1*theta);
+        double sin_th=Math.sin(-1*theta);
 
         Mat R = new Mat(2,3, CvType.CV_32F);
         R.put(0,0,cos_th/scale);R.put(0,1,0-sin_th/scale);R.put(0,2,0);
@@ -359,11 +373,20 @@ public class ObjectDetection {
         c1=new Point(c1.x-ac1_mid.x,c1.y-ac1_mid.y);
         i1=new Point(i1.x-ac1_mid.x,i1.y-ac1_mid.y);
 
-        scale_rot.x=scale;
-        scale_rot.y=theta;
+        out_scale_rot.x=scale;
+        out_scale_rot.y=theta;
 
         //compute the MSE
         return (lengthOfLine(ref_A,a1)+lengthOfLine(ref_C,c1)+lengthOfLine(ref_I,i1))/3;
+    }
+
+    private static boolean angle_constraint(double orientation, double theta_deg) {
+        double T=30;
+
+        double d=Math.abs(orientation-theta_deg);
+        if(d>180) d=360-d;
+        if(d>T) return true;
+        return false;
     }
 
     public static double detect(float[] C_arrow, float[] C_Cpattern, float[] C_Infl){
