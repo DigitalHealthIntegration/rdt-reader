@@ -64,14 +64,12 @@ import java.util.List;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission_group.CAMERA;
+import static com.iprd.rdtcamera.ModelInfo.mModelFileName;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.floodFill;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
-//    private static final String mModelFileName="OD_180x320_5x9.lite";
-//    private static final String mModelFileName="OD_360x640_10x19.lite";
-    private static final String mModelFileName="OD_360x640_10x19_slow.lite";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
 

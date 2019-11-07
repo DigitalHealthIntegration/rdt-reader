@@ -23,6 +23,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import static com.iprd.rdtcamera.ModelInfo.aspectAnchors;
+import static com.iprd.rdtcamera.ModelInfo.inputSize;
+import static com.iprd.rdtcamera.ModelInfo.numberBlocks;
+import static com.iprd.rdtcamera.ModelInfo.pyrlevelcnt;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 public class ObjectDetection {
@@ -39,24 +43,11 @@ public class ObjectDetection {
     private static double scale = 0.0;
     private static double angleDegree = 0.0;
     private static double minError =100.0;
-    //OD_180x320_5x9.lite
-//    private static int[] inputSize = {180,320};
-//    private static int[] aspectAnchors =new int[]{15, 35, 34,34, 11, 37, 14, 26};//Larger one is for 360x640 model  new int[]{30, 70, 68, 68, 44, 74, 28, 52};
-//    private static int[] numberBlocks = new int[]{5,9};
-//    private static float deviationThresh=0.1f;
-//    private static int pyrlevelcnt =2;
+
     public void setSavePoints(boolean SavePoints) {
         this.mSavePoints = SavePoints;
     }
-
     boolean mSavePoints=false;
-
-    //OD_360x640_10x19 or _slow.lite
-    private static int[] inputSize = {360,640};
-    private static int[] aspectAnchors = new int[]{30, 70, 68, 68, 44, 74, 28, 52};
-    private static int[] numberBlocks = new int[]{10,19};
-    private static float deviationThresh=0.01f;
-    private static int pyrlevelcnt =1;
 
     private static int numberClasses = 31;
     private static int[] resizeFactor = {inputSize[0]/numberBlocks[0],inputSize[1]/numberBlocks[1]};
@@ -470,15 +461,12 @@ public class ObjectDetection {
                                     float infConf = (float) iElement.getKey();
                                     cxcywha = (Vector) iElement.getValue();
                                     float[] C_Inlf = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
-                                    cnt_i++;
-
                                     C_arrow_predicted.x = C_arrow[0];
                                     C_arrow_predicted.y = C_arrow[1];
                                     C_Cpattern_predicted.x = C_Cpattern[0];
                                     C_Cpattern_predicted.y = C_Cpattern[1];
                                     C_Infl_predicted.x = C_Inlf[0];
                                     C_Infl_predicted.y = C_Inlf[1];
-
                                     Log.d("Cpattern", String.valueOf(C_Cpattern[0] + " inf index " + cnt_i + " INfl len " + Infl.size()));
 
                                     if(mSavePoints) {
@@ -497,18 +485,17 @@ public class ObjectDetection {
                                         C_infl_best = C_Inlf;
                                         best_scale_rot=scale_rot.clone();
                                         //                                roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
-
                                     }
                                 }
-                            cnt_i++;
+                                cnt_i++;
                             }
                         }
-                 cnt_c++;
+                    cnt_c++;
                 }
 
                 }
-
             }catch (IndexOutOfBoundsException e){
+                Log.e("Error","Index out of bound exception");
                 exit=true;
             }
         cnt_arr++;

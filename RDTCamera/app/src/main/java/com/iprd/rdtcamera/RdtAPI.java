@@ -211,7 +211,7 @@ public class RdtAPI {
             if(mSetRotation)greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
             //if(mSaveInput)SaveMatrix(greyMat,"rotated-90");
             org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
-            Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
+            //Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
 
             Imgproc.resize(greyMat,greyMatResized,sz,0.0,0.0,INTER_CUBIC);
             mPreProcessingTime  = System.currentTimeMillis()-st;

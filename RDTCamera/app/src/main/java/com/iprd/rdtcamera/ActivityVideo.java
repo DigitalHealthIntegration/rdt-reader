@@ -46,12 +46,10 @@ import java.nio.MappedByteBuffer;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission_group.CAMERA;
+import static com.iprd.rdtcamera.ModelInfo.mModelFileName;
 
 public class ActivityVideo extends AppCompatActivity {
     private static final int PICK_VIDEO_REQUEST = 1001;
-//    private static final String mModelFileName="OD_180x320_5x9.lite";
-//    private static final String mModelFileName="OD_360x640_10x19.lite";
-    private static final String mModelFileName="OD_360x640_10x19_slow.lite";
 
     static String TAG = ActivityVideo.class.getName();
     enum PlayPause {PLAY, PAUSE};
