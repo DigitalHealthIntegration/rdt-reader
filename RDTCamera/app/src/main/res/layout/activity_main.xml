@@ -26,6 +26,17 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintDimensionRatio="H,9:16"
         />
+
+    <ImageView
+        android:id="@+id/disRdtResultImage"
+        android:layout_width="44dp"
+        android:layout_height="115dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ProgressBar
         android:id="@+id/loader"
         android:layout_width="100dp"
@@ -86,15 +97,13 @@
 
     <TextView
         android:id="@+id/rdtDataToBeDisplay"
-        android:layout_width="175dp"
-        android:layout_height="139dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="67dp"
+        android:layout_height="521dp"
         android:backgroundTint="#00ffffff"
         android:text=""
         android:textColor="@color/colorBlue"
         android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="@+id/texture"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -105,6 +114,31 @@
         android:layout_marginBottom="72dp"
         android:text="Get Result"
         android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.523"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/ResultView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="556dp"
+        android:text="TextView"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/getResult"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/startBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="72dp"
+        android:text="Start"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.523"

@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -36,6 +37,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     ImageView mImageView=null;
     TextView mResultView=null;
     JSONObject mJsonResult=null;
+    Button mGetResult = null;
 
     public void setCtx(Context mCtx) {
         this.mCtx = mCtx;
@@ -60,6 +62,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
         mResultView=txtView;
     }
 
+
     @Override
     protected String doInBackground(String... strings) {
         try {
@@ -68,15 +71,11 @@ public class Httpok extends AsyncTask<String, Void, String> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//         catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
         return null;
     }
 
     @Override
     protected void onPostExecute(String result) {
-//        Log.i("HTTPOK","ONPOSTEXECUTE");
         if(null != mProgressBar){
             mProgressBar.setVisibility(View.INVISIBLE);
             if(mResult != null){
@@ -102,8 +101,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     }
     @Override
     protected void onPreExecute() {
-//        Log.i("HTTPOK","ONPREEXECUTE");
-        if(null != mProgressBar){
+        if(null != mProgressBar && mProgressBar.getVisibility() == View.INVISIBLE){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
         }
@@ -129,12 +127,12 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
         Response response = client.newCall(request).execute();
         String res = response.body().string();
-        //System.out.println(">>>>>>>>"+res);
         Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {
+                //if(mGetResult != null) {mGetResult.setVisibility(View.VISIBLE);}
                 String[] s = res.split("Content-Type:");
-                for (String a : s) { if(a.contains("image/jpeg\r\n\r\n")) {
+                for (String a : s) { if(a.contains("image/jpeg\r\n\r\n")) {mProgressBar.setVisibility(View.INVISIBLE);
                         String[] i=a.split("image/jpeg\r\n\r\n");
                         if(i.length >1){
                             String[] k=i[1].split("--");
@@ -160,18 +158,5 @@ public class Httpok extends AsyncTask<String, Void, String> {
             }
         }
     }
-
   }
 
-/*
- String folderPath = "/sdcard/aa/mgd/";
-        String imgName = "KH5.jpg";
-        String urlString = "http://10.102.10.97:9000/align";
-        String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
-        try{
-            Okhttp mr = new Okhttp(folderPath, imgName, urlString, metaDataStr);
-            mr.execute();
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
- */

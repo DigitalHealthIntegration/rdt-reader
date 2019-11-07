@@ -26,6 +26,7 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -72,6 +73,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import okhttp3.Response;
+
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission_group.CAMERA;
@@ -83,7 +86,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String mModelFileName="tflite.lite";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
+    private ImageView disRdtResultImage;
     Button mGetResult;
+    Button startBtn;
     TextView mResultView;
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -154,11 +159,17 @@ public class MainActivity extends AppCompatActivity {
         mGetResult = findViewById(R.id.getResult);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mRectView = findViewById(R.id.rdtRect);
+        disRdtResultImage = findViewById(R.id.disRdtResultImage);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
         mCyclicProgressBar = findViewById(R.id.loader);
+
         mResultView = findViewById(R.id.ResultView);
+        mCyclicProgressBar.setVisibility(View.INVISIBLE);
+        startBtn = findViewById(R.id.startBtn);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
         // preferences
+
+
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,19 +178,15 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        byte[] mTfliteB=null;
+
         MappedByteBuffer mMappedByteBuffer=null;
-        try {
-            mTfliteB = ReadAssests();
-            mMappedByteBuffer = Utils.loadModelFile(getAssets(),mModelFileName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        mMappedByteBuffer = Utils.loadModelFile(getAssets(),mModelFileName);
+
         rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
         rdtAPIBuilder = rdtAPIBuilder.setModel(mMappedByteBuffer);
         mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,null);
         mRdtApi = rdtAPIBuilder.build();
-
+     //   mCyclicProgressBar.setVisibility(View.INVISIBLE);
         //call the setter for saving functions
         Utils.ApplySettings(this,null,mRdtApi);
         /// Set Torch button
@@ -234,8 +241,30 @@ public class MainActivity extends AppCompatActivity {
         mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                System.out.println(">>>>>>>>>>>>HELLOOOOOOOOOO");
-                getRDTResultData(0);
+                if(mCyclicProgressBar.getVisibility() == View.INVISIBLE) {
+                    mCyclicProgressBar.setVisibility(View.VISIBLE);
+                    mCyclicProgressBar.bringToFront();
+                }
+                getRDTResultData(mCyclicProgressBar);
+                startBtn.setVisibility(View.VISIBLE);
+                mResultView.setVisibility(View.INVISIBLE);
+                mGetResult.setVisibility(View.INVISIBLE);
+            }
+        });
+        startBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startPreview();
+                mResultView.setVisibility(View.INVISIBLE);
+                mGetResult.setVisibility(View.VISIBLE);
+                startBtn.setVisibility(View.INVISIBLE);
+                if(mCyclicProgressBar.getVisibility() == View.VISIBLE) {
+                    mCyclicProgressBar.setVisibility(View.INVISIBLE);
+                }
+//                disRdtResultImage = null;
+//                disRdtResultImage = findViewById(R.id.disRdtResultImage);
+                disRdtResultImage.setVisibility(View.INVISIBLE);
             }
         });
     }
@@ -462,8 +491,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void getRDTResultData(int camId){
-        System.out.println(">>>>>>>>>>>>>hi hi hi >>>>>>>>>>>");
+    private void getRDTResultData(ProgressBar mCyclicProgressBar){
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
             String cameraId = manager.getCameraIdList()[0];
@@ -472,8 +500,8 @@ public class MainActivity extends AppCompatActivity {
             if (characteristics != null) {
                 jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getOutputSizes(ImageFormat.JPEG);
             }
-            int width = 600;//4
-            int height = 400;//8
+            int width = 600;
+            int height = 400;
             if (jpegSizes != null && 0 < jpegSizes.length) {
                 width = jpegSizes[0].getWidth();
                 height = jpegSizes[0].getHeight();
@@ -483,14 +511,13 @@ public class MainActivity extends AppCompatActivity {
             List<Surface> outputSurfaces = new ArrayList<Surface>(2);
             outputSurfaces.add(reader.getSurface());
             outputSurfaces.add(new Surface(mTextureView.getSurfaceTexture()));
-            final CaptureRequest.Builder captureBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            final CaptureRequest.Builder captureBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            captureBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 90);
             captureBuilder.addTarget(reader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-            // Orientation
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-            final File file = new File(Environment.getExternalStorageDirectory() + "/mgd/picpic"+".jpg");
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -501,6 +528,7 @@ public class MainActivity extends AppCompatActivity {
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
                         rdtResults(bytes);
+
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -515,23 +543,16 @@ public class MainActivity extends AppCompatActivity {
                 private void rdtResults(byte[] bytes) throws IOException {
                     OutputStream output = null;
                     try {
-                        //
-                        /*ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
-                        byte[] byteArray = stream.toByteArray();*/
-
-                        String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");//"http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
+                        String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");
                         String guid = String.valueOf(java.util.UUID.randomUUID());
                         String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                         try{
-                            Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,mRectView,mResultView);
+                            Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
                             mr.setCtx(getApplicationContext());
                             mr.execute();
                         }catch(Exception ex){
                             ex.printStackTrace();
                         }
-                        //
-
                     } finally {
                         if (null != output) {
                             output.close();
@@ -545,9 +566,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(MainActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
-                    startPreview();
-                    //mGetResult.setVisibility(View.INVISIBLE);
+                    Toast.makeText(MainActivity.this, "Requested for RDT result:", Toast.LENGTH_SHORT).show();
+
+                    // startPreview();
+                    /*mGetResult.setVisibility(View.INVISIBLE);
+                    startBtn.setVisibility(View.VISIBLE);*/
                 }
             };
             mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
@@ -559,7 +582,6 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-
                 @Override
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
@@ -567,9 +589,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         }catch(Exception e){
-            System.out.println(">>>>>>>>>>>");
+            System.out.println(">>>>>>>>>>>"+e);
         }
-
     }
     /**
      * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
@@ -675,6 +696,7 @@ public class MainActivity extends AppCompatActivity {
     private void repositionRect(AcceptanceStatus status){
 
         if(mRectView == null)return;
+        if(disRdtResultImage == null) return;
         if(status.mRDTFound){
             prevTime = System.currentTimeMillis();
             prevStat = status;
