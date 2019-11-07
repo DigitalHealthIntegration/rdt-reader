@@ -165,8 +165,8 @@ public class MainActivity extends AppCompatActivity {
         mRdtApi.setRotation(true);
 
         //mRdtApi.setSaveImages(true);
-        mRdtApi.saveInput(true);
-        mRdtApi.setSavePoints(true);
+//        mRdtApi.saveInput(true);
+//        mRdtApi.setSavePoints(true);
 
         //call the setter for saving functions
         Utils.ApplySettings(this,null,mRdtApi);

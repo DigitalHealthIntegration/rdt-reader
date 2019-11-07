@@ -204,14 +204,6 @@ public class RdtAPI {
         Mat warpMatrix=null;
         if(mRefPyr!= null) {
             warpMatrix = getTransformation(mRefPyr, ref);
-//            double scale = Math.sqrt(warpMatrix.get(0,0)[0]*warpMatrix.get(0,0)[0]+warpMatrix.get(0,1)[0]*warpMatrix.get(0,1)[0]);
-//            Log.d("Scale ", String.valueOf(scale));
-//            Log.d("Madhav 0x0", String.valueOf(warpMatrix.get(0,0)[0]));
-//            Log.d("Madhav 0x1", String.valueOf(warpMatrix.get(0,1)[0]));
-//            Log.d("Madhav 1x0", String.valueOf(warpMatrix.get(1,0)[0]));
-//            Log.d("Madhav 1x1", String.valueOf(warpMatrix.get(1,1)[0]));
-            Log.d("Madhav Tx", String.valueOf(warpMatrix.get(0,2)[0]));
-            Log.d("Madhav Ty", String.valueOf(warpMatrix.get(1,2)[0]));
         }
         mRefPyr = ref.clone();
         return warpMatrix;
@@ -225,6 +217,7 @@ public class RdtAPI {
         Mat greyMat = new Mat();
         Mat greyMatResized = new Mat();
         Mat mPrevious;
+        mPreProcessingTime = mTensorFlowProcessTime = mPostProcessingTime= 0;
 
         AcceptanceStatus ret= new AcceptanceStatus();
         try {
@@ -242,19 +235,18 @@ public class RdtAPI {
             }
 
             if(mSetRotation)greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
-            //if(mSaveInput)SaveMatrix(greyMat,"rotated-90");
             org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
-            //Log.d("IMAGESIZE:","WIDTH "+greyMat.width()+"HEIGHT "+greyMat.height());
             Imgproc.resize(greyMat,greyMatResized,sz,0.0,0.0,INTER_CUBIC);
             mPreProcessingTime  = System.currentTimeMillis()-st;
 
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
             mTensorFlowProcessTime = System.currentTimeMillis();
-            Rect roi = mTensorFlow.update(greyMatResized, rdtFound);
+            Rect detectedRoi = mTensorFlow.update(greyMatResized, rdtFound);
             mTensorFlowProcessTime =  System.currentTimeMillis()-mTensorFlowProcessTime;
             mPostProcessingTime  = System.currentTimeMillis();
             ret.mRDTFound = rdtFound[0].booleanValue();
             if (ret.mRDTFound) {
+                Rect roi = detectedRoi.clone();
                 if(mSetRotation){
                     roi = rotateRect(greyMatResized, roi, -90);
                 }
@@ -269,7 +261,6 @@ public class RdtAPI {
                         wfactor = matinput.cols() / 720.0f;
                         hfactor = matinput.rows() / 1280f;
                     }
-                    if(mSaveInput)SaveMatrix(greyMat,"Input");
                     //handle rotation TBD
                     if(mSaveInput || mPlaybackMode) rectangle(matinput, new Point(roi.x*wfactor, roi.y*hfactor), new Point((roi.x+roi.width)*wfactor, (roi.y+roi.height)*hfactor), new Scalar(255,0, 0,0),4,LINE_AA,0);
                     if(mSaveInput) SaveMatrix(matinput,"output");
@@ -278,7 +269,6 @@ public class RdtAPI {
                     ret.mBoundingBoxY = (short) (roi.y*hfactor);
                     ret.mBoundingBoxWidth= (short) (roi.width*wfactor);
                     ret.mBoundingBoxHeight =(short) (roi.height*hfactor);
-
                 }
             }
             if(mPlaybackMode) {
@@ -287,13 +277,13 @@ public class RdtAPI {
 
             if (!rdtFound[0].booleanValue()) return ret;
 
-//            Mat imageROI = greyMat.submat(roi);
-//            if (!computeBlur(imageROI,ret)) {
-//                return ret;
-//            }
-//            if (!computeBrightness(imageROI,ret)) {
-//                return ret;
-//            }
+            Mat imageROI = greyMatResized.submat(detectedRoi);
+            if (!computeBlur(imageROI,ret)) {
+                return ret;
+            }
+            if (!computeBrightness(imageROI,ret)) {
+                return ret;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
