@@ -41,7 +41,7 @@ public class RdtAPI {
     private Config mConfig;
     private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
     private ObjectDetection mTensorFlow;//=null;
-    private static boolean mInprogress = false;
+    private static volatile boolean mInprogress = false;
 
     private static volatile boolean mRDTProcessing = false;
     private static volatile boolean mRDTProcessingResultAvailable = false;
@@ -222,20 +222,6 @@ public class RdtAPI {
         return true;
     }
 
-    private Mat FindMotion(Mat inp){
-        Mat ref = new Mat();
-        pyrDown(inp, ref);
-        pyrDown(ref, ref);
-        pyrDown(ref, ref);
-        //pyrDown(ref, ref);
-        Mat warpMatrix=null;
-        if(mRefPyr!= null) {
-            warpMatrix = getTransformation(mRefPyr, ref);
-        }
-        mRefPyr = ref.clone();
-        return warpMatrix;
-    }
-
     public AcceptanceStatus checkFrame(Bitmap capFrame) {
         mInprogress = true;
         mBrightness = -1;
@@ -273,15 +259,13 @@ public class RdtAPI {
                         lt = warpPoint(new Point(mPreviousLTPoint.x/16.0,mPreviousLTPoint.y/16.0),warpmat);
                         lt.x = lt.x*16;
                         lt.y = lt.y*16;
-                        //rb = warpPoint(new Point((mPreviousRBPoint.x + mPreviousLTPoint.x)/16.0,(mPreviousRBPoint.y + mPreviousLTPoint.y)/16.0),warpmat);
-                        Log.i("Previous Mat", mPreviousLTPoint.x+"x"+mPreviousLTPoint.y+" "+mPreviousRBPoint.x+"x"+mPreviousRBPoint.y);
+                        //Log.i("Previous Mat", mPreviousLTPoint.x+"x"+mPreviousLTPoint.y+" "+mPreviousRBPoint.x+"x"+mPreviousRBPoint.y);
                         ClampBoundingBox(greyMat, lt);
-                        //ClampBoundingBox(greyMat, rb);
                         ret.mBoundingBoxX = (short)(lt.x);
                         ret.mBoundingBoxY = (short)(lt.y);
                         ret.mBoundingBoxWidth = (short)((mPreviousRBPoint.x + ret.mBoundingBoxX)> greyMat.cols()? greyMat.cols() - ret.mBoundingBoxX:mPreviousRBPoint.x);////(short)((rb.x-lt.x)*16);
                         ret.mBoundingBoxHeight = (short)((mPreviousRBPoint.y + ret.mBoundingBoxY)> greyMat.rows()? greyMat.rows() - ret.mBoundingBoxY:mPreviousRBPoint.y);
-                        Log.i("Computed Mat", ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+" "+ ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
+                        //Log.i("Computed Mat", ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+" "+ ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
                         ret.mRDTFound = true;
                     }else{
                         mPreviousStudy=true;
@@ -308,7 +292,7 @@ public class RdtAPI {
                         ret.mBoundingBoxHeight = mStatus.mBoundingBoxHeight;
                         warpmat = ImageRegistration.FindMotionRefIns(greyMat,mGreyMat);
                         if(warpmat!=null) {
-                            Log.i("Tx-Ty", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
+                            //Log.i("Tx-Ty", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
                             if (!((Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY))) {
                                 lt = warpPoint(new Point(mStatus.mBoundingBoxX / 16.0, mStatus.mBoundingBoxY / 16.0), warpmat);
                                 lt.x = lt.x * 16;
@@ -323,6 +307,9 @@ public class RdtAPI {
                     }else{
                         ret.mRDTFound =false;
                     }
+                    mInputMat.release();
+                    mGreyMat.release();
+                    mGreyMatResized.release();
                     mRDTProcessingResultAvailable=false;
                 }
                 //We should thread from here
@@ -343,16 +330,13 @@ public class RdtAPI {
                 }
             }
 
-            //Lets put a check on BB
-
-
             if(mPlaybackMode) {
                 if(ret.mRDTFound)rectangle(matinput, new Point(ret.mBoundingBoxX, ret.mBoundingBoxY), new Point(ret.mBoundingBoxX +ret.mBoundingBoxWidth, ret.mBoundingBoxY+ret.mBoundingBoxHeight), new Scalar(255, 0, 0, 0), 4, LINE_AA, 0);
                 mLocalcopy = matinput.clone();
             }
             if (!ret.mRDTFound) return ret;
 
-            Log.d("Bounding Box Used ",ret.mBoundingBoxX+"x"+ret.mBoundingBoxY +"  "+ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
+            //Log.d("Bounding Box Used ",ret.mBoundingBoxX+"x"+ret.mBoundingBoxY +"  "+ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
             ismPreviousRDT = true;
             mPreviousLTPoint = new Point(ret.mBoundingBoxX,ret.mBoundingBoxY);
             mPreviousRBPoint = new Point(ret.mBoundingBoxWidth,ret.mBoundingBoxHeight);
@@ -388,7 +372,7 @@ public class RdtAPI {
     private void ProcessRDT(AcceptanceStatus retStatus,Mat inputmat,Mat reszgreymat){
         Rect detectedRoi=null;
         try {
-            Log.i("ProcessRDT","Coming in process RDT");
+            //Log.i("ProcessRDT","Coming in process RDT");
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
             long updatetimest = System.currentTimeMillis();
             detectedRoi = mTensorFlow.update(reszgreymat, rdtFound);
@@ -418,7 +402,7 @@ public class RdtAPI {
                 retStatus.mBoundingBoxY = (short) (roi.y * hfactor);
                 retStatus.mBoundingBoxWidth = (short) (roi.width * wfactor);
                 retStatus.mBoundingBoxHeight = (short) (roi.height * hfactor);
-                Log.d("Bounding Box Computed ",retStatus.mBoundingBoxX+"x"+retStatus.mBoundingBoxY +"  "+retStatus.mBoundingBoxWidth+"x"+retStatus.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
+                //Log.d("Bounding Box Computed ",retStatus.mBoundingBoxX+"x"+retStatus.mBoundingBoxY +"  "+retStatus.mBoundingBoxWidth+"x"+retStatus.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
             }
         }
         catch (Exception ex){
@@ -427,7 +411,7 @@ public class RdtAPI {
         finally {
             mRDTProcessingResultAvailable=true;
             mRDTProcessing = false;
-            Log.i("ProcessRDT","Exiting in process RDT");
+            //Log.i("ProcessRDT","Exiting in process RDT");
         }
         //return detectedRoi;
     }
