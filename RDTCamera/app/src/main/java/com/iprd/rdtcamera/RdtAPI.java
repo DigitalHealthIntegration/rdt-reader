@@ -307,9 +307,9 @@ public class RdtAPI {
                     }else{
                         ret.mRDTFound =false;
                     }
-                    mInputMat.release();
-                    mGreyMat.release();
-                    mGreyMatResized.release();
+                    if(mInputMat!= null)mInputMat.release();
+                    if(mGreyMat!= null)mGreyMat.release();
+                    if(mGreyMatResized!= null)mGreyMatResized.release();
                     mRDTProcessingResultAvailable=false;
                 }
                 //We should thread from here
