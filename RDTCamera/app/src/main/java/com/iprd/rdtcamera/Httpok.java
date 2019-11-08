@@ -97,6 +97,21 @@ public class Httpok extends AsyncTask<String, Void, String> {
                     //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
                 }
             }
+        }else{
+            if(mJsonResult!=null){
+                String str="";
+                try {
+                    str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if(null != mResultView) {
+                    mResultView.setTextColor(Color.BLACK);
+                    mResultView.setText(str);
+                    mResultView.setVisibility(View.VISIBLE);
+                }
+                //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -112,7 +127,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
     private void httpOkPostMultipartAndJson() throws IOException {
         OkHttpClient.Builder b = new OkHttpClient.Builder();
-        b.connectTimeout(8,TimeUnit.SECONDS);
+        b.connectTimeout(5,TimeUnit.SECONDS);
         b.readTimeout(30, TimeUnit.SECONDS);
         b.writeTimeout(30, TimeUnit.SECONDS);
         OkHttpClient client =  b.build();
@@ -130,6 +145,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
         Response response = client.newCall(request).execute();
         String res = response.body().string();
+       // System.out.println("~~~~~~~~~~~new~~`"+res);
         Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {
@@ -152,6 +168,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
                             Log.i("msg",obj.getString("msg"));
                             Log.i("rc",obj.getString("rc"));
                             mJsonResult = obj;
+
                         }
                     }
                 }
