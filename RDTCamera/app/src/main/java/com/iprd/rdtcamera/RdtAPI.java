@@ -48,7 +48,7 @@ public class RdtAPI {
     Mat mInputMat;
     Mat mGreyMat;
     Mat mGreyMatResized;
-    AcceptanceStatus mStatus;
+    AcceptanceStatus mStatus=null;
     int mTaskID=-1;
 
     private short mBrightness;
@@ -299,7 +299,7 @@ public class RdtAPI {
                 mPreProcessingTime = System.currentTimeMillis() - st;
 
                 if( mRDTProcessingResultAvailable) {
-                    if (mStatus.mRDTFound) {
+                    if ((mStatus!= null) && mStatus.mRDTFound) {
                         //Find Transformation..
                         ret.mRDTFound =true;
                         ret.mBoundingBoxX = mStatus.mBoundingBoxX;
