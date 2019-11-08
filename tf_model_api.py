@@ -4,6 +4,8 @@
 import sys
 import os
 from settings import RDT_GIT_ROOT
+from settings import FLU_AUDERE_PATH
+from settings import FLU_AUDERE_LINE_PATH
 
 path = os.path.join(os.getcwd(),"tensorflow-yolov3")
 sys.path.append(path)
@@ -28,7 +30,7 @@ from core.config import cfg
 import tensorflow as tf
 
 class YOLO:
-    def __init__(self, input_size=512,numClasses=4,weightsPath="rdt-reader/tensorflow-yolov3/models/Flu_audere/1"):
+    def __init__(self, input_size=512,numClasses=4,weightsPath=FLU_AUDERE_PATH):
         """This function initializes the YOLO model and warms it up and returns predictor function handle
             
             Args:
@@ -44,6 +46,7 @@ class YOLO:
         self.iou_threshold    = cfg.TEST.IOU_THRESHOLD
         self.weightsPath = weightsPath
         self.predictorFn=self.__hit_model()
+        print("Exit Yolo constructor")
 
 
     def __hit_model(self):
@@ -58,11 +61,16 @@ class YOLO:
         image_data = image_data[np.newaxis, ...]
 
         
+        try:
+            temp_inp_yolo = np.array(image_data,dtype=np.float32)
+            predict_fn = tf.contrib.predictor.from_saved_model(self.weightsPath)
+            output_data = predict_fn({"input": temp_inp_yolo})
+            return predict_fn
+        except IOError:
+            print("Unable to read either array or weight path")
+            output_data = predict_fn({"input": temp_inp_yolo})
+            return predict_fn
         
-        temp_inp_yolo = np.array(image_data,dtype=np.float32)
-        predict_fn = tf.contrib.predictor.from_saved_model(self.weightsPath)
-        output_data = predict_fn({"input": temp_inp_yolo})
-        return predict_fn
 
 
     def wrapper(self, image):
@@ -107,7 +115,7 @@ class YOLO:
 
 
 class LineDetector:
-    def __init__(self, input_size=[500,100],numClasses=4,weightsPath="rdt-reader/tensorflow-yolov3/models/Flu_audere_line/1"):
+    def __init__(self, input_size=[500,100],numClasses=4,weightsPath=FLU_AUDERE_LINE_PATH):
         """This function initializes the Line detector model and warms it up and returns predictor function handle
             
             Args:
