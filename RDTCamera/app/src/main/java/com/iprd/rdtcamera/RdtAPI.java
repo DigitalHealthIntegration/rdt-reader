@@ -18,9 +18,11 @@ import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
 import static com.iprd.rdtcamera.ImageRegistration.getTransformation;
+import static com.iprd.rdtcamera.ObjectDetection.warpPoint;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static com.iprd.rdtcamera.Utils.rotateRect;
 import static com.iprd.rdtcamera.Utils.saveImage;
+import static java.time.Instant.MIN;
 import static org.opencv.core.Core.BORDER_REFLECT101;
 import static org.opencv.core.Core.LINE_4;
 import static org.opencv.core.Core.LINE_AA;
@@ -40,7 +42,15 @@ public class RdtAPI {
     private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
     private ObjectDetection mTensorFlow;//=null;
     private static boolean mInprogress = false;
-    private static boolean mRDTProcessing = false;
+
+    private static volatile boolean mRDTProcessing = false;
+    private static volatile boolean mRDTProcessingResultAvailable = false;
+    Mat mInputMat;
+    Mat mGreyMat;
+    Mat mGreyMatResized;
+    AcceptanceStatus mStatus;
+    int mTaskID=-1;
+
     private short mBrightness;
     private short mSharpness;
     Mat mLocalcopy;
@@ -49,7 +59,11 @@ public class RdtAPI {
     long mTensorFlowProcessTime;
     long mPreProcessingTime;
     long mPostProcessingTime;
-
+    Point mPreviousLTPoint;
+    Point mPreviousRBPoint;
+    boolean mPreviousStudy=false;
+    boolean ismPreviousRDT=false;
+    Mat mPreviousMat=null;
     public void setRotation(boolean mSetRotation) {
         this.mSetRotation = mSetRotation;
     }
@@ -225,45 +239,110 @@ public class RdtAPI {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
-            Mat warpmat = FindMotion(greyMat);
+            Mat warpmat = ImageRegistration.FindMotion(greyMat,true);
+            Point lt = null,rb=null;
             if(warpmat!=null) {
-                Log.i("Tx-Ty",warpmat.get(0, 2)[0] +"x"+warpmat.get(1, 2)[0]);
+                //Log.i("Tx-Ty",warpmat.get(0, 2)[0] +"x"+warpmat.get(1, 2)[0]);
                 if (Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY) {
                     ret.mSteady = TOO_HIGH;
+                    mPreviousStudy = false;
                     mPreProcessingTime = System.currentTimeMillis() - st;
                     Log.i("Motion Detected", "Too much Motion");
                     return ret;
                 }else{
-                    ret.mSteady = GOOD;
-                    // if we have previous Bounding box then we should be able to translate it.
-                    // update the new bounding box result.
-                    int level = 1<<3;//3 level motion translates to 2**3 in level 0;
-                    double tx= warpmat.get(0,2)[0]*level;
-                    double ty= warpmat.get(1,2)[0]*level;
-                    //Speculate point
+                    if((mPreviousStudy)&&(ismPreviousRDT)) {
+                        //if we have previous Bounding box then we should be able to translate it.
+                        //update the new bounding box result.
+                        //Speculate point
+                        //Lets predict the next rectangle
+                        //Tracking BB
+                        ret.mSteady = GOOD;
+                        if((null != mPreviousLTPoint)&&(null != mPreviousRBPoint) )
+                        lt = warpPoint(new Point(mPreviousLTPoint.x/16.0,mPreviousLTPoint.y/16.0),warpmat);
+                        lt.x = lt.x*16;
+                        lt.y = lt.y*16;
+                        //rb = warpPoint(new Point((mPreviousRBPoint.x + mPreviousLTPoint.x)/16.0,(mPreviousRBPoint.y + mPreviousLTPoint.y)/16.0),warpmat);
+                        Log.i("Previous Mat", mPreviousLTPoint.x+"x"+mPreviousLTPoint.y+" "+mPreviousRBPoint.x+"x"+mPreviousRBPoint.y);
+                        ClampBoundingBox(greyMat, lt);
+                        //ClampBoundingBox(greyMat, rb);
+                        ret.mBoundingBoxX = (short)(lt.x);
+                        ret.mBoundingBoxY = (short)(lt.y);
+                        ret.mBoundingBoxWidth = (short)((mPreviousRBPoint.x + ret.mBoundingBoxX)> greyMat.cols()? greyMat.cols() - ret.mBoundingBoxX:mPreviousRBPoint.x);////(short)((rb.x-lt.x)*16);
+                        ret.mBoundingBoxHeight = (short)((mPreviousRBPoint.y + ret.mBoundingBoxY)> greyMat.rows()? greyMat.rows() - ret.mBoundingBoxY:mPreviousRBPoint.y);
+                        Log.i("Computed Mat", ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+" "+ ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
+                        ret.mRDTFound = true;
+                    }else{
+                        mPreviousStudy=true;
+                    }
+                }
+            }
+            ismPreviousRDT = false;
+            //process frame
+            Rect detectedRoi = null;
+            if(true) {
+                Mat rotatedmat = new Mat();
+                if (mSetRotation) rotatedmat = com.iprd.rdtcamera.Utils.rotateFrame(greyMat, -90);
+                org.opencv.core.Size sz = new org.opencv.core.Size(1280, 720);
+                Imgproc.resize(mSetRotation ? rotatedmat:greyMat, greyMatResized, sz, 0.0, 0.0, INTER_CUBIC);
+                mPreProcessingTime = System.currentTimeMillis() - st;
 
-
-
+                if( mRDTProcessingResultAvailable) {
+                    if (mStatus.mRDTFound) {
+                        //Find Transformation..
+                        ret.mRDTFound =true;
+                        ret.mBoundingBoxX = mStatus.mBoundingBoxX;
+                        ret.mBoundingBoxY = mStatus.mBoundingBoxY;
+                        ret.mBoundingBoxWidth = mStatus.mBoundingBoxWidth;
+                        ret.mBoundingBoxHeight = mStatus.mBoundingBoxHeight;
+                        warpmat = ImageRegistration.FindMotionRefIns(greyMat,mGreyMat);
+                        if(warpmat!=null) {
+                            Log.i("Tx-Ty", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
+                            if (!((Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY))) {
+                                lt = warpPoint(new Point(mStatus.mBoundingBoxX / 16.0, mStatus.mBoundingBoxY / 16.0), warpmat);
+                                lt.x = lt.x * 16;
+                                lt.y = lt.y * 16;
+                                ClampBoundingBox(mGreyMat, lt);
+                                ret.mBoundingBoxX = (short) lt.x;
+                                ret.mBoundingBoxY = (short) lt.y;
+                            }
+                        }
+                    }else{
+                        ret.mRDTFound =false;
+                    }
+                    mRDTProcessingResultAvailable=false;
+                }
+                //We should thread from here
+                if (!mRDTProcessing) {
+                    mRDTProcessing = true;
+                    mRDTProcessingResultAvailable = false;
+                    mInputMat = matinput.clone();
+                    mGreyMat = greyMat.clone();
+                    mGreyMatResized = greyMatResized.clone();
+                    mStatus = new AcceptanceStatus();
+                    //Lets run it as thread
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ProcessRDT(mStatus, mInputMat, mGreyMatResized);
+                        }
+                    }).start();
                 }
             }
 
-            if(mSetRotation)greyMat=com.iprd.rdtcamera.Utils.rotateFrame(greyMat,-90);
-            org.opencv.core.Size sz= new org.opencv.core.Size(1280, 720);
-            Imgproc.resize(greyMat,greyMatResized,sz,0.0,0.0,INTER_CUBIC);
-            mPreProcessingTime  = System.currentTimeMillis()-st;
+            //Lets put a check on BB
 
-            //process frame
-            Rect detectedRoi=null;
-            boolean rdtfound= false;
-            if(!mRDTProcessing) {
-                 detectedRoi = ProcessRDT(ret, matinput, greyMatResized);
-            }
 
             if(mPlaybackMode) {
+                if(ret.mRDTFound)rectangle(matinput, new Point(ret.mBoundingBoxX, ret.mBoundingBoxY), new Point(ret.mBoundingBoxX +ret.mBoundingBoxWidth, ret.mBoundingBoxY+ret.mBoundingBoxHeight), new Scalar(255, 0, 0, 0), 4, LINE_AA, 0);
                 mLocalcopy = matinput.clone();
             }
             if (!ret.mRDTFound) return ret;
-            Mat imageROI = greyMatResized.submat(detectedRoi);
+
+            Log.d("Bounding Box Used ",ret.mBoundingBoxX+"x"+ret.mBoundingBoxY +"  "+ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
+            ismPreviousRDT = true;
+            mPreviousLTPoint = new Point(ret.mBoundingBoxX,ret.mBoundingBoxY);
+            mPreviousRBPoint = new Point(ret.mBoundingBoxWidth,ret.mBoundingBoxHeight);
+            Mat imageROI = greyMat.submat(new Rect(ret.mBoundingBoxX,ret.mBoundingBoxY,ret.mBoundingBoxWidth,ret.mBoundingBoxHeight));// greyMatResized.submat(detectedRoi);
             if (!computeBlur(imageROI,ret)) {
                 return ret;
             }
@@ -276,6 +355,7 @@ public class RdtAPI {
             if(((!ret.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData&&ret.mRDTFound)){
 //                saveImage(capFrame,"Color");
             }
+            greyMatResized.release();
             greyMat.release();
             matinput.release();
             mInprogress = false;
@@ -284,10 +364,17 @@ public class RdtAPI {
         return ret;
     }
 
-    private Rect ProcessRDT(AcceptanceStatus retStatus,Mat inputmat,Mat reszgreymat){
-        mRDTProcessing = true;
+    private void ClampBoundingBox(Mat greyMat, Point lt) {
+        if(lt.x < 0.0) lt.x=0;
+        if(lt.x > greyMat.cols()) lt.x=greyMat.cols();
+        if(lt.y < 0.0) lt.y=0;
+        if(lt.y > greyMat.rows()) lt.y=greyMat.rows();
+    }
+
+    private void ProcessRDT(AcceptanceStatus retStatus,Mat inputmat,Mat reszgreymat){
         Rect detectedRoi=null;
         try {
+            Log.i("ProcessRDT","Coming in process RDT");
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
             long updatetimest = System.currentTimeMillis();
             detectedRoi = mTensorFlow.update(reszgreymat, rdtFound);
@@ -317,15 +404,18 @@ public class RdtAPI {
                 retStatus.mBoundingBoxY = (short) (roi.y * hfactor);
                 retStatus.mBoundingBoxWidth = (short) (roi.width * wfactor);
                 retStatus.mBoundingBoxHeight = (short) (roi.height * hfactor);
+                Log.d("Bounding Box Computed ",retStatus.mBoundingBoxX+"x"+retStatus.mBoundingBoxY +"  "+retStatus.mBoundingBoxWidth+"x"+retStatus.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
             }
         }
         catch (Exception ex){
             ex.printStackTrace();
         }
         finally {
+            mRDTProcessingResultAvailable=true;
             mRDTProcessing = false;
+            Log.i("ProcessRDT","Exiting in process RDT");
         }
-        return detectedRoi;
+        //return detectedRoi;
     }
     // private constructor , so that, we can only access via Builder
     private RdtAPI( RdtAPIBuilder rdtAPIBuilder){

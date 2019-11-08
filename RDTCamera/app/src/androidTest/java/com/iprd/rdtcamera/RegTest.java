@@ -12,12 +12,15 @@ import org.junit.runner.RunWith;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import static com.iprd.rdtcamera.ObjectDetection.warpPoint;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
@@ -84,7 +87,6 @@ public class RegTest {
 
         //Mat warpmat = ImageRegistration.GetTransform(matAgray,matBgray);
 
-
         int numIter = 5;
         double terminationEps = 1e-10;
         TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
@@ -96,6 +98,35 @@ public class RegTest {
     }
 
     @Test
+    public void TestRegWithROI() {
+        Mat ref=null;
+        Mat a = getMap("/NotFound0.jpg");
+        Mat warpmat = ImageRegistration.FindMotion(a,true);
+//        Assert.assertThat("Null WarpMat",warpmat,null);
+        Mat b = getMap("/NotFound0.jpg");
+        warpmat = ImageRegistration.FindMotion(b,true);
+        assertEquals("Scale Tx test",warpmat.get(0,0)[0],1.0,0.001);
+        assertEquals("Scale Ty test",warpmat.get(1,1)[0],1.0,0.001);
+
+        ///Now say RDT is busy and we try track it.
+        Point lt= new Point(158,271);
+        Point rb= new Point(286,1800);
+
+        Mat c = getMap("/NotFound1.jpg");
+        Mat warpmat1 = ImageRegistration.FindMotion(c,true);
+        Point lt1 = warpPoint(lt,warpmat1);
+        Point rb1 = warpPoint(rb,warpmat1);
+
+        Mat warpmat2 = ImageRegistration.FindMotion(c,true);
+        Point lt2 = warpPoint(lt1,warpmat2);
+        Point rb2 = warpPoint(rb1,warpmat2);
+        assertEquals("LT X should be same  ",lt1.x ,lt2.x ,0.001);
+        assertEquals("LT Y should be same  ",lt1.y ,lt2.y ,0.001);
+        assertEquals("RB X should be same  ",rb1.x ,rb2.x ,0.001);
+        assertEquals("RB Y should be same  ",rb1.y ,rb2.y ,0.001);
+    }
+
+    @Test
     public void TestReg() {
         Bitmap ins= getBitmap("/NotFound0.jpg");
         Bitmap ref= getBitmap("/NotFound1.jpg");
@@ -104,7 +135,7 @@ public class RegTest {
         alignImagesEuclidean(ins,ref);
 
         Mat a = getMap("/NotFound0.jpg");
-        Mat b = getMap("/NotFound0.jpg");
+        Mat b = getMap("/NotFound1.jpg");
         Mat a1 = new Mat();
         Mat b1 = new Mat();
         pyrDown(a, a1);

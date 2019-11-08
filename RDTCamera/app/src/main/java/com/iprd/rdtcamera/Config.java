@@ -35,7 +35,8 @@ public class Config{
         mMinBrightness = 110.0f;
         mTfliteB=null;
         mMappedByteBuffer=null;
-        mMaxAllowedTranslationY =mMaxAllowedTranslationX =6; //at Pyramid level 4 of preview
+        mMaxAllowedTranslationY = 400;
+        mMaxAllowedTranslationX = 200;
     }
     public void setmMappedByteBuffer(MappedByteBuffer mMappedByteBuffer) {
         this.mMappedByteBuffer = mMappedByteBuffer;

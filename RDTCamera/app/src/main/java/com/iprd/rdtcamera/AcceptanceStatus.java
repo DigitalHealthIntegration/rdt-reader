@@ -20,19 +20,6 @@ public class AcceptanceStatus {
     AcceptanceStatus() {
         setDefaultStatus();
     }
-    AcceptanceStatus(short sharp,short scale,short bright,short prosp,short dispx,short dispy,short x,short y, short width, short height){
-        mRDTFound = true;
-        mBrightness = bright;
-        mSharpness = sharp;
-        mScale = scale;
-        mDisplacementX = dispx;
-        mDisplacementY = dispy;
-        mPerspectiveDistortion = prosp;
-        mBoundingBoxX = x;
-        mBoundingBoxY = y;
-        mBoundingBoxWidth = width;
-        mBoundingBoxHeight = height;
-    }
 
     void setDefaultStatus(){
         mRDTFound = false;
