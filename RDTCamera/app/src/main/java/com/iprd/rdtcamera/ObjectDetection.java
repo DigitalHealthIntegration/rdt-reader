@@ -8,6 +8,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Point3;
 import org.opencv.core.Rect;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -34,6 +35,9 @@ public class ObjectDetection {
     private static float [] cannonicalArrow={121.0f,152.0f,182.0f};
     private static float [] cannonicalCpattern={596.0f,746.0f,895.0f};
     private static float [] cannonicalInfl={699.0f,874.0f,1048.0f};
+    private static double ac_can = cannonicalCpattern[1]-cannonicalArrow[1];
+    private static double ai_can = cannonicalInfl[1]-cannonicalArrow[1];
+
 
     private static Point  cannonicalA_C_Mid= new Point(449.0f,30.0f);
     private static Point  ref_A= new Point(cannonicalArrow[1]-cannonicalA_C_Mid.x,0.0f);
@@ -81,7 +85,6 @@ public class ObjectDetection {
         return mSaveImage;
     }
 
-    public org.opencv.core.RotatedRect rotatedRect;
     public void setTopThreshold(double top){
         mThreshold = top;
     }
@@ -350,8 +353,6 @@ public class ObjectDetection {
         //scale
         double ac=lengthOfLine(a,c);
         double ai=lengthOfLine(a,i);
-        double ac_can = cannonicalCpattern[1]-cannonicalArrow[1];
-        double ai_can = cannonicalInfl[1]-cannonicalArrow[1];
 
         double s1=ac/ac_can;
         double s2=ai/ai_can;
@@ -546,19 +547,19 @@ public class ObjectDetection {
         if(angleRads>Math.PI)
             angleRads-=Math.PI*2;
         double calculatedAngleRotation= Math.toDegrees(angleRads);
-        double[] A_C_mid_pred = {C_arrow_best[0] + (C_Cpattern_best[0] - C_arrow_best[0]) / 2, C_arrow_best[1] + (C_Cpattern_best[1] - C_arrow_best[1]) / 2};
-        double A_C_pred = euclidianDistance(C_arrow_best, C_Cpattern_best);
 
-        double L_predicted = A_C_pred * A_C_to_L;
-        double W_predicted = L_predicted * L_to_W;
+        Point rdt_c = new Point(C_arrow_best[0] + (C_Cpattern_best[0] - C_arrow_best[0]) / 2, C_arrow_best[1] + (C_Cpattern_best[1] - C_arrow_best[1]) / 2);
 
-        Point rdt_c = new Point();
+        Size sz = new Size();
+        sz.width = ac_can * A_C_to_L *best_scale_rot.x;
+        sz.height = sz.width* L_to_W;
 
-        rdt_c.x = (A_C_mid_pred[0] + ref_hyp * Math.cos(angleRads));
-        rdt_c.y = (A_C_mid_pred[1] - ref_hyp * Math.sin(angleRads));
+        if(true) {
+            rdt_c.x += ref_hyp * Math.cos(angleRads);
+            rdt_c.y -= ref_hyp * Math.sin(angleRads);
+        }
 
-        Size sz = new Size(L_predicted, W_predicted);
-        rotatedRect = new org.opencv.core.RotatedRect(rdt_c, sz, calculatedAngleRotation);
+        RotatedRect rotatedRect = new RotatedRect(rdt_c, sz, calculatedAngleRotation);
         roi = rotatedRect.boundingRect();
         //Log.d("ROI:", "X : " + roi.x + "Y : " + roi.y + "W : " + roi.width + "H : " + roi.height);
 

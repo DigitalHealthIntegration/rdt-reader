@@ -3,6 +3,7 @@ package com.iprd.rdtcamera;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -12,6 +13,7 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
@@ -65,8 +67,8 @@ public class ActivityVideo extends AppCompatActivity {
     Short mShowImageData;
     Bitmap mCapFrame;
     ProgressBar mCyclicProgressBar;
-
-
+    TextView mResultView;
+    SharedPreferences prefs;
     PlayPause mState = PlayPause.PAUSE;
     boolean mRunningloop = false;
 
@@ -92,6 +94,7 @@ public class ActivityVideo extends AppCompatActivity {
         mCyclicProgressBar = findViewById(R.id.loader);
         mRdtImage = findViewById(R.id.rdt);
         mGetResult = findViewById(R.id.getResult);
+        mResultView = findViewById(R.id.ResultView);
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,6 +103,7 @@ public class ActivityVideo extends AppCompatActivity {
                 startActivity(i);
             }
         });
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         MappedByteBuffer mMappedByteBuffer = null;
         try {
             mMappedByteBuffer = Utils.loadModelFile(getAssets(), mModelFileName);
@@ -127,6 +131,7 @@ public class ActivityVideo extends AppCompatActivity {
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
+                mResultView.setVisibility(View.INVISIBLE);
                 mRunningloop = false;
                 mPlayPause.setText("");
                 try {
@@ -146,10 +151,10 @@ public class ActivityVideo extends AppCompatActivity {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
                 byte[] byteArray = stream.toByteArray();
-                String urlString = "http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
+                String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");//"http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
                 String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                 try{
-                    Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage);
+                    Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage,mResultView);
                     mr.setCtx(getApplicationContext());
                     mr.execute();
                 }catch(Exception ex){
@@ -171,6 +176,7 @@ public class ActivityVideo extends AppCompatActivity {
                 setFilePickerVisibility(false);
                 mPlayPause.setText("");
                 mGetResult.setVisibility(View.INVISIBLE);
+                mResultView.setVisibility(View.INVISIBLE);
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
             }

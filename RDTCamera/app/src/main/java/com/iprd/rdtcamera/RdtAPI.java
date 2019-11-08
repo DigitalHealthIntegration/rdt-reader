@@ -138,12 +138,24 @@ public class RdtAPI {
         return b;
     }
 
-    public void SetText(String message,AcceptanceStatus status){
+    /*public void SetText(String message,AcceptanceStatus status){
         Scalar sr= new Scalar(255,0,0,0);
         Scalar sg= new Scalar(0,0,255,0);
         Scalar s;
         s = (status.mRDTFound)?sg:sr;
         putText(mLocalcopy,message,new Point((mLocalcopy.cols()>>2), mLocalcopy.rows()-50),0, 1,s,2,LINE_4,false);
+    }*/
+    public void SetText(String message, AcceptanceStatus status) {
+        Scalar sr = new Scalar(255, 0, 0, 0);
+        Scalar sg = new Scalar(0, 0, 255, 0);
+        Scalar s;
+        s = (status.mRDTFound) ? sg : sr;
+        int yoff = 100;
+        message.split("\n");
+        for (String s1 : message.split("\n")) {
+            putText(mLocalcopy, s1, new Point((mLocalcopy.cols() * 3) >> 2, yoff), 0, 3, s, 3, LINE_AA, false);
+            yoff += 90;
+        }
     }
 
 

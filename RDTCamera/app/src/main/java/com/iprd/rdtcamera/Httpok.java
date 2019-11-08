@@ -3,18 +3,23 @@ package com.iprd.rdtcamera;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -30,7 +35,9 @@ public class Httpok extends AsyncTask<String, Void, String> {
     String metaDataStr;
     ProgressBar mProgressBar=null;
     ImageView mImageView=null;
+    TextView mResultView=null;
     JSONObject mJsonResult=null;
+    Button mGetResult = null;
 
     public void setCtx(Context mCtx) {
         this.mCtx = mCtx;
@@ -43,15 +50,16 @@ public class Httpok extends AsyncTask<String, Void, String> {
     }
 
     Bitmap mResult=null;
-    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view){
+    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view,TextView txtView){
         this.imgName = imgName;
         this.img = img;
-        this.urlString = urlString;
+        this.urlString = "http://3.95.232.90:9000/Quidel/QuickVue/";//urlString;
         this.metaDataStr = metaDataStr;
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
         mResult=null;
         mJsonResult=null;
+        mResultView=txtView;
     }
 
     @Override
@@ -75,26 +83,58 @@ public class Httpok extends AsyncTask<String, Void, String> {
             mProgressBar.setVisibility(View.INVISIBLE);
             if(mResult != null){
                 mImageView.setVisibility(View.VISIBLE);
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+mResult);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
-                Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
+                //Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
+                if(mJsonResult!=null){
+                    String str="";
+                    try {
+                        str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    if(null != mResultView) {
+                        mResultView.setTextColor(Color.BLACK);
+                        mResultView.setText(str);
+                        mResultView.setVisibility(View.VISIBLE);
+                    }
+                    //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
+                }
             }else{
-                Toast.makeText(mCtx,"Error in fetching data",Toast.LENGTH_LONG).show();
+                if(mJsonResult!=null){
+                    String str="";
+                    try {
+                        str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    if(null != mResultView) {
+                        mResultView.setTextColor(Color.BLACK);
+                        mResultView.setText(str);
+                        mResultView.setVisibility(View.VISIBLE);
+                    }
+                    //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
     @Override
     protected void onPreExecute() {
 //        Log.i("HTTPOK","ONPREEXECUTE");
-        if(null != mProgressBar){
+        if(null != mProgressBar  && mProgressBar.getVisibility() == View.INVISIBLE){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
         }
     }
 
     private void httpOkPostMultipartAndJson() throws IOException {
-        OkHttpClient client = new OkHttpClient();
-        //File imagefile = new File(folderPath+""+imgName);
+        OkHttpClient.Builder b = new OkHttpClient.Builder();
+        b.connectTimeout(5, TimeUnit.SECONDS);
+        b.readTimeout(30, TimeUnit.SECONDS);
+        b.writeTimeout(30, TimeUnit.SECONDS);
+        OkHttpClient client =  b.build();
+
         RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("metadata", metaDataStr)
                 .addFormDataPart("image", imgName, RequestBody.create(MediaType.parse("image/jpeg"), img))
@@ -140,18 +180,4 @@ public class Httpok extends AsyncTask<String, Void, String> {
             }
         }
     }
-
   }
-
-/*
- String folderPath = "/sdcard/aa/mgd/";
-        String imgName = "KH5.jpg";
-        String urlString = "http://10.102.10.97:9000/align";
-        String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
-        try{
-            Okhttp mr = new Okhttp(folderPath, imgName, urlString, metaDataStr);
-            mr.execute();
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
- */
