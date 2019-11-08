@@ -75,6 +75,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
             mProgressBar.setVisibility(View.INVISIBLE);
             if(mResult != null){
                 mImageView.setVisibility(View.VISIBLE);
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+mResult);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
                 Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
@@ -86,7 +87,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     @Override
     protected void onPreExecute() {
 //        Log.i("HTTPOK","ONPREEXECUTE");
-        if(null != mProgressBar){
+        if(null != mProgressBar  && mProgressBar.getVisibility() == View.INVISIBLE){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
         }
