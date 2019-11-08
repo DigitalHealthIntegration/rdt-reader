@@ -248,7 +248,7 @@ public class ObjectDetection {
 
                 rdt[0] = found;
             }
-            if(mSavePoints && found ){
+            if(found ){
                 if(ret.x <0) ret.x = 0;
                 if(ret.y <0) ret.y = 0;
                 if(ret.width <0) ret.width =0;
@@ -257,8 +257,10 @@ public class ObjectDetection {
                 if((ret.x+ret.width) > inputmat.cols()) ret.width = inputmat.cols()-ret.x;
                 if((ret.y+ret.height) > inputmat.rows()) ret.height = inputmat.rows()-ret.y;
 
-                Imgproc.rectangle(tmp_for_draw, new Point(ret.x, ret.y), new Point(ret.x + ret.width, ret.y + ret.height), new Scalar(255, 0, 255), 1);
-                Utils.SavecentersImage(tmp_for_draw);
+                if(mSavePoints) {
+                    Imgproc.rectangle(tmp_for_draw, new Point(ret.x, ret.y), new Point(ret.x + ret.width, ret.y + ret.height), new Scalar(255, 0, 255), 1);
+                    Utils.SavecentersImage(tmp_for_draw);
+                }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
