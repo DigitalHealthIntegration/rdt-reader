@@ -275,14 +275,9 @@ public class ObjectDetection {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        if (true) {
             if (rdt[0] == true) {
-                if((ret.x+ret.width)> 1280){
-                    boolean r = true;
-                }
                 Log.i("ROI", ret.x + "x" + ret.y + " " + ret.width + "x" + ret.height);
             }
-        }
         return ret;
     }
     private static double euclidianDistance(float[] p1,float[] p2){

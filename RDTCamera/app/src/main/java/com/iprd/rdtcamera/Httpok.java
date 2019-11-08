@@ -78,6 +78,8 @@ public class Httpok extends AsyncTask<String, Void, String> {
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
                 Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
+            }else{
+                Toast.makeText(mCtx,"Error in fetching data",Toast.LENGTH_LONG).show();
             }
         }
     }
