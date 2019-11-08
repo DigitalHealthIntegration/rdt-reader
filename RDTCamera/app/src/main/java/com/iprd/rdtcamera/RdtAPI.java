@@ -316,6 +316,8 @@ public class RdtAPI {
                                 ClampBoundingBox(mGreyMat, lt);
                                 ret.mBoundingBoxX = (short) lt.x;
                                 ret.mBoundingBoxY = (short) lt.y;
+                                ret.mBoundingBoxWidth = (short)((ret.mBoundingBoxWidth + ret.mBoundingBoxX)> greyMat.cols()? greyMat.cols() - ret.mBoundingBoxX :ret.mBoundingBoxWidth);////(short)((rb.x-lt.x)*16);
+                                ret.mBoundingBoxHeight = (short)((ret.mBoundingBoxHeight + ret.mBoundingBoxY)> greyMat.rows()? greyMat.rows() - ret.mBoundingBoxY:ret.mBoundingBoxHeight);
                             }
                         }
                     }else{
