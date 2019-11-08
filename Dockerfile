@@ -37,12 +37,12 @@ WORKDIR ${HOME}/rdt-reader
 #we use conda env create by reading a yml file. we can do this using a text file as well.
 #please discuss if you want to use that instead.
 #RUN conda create --name rdt-reader --file "${HOME}/rdt-reader/spec-file_linux_nogpu.txt" python=3.6
-RUN conda env create --file "${HOME}/rdt-reader/rdtEnv.yml" python=3.6
+RUN conda env create --file "${HOME}/rdt-reader/rdtEnvWin.yml" python=3.6
 ENTRYPOINT bash /home/rdtreader/rdt-reader/initShell.sh && \
     conda activate rdt-reader && \
     python3 /home/rdtreader/rdt-reader/django_server/manage.py makemigrations && \
     python3 /home/rdtreader/rdt-reader/django_server/manage.py migrate && \
-    python3 /home/rdtreader/rdt-reader/django_server/manage.py runserver 9000
+    python3 /home/rdtreader/rdt-reader/django_server/manage.py runserver 0.0.0.0:9000
 
 
 
