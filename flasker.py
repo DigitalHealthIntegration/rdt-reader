@@ -420,6 +420,7 @@ def generateRDTcrop(boxes,im0,targets):
 class FluServer:
     def __init__(self):
         '''FluServer init. handler for the two models'''
+        print("Creating flu server")
         self.__yolo = YOLO()
         self.__lineDetector = LineDetector()
 
@@ -478,20 +479,38 @@ def processRdtRequest(UUID,include_proof,img_str):
         Reads rdt input image and tells the result: No rdt, No flu, Type A flu, Type B flu. Handles errors as well.
         This function is called from the rest API code which extracts the required data from the request and calls this function.
     '''
+    print("Calling fn to process rdt in flasker")
     message1="No Flu"
     rc=0
-    nparr = np.fromstring(img_str, np.uint8)
-    img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+    try:
+        nparr = np.fromstring(img_str, np.uint8)
+        img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+        print("Reading rdt img")
+    except IOError:
+        print("Unable to open rdt jpeg")
+    
     im0 = np.copy(img_np)
     st = time.time()
-    serv = FluServer()
-    boxes = serv.callyolo(img_np)
+    try:
+        serv = FluServer()
+    except IOError:
+        print("Possible tensorflow error")
+    finally:
+        boxes = serv.callyolo(img_np)
     et = time.time()
     t1=et-st
-    im0 = utils.draw_bbox(im0, boxes, show_label=True)
+    try:
+        im0 = utils.draw_bbox(im0, boxes, show_label=True)
+        print("Util processing img")
+    except IOError:
+        print("Image reading error")
     resp,roi = generateRDTcrop(boxes,img_np,[])
     if resp["message"]=="success": 
-            cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
+            try:
+                cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
+                print("Overwrite roi jpeg")
+            except IOError:
+                print("Unable to open roi jpeg")
             st=time.time()
             outImage,virus_type,blue_detection = serv.callLineDetector(roi)
             et=time.time()
@@ -516,10 +535,11 @@ def processRdtRequest(UUID,include_proof,img_str):
             cv2.imwrite("out.jpg",outImage[1000:1500,:,:])
             print("Time taken",t2)
     else:
+            print("No rdt found")
             message1="No rdt found"
             rc = -2
     
-    if include_proof=="True":
+    if include_proof=="True" and rc != -2:
             try:
                 with open("roi.jpg", "rb") as image_file:
                     encoded_string = base64.b64encode(image_file.read())

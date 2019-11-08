@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import sys
 
+
 sys.path.append(RDT_GIT_ROOT)
 import flasker
 
@@ -70,10 +71,29 @@ def ViewRdt(request):
                 print(img_str)
                 m,retFlag = flasker.processRdtRequest(UUID,include_proof,img_str)
                 if retFlag==True:
-                    return HttpResponse(m.to_string, content_type=m.content_type)
+                    print(m.to_string)
+                    boundary = m.boundary
+                    print("Boundary value: "+boundary)
+                    #print(m.content_type)
+                    #return Response(m,"image/jpeg")
+                    r1 = m.fields.get("metadata")
+                    #print("Metadata Filename: "+r1[0])
+                    #print("Metadata content type: "+r1[2])
+                    #print("Metadata string: "+r1[1])
+                    r2 = m.fields.get("image")
+                    print("Image Filename: "+r2[0])
+                    print("Image content type: "+r2[2])
+                    print("Image string: "+r2[1].decode("utf-8"))
+                    finalRspTxt = "\n"+boundary+"\nContent-Disposition: form-data; name=\"metadata\"; filename=\""+r1[0]+"\"\nContent-Type: "+r1[2]+"\r\n\r\n"+r1[1]
+                    print(finalRspTxt)
+                    finalRspImg = "\n"+boundary+"\nContent-Disposition: form-data; name=\"image\"; filename=\""+r2[0]+"\"\nContent-Type: "+r2[2]+"\r\n\r\n"+r2[1].decode("utf-8")
+                    finalRsp = HttpResponse(finalRspTxt+"\n"+finalRspImg+"\n"+boundary,content_type="multipart/form-data; boundary="+boundary,status="200")
+                    return finalRsp
+                    #return HttpResponse(finalRsp,status="200")
                 else:
                     return HttpResponse(m, content_type="application/json")
-            except IOError:
+            except IOError as ioe:
+                    print("IOError raised while processing rdt - ")
                     return HttpResponse("<h1>Rdt Post IO error</h1>",status="400")
             except ValueError:
                     return HttpResponse("<h1>Rdt internal Post failure</h1>",status="400")
