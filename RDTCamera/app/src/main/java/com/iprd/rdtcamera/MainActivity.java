@@ -544,8 +544,8 @@ public class MainActivity extends AppCompatActivity {
             int width = 600;
             int height = 400;
             if (jpegSizes != null && 0 < jpegSizes.length) {
-                width = jpegSizes[0].getWidth();
-                height = jpegSizes[0].getHeight();
+                width = jpegSizes[0].getWidth()-100;
+                height = jpegSizes[0].getHeight()-100;
             }
 
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
@@ -562,17 +562,17 @@ public class MainActivity extends AppCompatActivity {
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
+                    Thread.yield();
                     Image image = null;
+                    Log.d("Madhav",">>>>>>>>>>>>>>>2");
                     try {
                         progressbar(true);
                         image = reader.acquireLatestImage();
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
-
                         rdtResults(bytes);
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
-
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -612,13 +612,12 @@ public class MainActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     isPreviewOff = true;
-                    try {
-                        Thread.sleep(50);
+                    /*try {
+                        //Thread.sleep(500);
                     } catch (InterruptedException e) {
-                        System.out.println("################");
                         e.printStackTrace();
-
-                    }
+                    }*/
+                    Log.d("Madhav",">>>>>>>>>>>>>>>1");
                 }
             };
             mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
@@ -634,7 +633,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
             }, mBackgroundHandler);
-
 
         }catch(Exception e){
             System.out.println(">>>>>>>>>>>"+e);

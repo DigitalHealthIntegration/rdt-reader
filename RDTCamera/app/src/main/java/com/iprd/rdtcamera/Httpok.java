@@ -53,7 +53,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view,TextView txtView){
         this.imgName = imgName;
         this.img = img;
-        this.urlString = urlString;
+        this.urlString = "http://3.95.232.90:9000/Quidel/QuickVue/";//urlString;
         this.metaDataStr = metaDataStr;
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
@@ -87,6 +87,21 @@ public class Httpok extends AsyncTask<String, Void, String> {
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
                 //Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
+                if(mJsonResult!=null){
+                    String str="";
+                    try {
+                        str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    if(null != mResultView) {
+                        mResultView.setTextColor(Color.BLACK);
+                        mResultView.setText(str);
+                        mResultView.setVisibility(View.VISIBLE);
+                    }
+                    //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
+                }
+            }else{
                 if(mJsonResult!=null){
                     String str="";
                     try {
