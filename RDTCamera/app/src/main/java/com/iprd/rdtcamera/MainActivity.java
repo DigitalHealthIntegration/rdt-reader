@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
     Button mGetResult;
     Button startBtn;
     TextView mResultView;
+    Boolean isPreviewOff = false;
+    Boolean shouldOffTorch = false;
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     SharedPreferences prefs;
@@ -164,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         mCyclicProgressBar = findViewById(R.id.loader);
 
         mResultView = findViewById(R.id.ResultView);
-        mCyclicProgressBar.setVisibility(View.INVISIBLE);
+       // mCyclicProgressBar.setVisibility(View.INVISIBLE);
         startBtn = findViewById(R.id.startBtn);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
         // preferences
@@ -194,15 +196,20 @@ public class MainActivity extends AppCompatActivity {
         //torch.setVisibility(View.VISIBLE);
         torch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                try{
-                    if (isChecked) {
-                        // The toggle is enabled
-                        mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
-                        mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
-                    } else {
-                        // The toggle is disabled
-                        mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
-                        mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
+                try {
+                    System.out.println(">>>>>>>>>>>>>>>>>>>" + isChecked);
+                    if (shouldOffTorch == false){
+                        if (isChecked) {
+                            // The toggle is enabled
+                            mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+                            mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
+                        } else {
+                            // The toggle is disabled
+                            mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+                            mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
+                        }
+                }else{
+                        shouldOffTorch =false;
                     }
                 }catch (CameraAccessException e){
                     e.printStackTrace();
@@ -227,8 +234,20 @@ public class MainActivity extends AppCompatActivity {
         mode = (Switch) findViewById(R.id.mode);
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isPreviewOff){
+                   startPreview();
+                    if(mCyclicProgressBar.getVisibility() == View.VISIBLE) {
+                        mCyclicProgressBar.setVisibility(View.INVISIBLE);
+                        mResultView.setVisibility(View.INVISIBLE);
+                        mGetResult.setVisibility(View.VISIBLE);
+                        startBtn.setVisibility(View.INVISIBLE);
+                    }
+
+                }
             if (isChecked) {
                 mode.setChecked(false);
+                torch.setChecked(false);
+                saveData.setChecked(false);
                 Intent i = new Intent(MainActivity.this, ActivityVideo.class);
                 i.putExtra("videoPath","aaaaaa");
                 i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
@@ -241,14 +260,20 @@ public class MainActivity extends AppCompatActivity {
         mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mCyclicProgressBar.getVisibility() == View.INVISIBLE) {
+               /* if(mCyclicProgressBar.getVisibility() == View.INVISIBLE) {
                     mCyclicProgressBar.setVisibility(View.VISIBLE);
                     mCyclicProgressBar.bringToFront();
-                }
-                getRDTResultData(mCyclicProgressBar);
+                }*/
+                //progressbar(true);
+                getRDTResultData();
                 startBtn.setVisibility(View.VISIBLE);
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
+
+                shouldOffTorch = true;
+                if(torch.isChecked())
+                    torch.setChecked(false);
+
             }
         });
         startBtn.setOnClickListener(new View.OnClickListener() {
@@ -259,14 +284,24 @@ public class MainActivity extends AppCompatActivity {
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.INVISIBLE);
-                if(mCyclicProgressBar.getVisibility() == View.VISIBLE) {
+                /*if(mCyclicProgressBar.getVisibility() == View.VISIBLE) {
                     mCyclicProgressBar.setVisibility(View.INVISIBLE);
-                }
+                }*/
 //                disRdtResultImage = null;
 //                disRdtResultImage = findViewById(R.id.disRdtResultImage);
+                progressbar(false);
                 disRdtResultImage.setVisibility(View.INVISIBLE);
             }
         });
+    }
+
+    void progressbar(boolean isVisible){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mCyclicProgressBar.setVisibility(isVisible?View.VISIBLE:View.INVISIBLE);
+            }
+        });;
     }
 
     byte[] ReadAssests() throws IOException {
@@ -300,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
             //Log.d("Madhav","Comes in imagehandler");
             Image image = null;
             try {
-                image = reader.acquireLatestImage();
+                image = reader.acquireLatestImage();//acquireNextImage()
 
             } catch(Exception e){
 
@@ -335,7 +370,6 @@ public class MainActivity extends AppCompatActivity {
         int count = 0;
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-            //Log.d(".... ","onSurfaceTextureUpdated");
             mode.setVisibility(View.VISIBLE);
             saveData.setVisibility(View.VISIBLE);
             torch.setVisibility(View.VISIBLE);
@@ -491,7 +525,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void getRDTResultData(ProgressBar mCyclicProgressBar){
+    private void getRDTResultData(){
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
             String cameraId = manager.getCameraIdList()[0];
@@ -500,6 +534,7 @@ public class MainActivity extends AppCompatActivity {
             if (characteristics != null) {
                 jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getOutputSizes(ImageFormat.JPEG);
             }
+
             int width = 600;
             int height = 400;
             if (jpegSizes != null && 0 < jpegSizes.length) {
@@ -523,11 +558,14 @@ public class MainActivity extends AppCompatActivity {
                 public void onImageAvailable(ImageReader reader) {
                     Image image = null;
                     try {
+                        progressbar(true);
                         image = reader.acquireLatestImage();
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
+
                         rdtResults(bytes);
+                        Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
 
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
@@ -543,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
                 private void rdtResults(byte[] bytes) throws IOException {
                     OutputStream output = null;
                     try {
-                        String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");
+                        String urlString = prefs.getString("rdtCheckUrl","http://10.102.10.106:9000/Quidel/QuickVue/");//http://3.82.11.139:9000/align
                         String guid = String.valueOf(java.util.UUID.randomUUID());
                         String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                         try{
@@ -566,11 +604,14 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(MainActivity.this, "Requested for RDT result:", Toast.LENGTH_SHORT).show();
+                    isPreviewOff = true;
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        System.out.println("################");
+                        e.printStackTrace();
 
-                    // startPreview();
-                    /*mGetResult.setVisibility(View.INVISIBLE);
-                    startBtn.setVisibility(View.VISIBLE);*/
+                    }
                 }
             };
             mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
@@ -640,6 +681,7 @@ public class MainActivity extends AppCompatActivity {
         if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null || mImageReader == null) {
             return;
         }
+        isPreviewOff = false;
         try {
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
             texture.setDefaultBufferSize(mPreviewSize.getWidth(),

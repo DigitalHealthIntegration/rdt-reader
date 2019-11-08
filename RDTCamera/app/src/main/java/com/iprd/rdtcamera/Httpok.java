@@ -53,7 +53,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar, ImageView view, TextView txtView){
         this.imgName = imgName;
         this.img = img;
-        this.urlString = urlString;
+        this.urlString = urlString;//"http://10.102.10.106:9000/Quidel/QuickVue/";//"http://192.168.0.141:9000/Quidel/QuickVue/";//urlString;//"http://127.0.0.1:9000/Quidel/QuickVue/";//urlString;//http://10.102.10.97:9000/Quidel/QuickVue/
         this.metaDataStr = metaDataStr;
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
@@ -99,17 +99,20 @@ public class Httpok extends AsyncTask<String, Void, String> {
             }
         }
     }
+
     @Override
     protected void onPreExecute() {
         if(null != mProgressBar && mProgressBar.getVisibility() == View.INVISIBLE){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
+
         }
+
     }
 
     private void httpOkPostMultipartAndJson() throws IOException {
         OkHttpClient.Builder b = new OkHttpClient.Builder();
-        b.connectTimeout(5,TimeUnit.SECONDS);
+        b.connectTimeout(8,TimeUnit.SECONDS);
         b.readTimeout(30, TimeUnit.SECONDS);
         b.writeTimeout(30, TimeUnit.SECONDS);
         OkHttpClient client =  b.build();
@@ -119,7 +122,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
                 .addFormDataPart("metadata", metaDataStr)
                 .addFormDataPart("image", imgName, RequestBody.create(MediaType.parse("image/jpeg"), img))
                 .build();
-
+        System.out.println(".............."+urlString);
         Request request = new Request.Builder()
                 .url(urlString)
                 .post(requestBody)
