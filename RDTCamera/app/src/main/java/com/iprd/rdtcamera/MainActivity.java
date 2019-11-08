@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
         mode = (Switch) findViewById(R.id.mode);
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                /*if(isPreviewOff){
+                if(isPreviewOff){
                     startPreview();
                     if(mCyclicProgressBar.getVisibility() == View.VISIBLE) {
                         mCyclicProgressBar.setVisibility(View.INVISIBLE);
@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                         startBtn.setVisibility(View.INVISIBLE);
                     }
 
-                }*///?
+                }//?
                 if (isChecked) {
                     mode.setChecked(false);
                     mode.setChecked(false);
@@ -591,8 +591,8 @@ public class MainActivity extends AppCompatActivity {
                         String guid = String.valueOf(java.util.UUID.randomUUID());
                         String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                         try{
-                            Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage);//disRdtResultImage,mResultView
-                                                  //         imgName,  img,  urlString, metaDataStr, mProgressBar,ImageView view
+                            Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
+
                             mr.setCtx(getApplicationContext());
                             mr.execute();
                         }catch(Exception ex){
@@ -688,6 +688,7 @@ public class MainActivity extends AppCompatActivity {
         if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null || mImageReader == null) {
             return;
         }
+        isPreviewOff = false;
         try {
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
             texture.setDefaultBufferSize(mPreviewSize.getWidth(),
@@ -744,6 +745,7 @@ public class MainActivity extends AppCompatActivity {
     private void repositionRect(AcceptanceStatus status){
 
         if(mRectView == null)return;
+        if(disRdtResultImage == null) return;
         if(status.mRDTFound){
             prevTime = System.currentTimeMillis();
             prevStat = status;
