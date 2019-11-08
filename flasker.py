@@ -545,15 +545,18 @@ def processRdtRequest(UUID,include_proof,img_str):
                     encoded_string = base64.b64encode(image_file.read())
                     m = MultipartEncoder(fields={'metadata': ('response',json.dumps({"UUID":UUID,"rc":str(rc),"msg":message1,"Include Proof":include_proof}),'application/json'),
                     'image': ('rdt', encoded_string, 'image/jpeg')})
-                    return m,True
+                    return m,True,rc
             except IOError:
                 print("Unable to open roi image")
                 raise IOError('Unable to open roi file')
                 
+    elif include_proof=="True" and rc==-2:
+            m = MultipartEncoder(fields={'metadata': ('response',json.dumps({"UUID":UUID,"rc":str(rc),"msg":message1,"Include Proof":include_proof}),'application/json')})
+            return m,True,rc
     else:
             encoded_string=None
             resp = json.dumps({"UUID":UUID,"rc":str(rc),"msg":message1,"Include Proof":include_proof})
-            return resp,False
+            return resp,False,rc
             
 
 
