@@ -240,6 +240,15 @@ public class ActivityVideo extends AppCompatActivity {
             }
         });
     }
+//mGetResult
+void setmGetResultVisibility(final boolean vis) {
+    runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+            mGetResult.setVisibility(vis ? View.VISIBLE : View.INVISIBLE);
+        }
+    });
+}
 
     private void playVideo(String videoFilename) {
         try {
@@ -257,7 +266,7 @@ public class ActivityVideo extends AppCompatActivity {
 
             boolean process = true;
             int count = 0;
-            while (mRunningloop) {
+            while (mRunningloop) {System.out.println(">>>>>>>>>>>>>"+mRunningloop);
                 if (mState == PlayPause.PAUSE) {
                     Thread.sleep(100);
                     continue;
@@ -281,6 +290,8 @@ public class ActivityVideo extends AppCompatActivity {
                     });
                 }
             }
+
+
             Log.i("Madhav", "Done");
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -294,6 +305,8 @@ public class ActivityVideo extends AppCompatActivity {
             ex.printStackTrace();
         } finally {
             setFilePickerVisibility(true);
+           // mGetResult.setVisibility(View.VISIBLE);
+            setmGetResultVisibility(true);
             mState = PlayPause.PAUSE;
             mRunningloop = false;
         }
