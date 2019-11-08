@@ -235,6 +235,15 @@ public class RdtAPI {
                     return ret;
                 }else{
                     ret.mSteady = GOOD;
+                    // if we have previous Bounding box then we should be able to translate it.
+                    // update the new bounding box result.
+                    int level = 1<<3;//3 level motion translates to 2**3 in level 0;
+                    double tx= warpmat.get(0,2)[0]*level;
+                    double ty= warpmat.get(1,2)[0]*level;
+                    //Speculate point
+
+
+
                 }
             }
 
@@ -249,6 +258,7 @@ public class RdtAPI {
             if(!mRDTProcessing) {
                  detectedRoi = ProcessRDT(ret, matinput, greyMatResized);
             }
+
             if(mPlaybackMode) {
                 mLocalcopy = matinput.clone();
             }
