@@ -207,7 +207,6 @@ public class ObjectDetection {
                                 float cy = (float) ((row + 0.5) * resizeFactor[0] + output[0][computedIndex][j][offsetStartIndex+1] * inputSize[0])*heightFactor;
                                 float w = (float) (aspectAnchors[j * 2+1]*Math.exp(output[0][computedIndex][j][offsetStartIndex+2] ))*widthFactor;
                                 float h = (float) (aspectAnchors[j * 2 ]*Math.exp(output[0][computedIndex][j][offsetStartIndex+3]))*heightFactor;
-
                                 Vector v = new Vector();
                                 int typeOfFeat=targetClass/10;
                                 float predictedOrientation =  orientationAngles[targetClass % 10];
@@ -249,6 +248,17 @@ public class ObjectDetection {
                 rdt[0] = found;
             }
             if(found ){
+
+                //grow width when it is too thin
+                double grow_fact=0.25;
+                if(ret.width*ret.height>0 && ret.height/ret.width <(1+grow_fact)*L_to_W)
+                {
+                    //remember height is the smaller direction
+                    double adder=ret.height*grow_fact;
+                    ret.height+=adder;
+                    ret.y -=(adder/2);
+                }
+
                 if(ret.x <0) ret.x = 0;
                 if(ret.y <0) ret.y = 0;
                 if(ret.width <0) ret.width =0;
@@ -544,7 +554,7 @@ public class ObjectDetection {
         double[] A_C_mid_pred = {C_arrow_best[0] + (C_Cpattern_best[0] - C_arrow_best[0]) / 2, C_arrow_best[1] + (C_Cpattern_best[1] - C_arrow_best[1]) / 2};
         double A_C_pred = euclidianDistance(C_arrow_best, C_Cpattern_best);
 
-        double L_predicted = A_C_pred * A_C_to_L*1.1;
+        double L_predicted = A_C_pred * A_C_to_L;
         double W_predicted = L_predicted * L_to_W;
 
         Point rdt_c = new Point();

@@ -22,7 +22,7 @@ public class ModelInfo {
         if(mModelFileName.contains("180x320"))
         {
             inputSize = new int[]{180,320};
-            aspectAnchors = new int[]{15, 35, 34,34, 11, 37, 14, 26};
+            aspectAnchors = new int[]{15, 35, 34,34, 22, 37, 14, 26};
             numberBlocks = new int[]{5,9};
             pyrlevelcnt =2;
         }
