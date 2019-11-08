@@ -70,7 +70,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api.wsgi.application'
-RDT_GIT_ROOT = 'C:\\Users\\developer\\Anaconda_3\\rdt-reader' 
+RDT_GIT_ROOT = '/home/rdtreader/rdt-reader' 
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
