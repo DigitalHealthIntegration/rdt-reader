@@ -70,7 +70,7 @@ public class ActivityVideo extends AppCompatActivity {
     TextView mResultView;
     SharedPreferences prefs;
     PlayPause mState = PlayPause.PAUSE;
-    boolean mRunningloop = false;
+    volatile boolean mRunningloop = false;
 
     private boolean checkpermission() {
         System.out.println("..>>" + WRITE_EXTERNAL_STORAGE);
@@ -266,7 +266,7 @@ void setmGetResultVisibility(final boolean vis) {
 
             boolean process = true;
             int count = 0;
-            while (mRunningloop) {System.out.println(">>>>>>>>>>>>>"+mRunningloop);
+            while (mRunningloop) {
                 if (mState == PlayPause.PAUSE) {
                     Thread.sleep(100);
                     continue;
