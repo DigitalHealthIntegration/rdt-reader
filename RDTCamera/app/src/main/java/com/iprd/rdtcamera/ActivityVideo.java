@@ -306,7 +306,7 @@ void setmGetResultVisibility(final boolean vis) {
         } finally {
             setFilePickerVisibility(true);
            // mGetResult.setVisibility(View.VISIBLE);
-            setmGetResultVisibility(true);
+            //setmGetResultVisibility(true);
             mState = PlayPause.PAUSE;
             mRunningloop = false;
         }
