@@ -157,7 +157,6 @@ public class Utils {
             builder.setYMin(config.mYMin);
         }
         if(rdt !=null){
-            //rdt.getTensorFlow().setBottomThreshold(mBotTh);
             rdt.getTensorFlow().setTopThreshold(mTopTh);
             rdt.setSaveNegativeData(mSaveNegativeData);
         }

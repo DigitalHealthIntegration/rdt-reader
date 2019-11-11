@@ -24,14 +24,14 @@ public class Config{
 
 
     public void setDefaults() {
-        mMaxScale = 1100;
-        mMinScale = 700;
-        mXMin = 100;
-        mXMax = 500;
-        mYMin = 50;
-        mYMax = 650;
-        mMinSharpness = 500.0f;
-        mMaxBrightness = 210.0f;
+        mMaxScale = 75;
+        mMinScale = 5;
+        mXMin = 15;
+        mXMax = 75;
+        mYMin = 10;
+        mYMax = 75;
+        mMinSharpness = 800.0f;
+        mMaxBrightness = 220.0f;
         mMinBrightness = 110.0f;
         mTfliteB=null;
         mMappedByteBuffer=null;

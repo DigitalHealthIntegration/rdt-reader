@@ -200,31 +200,37 @@ public class RdtAPI {
         return true;
     }
 
-    private boolean computeDistortion(){
-        if(mAcceptanceStatus.mBoundingBoxWidth > mConfig.mMaxScale){
-            mAcceptanceStatus.mScale = TOO_HIGH;
+    private boolean computeDistortion(Mat mat,AcceptanceStatus ret){
+        if(ret.mBoundingBoxWidth*100 > mConfig.mMaxScale*mat.cols()){
+            ret.mScale = TOO_HIGH;
+            Log.d("DistMaxSc",""+ret.mBoundingBoxWidth*100 +">"+ mConfig.mMaxScale*mat.cols());
             return false;
-        }else if (mAcceptanceStatus.mBoundingBoxWidth < mConfig.mMinScale){
-            mAcceptanceStatus.mScale = TOO_LOW;
+        }else if (ret.mBoundingBoxWidth*100 < mConfig.mMinScale*mat.cols()){
+            ret.mScale = TOO_LOW;
+            Log.d("DistMinSc",""+ret.mBoundingBoxWidth*100 +"<"+ mConfig.mMinScale*mat.cols());
             return false;
-        }else mAcceptanceStatus.mScale = AcceptanceStatus.GOOD;
+        }else ret.mScale = AcceptanceStatus.GOOD;
 
-        if (mAcceptanceStatus.mBoundingBoxX > mConfig.mXMax){
-            mAcceptanceStatus.mDisplacementX = TOO_HIGH;
+        if (ret.mBoundingBoxX*100 > mConfig.mXMax*mat.cols()){
+            ret.mDisplacementX = TOO_HIGH;
+            Log.d("DistXMax",""+ret.mBoundingBoxX*100 +">"+ mConfig.mXMax*mat.cols());
             return false;
-        }else if (mAcceptanceStatus.mBoundingBoxX < mConfig.mXMin){
-            mAcceptanceStatus.mDisplacementX = TOO_LOW;
+        }else if (ret.mBoundingBoxX*100 < mConfig.mXMin*mat.cols()){
+            ret.mDisplacementX = TOO_LOW;
+            Log.d("DistXMin",""+ret.mBoundingBoxX *100+"<"+ mConfig.mXMin*mat.cols());
             return false;
-        }else mAcceptanceStatus.mDisplacementX = GOOD;
+        }else ret.mDisplacementX = GOOD;
 
-        if (mAcceptanceStatus.mBoundingBoxY > mConfig.mYMax){
-            mAcceptanceStatus.mDisplacementY = TOO_HIGH;
+        if (ret.mBoundingBoxY*100 > mConfig.mYMax*mat.rows()){
+            ret.mDisplacementY = TOO_HIGH;
+            Log.d("DistYMax",""+ret.mBoundingBoxY*100 +">"+ mConfig.mYMax*mat.rows());
             return false;
-        }else if (mAcceptanceStatus.mBoundingBoxY < mConfig.mYMin){
-            mAcceptanceStatus.mDisplacementY = TOO_LOW;
+        }else if (ret.mBoundingBoxY*100 < mConfig.mYMin*mat.rows()){
+            ret.mDisplacementY = TOO_LOW;
+            Log.d("DistYMin",""+ret.mBoundingBoxY*100 +"<"+ mConfig.mYMin*mat.rows());
             return false;
-        }else mAcceptanceStatus.mDisplacementY = GOOD;
-        mAcceptanceStatus.mPerspectiveDistortion= GOOD;
+        }else ret.mDisplacementY = GOOD;
+        ret.mPerspectiveDistortion= GOOD;
         return true;
     }
 
@@ -357,6 +363,9 @@ public class RdtAPI {
             ismPreviousRDT = true;
             mPreviousLTPoint = new Point(ret.mBoundingBoxX,ret.mBoundingBoxY);
             mPreviousRBPoint = new Point(ret.mBoundingBoxWidth,ret.mBoundingBoxHeight);
+            if(!computeDistortion(greyMat,ret)){
+                return ret;
+            }
             Mat imageROI = greyMat.submat(new Rect(ret.mBoundingBoxX,ret.mBoundingBoxY,ret.mBoundingBoxWidth,ret.mBoundingBoxHeight));// greyMatResized.submat(detectedRoi);
             if (!computeBlur(imageROI,ret)) {
                 return ret;
@@ -385,15 +394,15 @@ public class RdtAPI {
         ClampBoundingBox(greyMat, lt);
         ret.mBoundingBoxX = (short) (lt.x);
         ret.mBoundingBoxY = (short) (lt.y);
-        ret.mBoundingBoxWidth = (short) ((x + ret.mBoundingBoxX) > cols ? cols - ret.mBoundingBoxX : x);////(short)((rb.x-lt.x)*16);
-        ret.mBoundingBoxHeight = (short) ((y + ret.mBoundingBoxY) > rows ? rows - ret.mBoundingBoxY : y);
+        ret.mBoundingBoxWidth = (short) ((x + ret.mBoundingBoxX) >= cols ? cols - ret.mBoundingBoxX : x);////(short)((rb.x-lt.x)*16);
+        ret.mBoundingBoxHeight = (short) ((y + ret.mBoundingBoxY) >= rows ? rows - ret.mBoundingBoxY : y);
     }
 
     private void ClampBoundingBox(Mat greyMat, Point lt) {
         if(lt.x < 0.0) lt.x=0;
-        if(lt.x > greyMat.cols()) lt.x=greyMat.cols();
+        if(lt.x >= greyMat.cols()) lt.x=greyMat.cols();
         if(lt.y < 0.0) lt.y=0;
-        if(lt.y > greyMat.rows()) lt.y=greyMat.rows();
+        if(lt.y >= greyMat.rows()) lt.y=greyMat.rows();
     }
 
     private void ProcessRDT(AcceptanceStatus retStatus,Mat inputmat,Mat reszgreymat){
