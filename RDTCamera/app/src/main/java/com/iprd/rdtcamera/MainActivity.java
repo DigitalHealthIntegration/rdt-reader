@@ -338,11 +338,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageReader.OnImageAvailableListener mImageAvailable = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            //Log.d("Madhav","Comes in imagehandler");
             Image image = null;
             try {
                 image = reader.acquireLatestImage();
-
             } catch(Exception e){
 
             } finally {
@@ -566,7 +564,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onImageAvailable(ImageReader reader) {
                     Thread.yield();
                     Image image = null;
-                    Log.d("Madhav",">>>>>>>>>>>>>>>2");
                     try {
                         progressbar(true);
                         image = reader.acquireLatestImage();
@@ -619,7 +616,6 @@ public class MainActivity extends AppCompatActivity {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }*/
-                    Log.d("Madhav",">>>>>>>>>>>>>>>1");
                 }
             };
             mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
@@ -737,7 +733,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-
     }
 
     AcceptanceStatus prevStat;
