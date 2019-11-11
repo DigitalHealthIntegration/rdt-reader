@@ -1,5 +1,7 @@
 package com.iprd.rdtcamera;
 
+import android.util.Log;
+
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -25,12 +27,28 @@ public class CvUtils {
         return res;
     }
 
-    private static Point warpPoint(Point point, Mat R){
+    public static Point warpPoint(Point point, Mat R){
         Point result= new Point();
         result.x = point.x * R.get(0,0)[0] + point.y *  R.get(0,1)[0]+  R.get(0,2)[0];
         result.y = point.x * R.get(1,0)[0] + point.y *  R.get(1,1)[0]+  R.get(1,2)[0];
         return result;
     }
+
+    public static Mat scaleAffineMat(Mat warpmat, int level) {
+        Mat warp= warpmat.clone();
+        //level 4 mat
+        int factor = 1<<level;
+        warp.put(0,1,warp.get(0,1)[0]*factor);
+        warp.put(1,0,warp.get(1,0)[0]*factor);
+        warp.put(0,2,warp.get(0,2)[0]*factor);
+        warp.put(1,2,warp.get(1,2)[0]*factor);
+        return warp;
+    }
+    public static void PrintAffineMat(String s,Mat R){
+        Log.i(s+"[0]",R.get(0,0)[0]+"x"+R.get(0,1)[0]+"x"+ R.get(0,2)[0]);
+        Log.i(s+"[1]",R.get(1,0)[0]+"x"+R.get(1,1)[0]+"x"+ R.get(1,2)[0]);
+    }
+
     public static double computePredictionLoss(List<Point> refPts, List<Point> insPts, Size imgSize) throws Exception
     {
         double loss=Double.MAX_VALUE;

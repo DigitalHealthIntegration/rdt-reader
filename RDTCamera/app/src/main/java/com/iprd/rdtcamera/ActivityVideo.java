@@ -70,7 +70,7 @@ public class ActivityVideo extends AppCompatActivity {
     TextView mResultView;
     SharedPreferences prefs;
     PlayPause mState = PlayPause.PAUSE;
-    boolean mRunningloop = false;
+    volatile boolean mRunningloop = false;
 
     private boolean checkpermission() {
         System.out.println("..>>" + WRITE_EXTERNAL_STORAGE);
@@ -266,7 +266,7 @@ void setmGetResultVisibility(final boolean vis) {
 
             boolean process = true;
             int count = 0;
-            while (mRunningloop) {System.out.println(">>>>>>>>>>>>>"+mRunningloop);
+            while (mRunningloop) {
                 if (mState == PlayPause.PAUSE) {
                     Thread.sleep(100);
                     continue;
@@ -279,7 +279,7 @@ void setmGetResultVisibility(final boolean vis) {
                     mCapFrame = AndroidUtil.toBitmap(picture);
                     Log.i("Madhav", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
                     final AcceptanceStatus status = mRdtApi.checkFrame(mCapFrame);
-                    String frNoSB = count + " S[" + mRdtApi.getSharpness() + "]" + "B[" + mRdtApi.getBrightness() + "]";
+                    String frNoSB = "FR["+count +"]\n"+ "S[" + mRdtApi.getSharpness() + "]" +"\n"+ "B[" + mRdtApi.getBrightness() + "]";
                     mRdtApi.SetText(frNoSB, status);
                     final Bitmap ret = mRdtApi.getLocalcopyAsBitmap();
                     runOnUiThread(new Runnable() {

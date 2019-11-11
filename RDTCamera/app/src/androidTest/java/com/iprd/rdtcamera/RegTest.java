@@ -71,32 +71,6 @@ public class RegTest {
         return GetGreyMat(b);
     }
 
-    public static Bitmap alignImagesEuclidean(Bitmap A, Bitmap B)
-    {
-        final int warp_mode = MOTION_EUCLIDEAN;
-        Mat matA = new Mat(A.getHeight(), A.getWidth(), CvType.CV_8UC3);
-        Mat matAgray = new Mat(A.getHeight(), A.getWidth(), CvType.CV_8U);
-        Mat matB = new Mat(B.getHeight(), B.getWidth(), CvType.CV_8UC3);
-        Mat matBgray = new Mat(B.getHeight(), B.getWidth(), CvType.CV_8U);
-        Mat matBaligned = new Mat(A.getHeight(), A.getWidth(), CvType.CV_8UC3);
-        Mat warpMatrix = Mat.eye(2,3,CV_32F);
-        Utils.bitmapToMat(A, matA);
-        Utils.bitmapToMat(B, matB);
-        Imgproc.cvtColor(matA, matAgray, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.cvtColor(matB, matBgray, Imgproc.COLOR_BGR2GRAY);
-
-        //Mat warpmat = ImageRegistration.GetTransform(matAgray,matBgray);
-
-        int numIter = 5;
-        double terminationEps = 1e-10;
-        TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
-        findTransformECC(matAgray, matBgray, warpMatrix, warp_mode, criteria, matBgray);
-        Imgproc.warpAffine(matB, matBaligned, warpMatrix, matA.size(), Imgproc.INTER_LINEAR + Imgproc.WARP_INVERSE_MAP);
-        Bitmap alignedBMP = Bitmap.createBitmap(A.getWidth(), A.getHeight(), Bitmap.Config.RGB_565);
-        Utils.matToBitmap(matBaligned, alignedBMP);
-        return alignedBMP;
-    }
-
     @Test
     public void TestRegWithROI() {
         Mat ref=null;
@@ -109,13 +83,28 @@ public class RegTest {
         assertEquals("Scale Ty test",warpmat.get(1,1)[0],1.0,0.001);
 
         ///Now say RDT is busy and we try track it.
-        Point lt= new Point(158,271);
-        Point rb= new Point(286,1800);
+        Point lt= new Point(164,275);
+        Point rb= new Point(290,1804);
 
         Mat c = getMap("/NotFound1.jpg");
         Mat warpmat1 = ImageRegistration.FindMotion(c,true);
-        Point lt1 = warpPoint(lt,warpmat1);
-        Point rb1 = warpPoint(rb,warpmat1);
+
+        Point ltd = warpPoint(new Point(lt.x/16.0,lt.y/16.0),warpmat1);
+        ltd.x = ltd.x*16;
+        ltd.y = ltd.y*16;
+
+        Mat warp= warpmat1.clone();
+        //level 4 mat
+        int factor = 1<<4;
+        warp.put(0,1,warp.get(0,1)[0]*factor);
+        warp.put(1,0,warp.get(1,0)[0]*factor);
+        warp.put(0,2,warp.get(0,2)[0]*factor);
+        warp.put(1,2,warp.get(1,2)[0]*factor);
+
+
+        Point lt1 = warpPoint(lt,warp);
+        Point rb1 = warpPoint(rb,warp);
+
 
         Mat warpmat2 = ImageRegistration.FindMotion(c,true);
         Point lt2 = warpPoint(lt1,warpmat2);
@@ -128,12 +117,7 @@ public class RegTest {
 
     @Test
     public void TestReg() {
-        Bitmap ins= getBitmap("/NotFound0.jpg");
-        Bitmap ref= getBitmap("/NotFound1.jpg");
-
         long st  = System.currentTimeMillis();
-        alignImagesEuclidean(ins,ref);
-
         Mat a = getMap("/NotFound0.jpg");
         Mat b = getMap("/NotFound1.jpg");
         Mat a1 = new Mat();
