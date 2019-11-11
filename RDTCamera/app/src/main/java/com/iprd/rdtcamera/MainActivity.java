@@ -587,7 +587,8 @@ public class MainActivity extends AppCompatActivity {
                 private void rdtResults(byte[] bytes) throws IOException {
                     OutputStream output = null;
                     try {
-                        String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");
+                        String urlString = prefs.getString("rdtCheckUrl","http://3.95.232.90:9000/Quidel/QuickVue");
+                        System.out.println(">>>>>>>>"+urlString);
                         String guid = String.valueOf(java.util.UUID.randomUUID());
                         String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                         try{

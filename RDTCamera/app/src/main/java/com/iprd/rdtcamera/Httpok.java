@@ -53,7 +53,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view,TextView txtView){
         this.imgName = imgName;
         this.img = img;
-        this.urlString = "http://3.95.232.90:9000/Quidel/QuickVue/";//urlString;
+        this.urlString = urlString;//"http://3.95.232.90:9000/Quidel/QuickVue/";//urlString;
         this.metaDataStr = metaDataStr;
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
