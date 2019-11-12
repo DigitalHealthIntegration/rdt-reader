@@ -22,6 +22,9 @@ RUN  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh 
  && /bin/bash ${HOME}/install-miniconda.sh -b -p ${CONDA}
 
 COPY . ${HOME}/rdt-reader
+RUN sed --in-place \
+    -e "s|D:/source/.*/tensorflow-yolov3|${HOME}/rdt-reader/tensorflow-yolov3|g" \
+    "${HOME}/rdt-reader/tensorflow-yolov3/core/config.py"
 RUN chown -R ${USER}:${USER} ${HOME}/rdt-reader
 
 USER ${USER}
@@ -43,9 +46,3 @@ ENTRYPOINT bash /home/rdtreader/rdt-reader/initShell.sh && \
     python3 /home/rdtreader/rdt-reader/django_server/manage.py makemigrations && \
     python3 /home/rdtreader/rdt-reader/django_server/manage.py migrate && \
     python3 /home/rdtreader/rdt-reader/django_server/manage.py runserver 0.0.0.0:9000
-
-
-
-
-
- 
