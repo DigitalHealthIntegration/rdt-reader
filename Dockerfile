@@ -25,6 +25,8 @@ COPY . ${HOME}/rdt-reader
 RUN sed --in-place \
     -e "s|D:/source/.*/tensorflow-yolov3|${HOME}/rdt-reader/tensorflow-yolov3|g" \
     "${HOME}/rdt-reader/tensorflow-yolov3/core/config.py"
+RUN cd ${HOME}/rdt-reader/tensorflow-yolov3 \
+ && ln -s ../tensorflow-yolov3-models/models models
 RUN chown -R ${USER}:${USER} ${HOME}/rdt-reader
 
 USER ${USER}
