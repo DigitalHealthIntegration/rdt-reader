@@ -45,7 +45,6 @@ public class RdtAPI {
     private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
     private ObjectDetection mTensorFlow;//=null;
     private static volatile boolean mInprogress = false;
-    private final Semaphore inProcess = new Semaphore(1, true);
 
     private static volatile boolean mRDTProcessing = false;
     private static volatile boolean mRDTProcessingResultAvailable = false;
@@ -236,12 +235,6 @@ public class RdtAPI {
 
     public AcceptanceStatus checkFrame(Bitmap capFrame) {
 
-        try {
-            inProcess.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return new AcceptanceStatus();
-        }
 
         mInprogress = true;
         mBrightness = -1;
@@ -385,7 +378,6 @@ public class RdtAPI {
             matinput.release();
             mInprogress = false;
             mPostProcessingTime = System.currentTimeMillis()-mPostProcessingTime;
-            inProcess.release();
         }
         return ret;
     }

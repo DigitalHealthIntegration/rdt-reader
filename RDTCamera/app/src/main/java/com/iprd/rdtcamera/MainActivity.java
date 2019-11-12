@@ -67,6 +67,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -371,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
             return true;
         }
-        int count = 0;
+        private Semaphore sem = new Semaphore(1);
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
             //Log.d(".... ","onSurfaceTextureUpdated");
@@ -379,9 +380,14 @@ public class MainActivity extends AppCompatActivity {
             saveData.setVisibility(View.VISIBLE);
             torch.setVisibility(View.VISIBLE);
 
-            if(!mRdtApi.isInprogress()) {
-                Bitmap capFrame = mTextureView.getBitmap();
-                Process(capFrame);
+            if (!mRdtApi.isInprogress() && sem.tryAcquire(1) == true) {
+                try {
+                    Log.d("~~~~~~~~~~~","Lock Acquired `[=>]");
+                    Bitmap capFrame = mTextureView.getBitmap();
+                    Process(capFrame);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         void Process(final Bitmap capFrame) {
@@ -413,6 +419,10 @@ public class MainActivity extends AppCompatActivity {
                     repositionRect(status);
                 }
             });
+
+            sem.release();
+            Log.d("~~~~~~~~~~~","Lock Released []");
+
         }
     };
 
