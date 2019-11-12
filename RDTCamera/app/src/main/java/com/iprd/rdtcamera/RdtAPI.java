@@ -263,6 +263,10 @@ public class RdtAPI {
                     Log.i("Motion Detected", "Too much Motion");
                     mPreviousRBPoint=new Point(0,0);
                     mPreviousLTPoint =new Point(0,0);
+
+                    if(mPlaybackMode) {
+                        mLocalcopy = matinput.clone();
+                    }
                     return ret;
                 }else{
                     if((mPreviousStudy)&&(ismPreviousRDT)) {
