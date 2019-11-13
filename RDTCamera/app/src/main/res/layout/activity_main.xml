@@ -38,8 +38,8 @@
 
     <ImageView
         android:id="@+id/RdtDetectImage"
-        android:layout_width="147dp"
-        android:layout_height="221dp"
+        android:layout_width="150dp"
+        android:layout_height="183dp"
         android:layout_marginTop="48dp"
         android:visibility="invisible"
         app:layout_constraintDimensionRatio="H,9:16"

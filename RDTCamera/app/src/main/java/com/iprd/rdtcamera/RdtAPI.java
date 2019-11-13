@@ -445,7 +445,7 @@ public class RdtAPI {
                 }
                 //handle rotation TBD
                 if (mSaveInput || mPlaybackMode || mShowPip) {
-                    rectangle(inputmat, new Point(roi.x * wfactor, roi.y * hfactor), new Point((roi.x + roi.width) * wfactor, (roi.y + roi.height) * hfactor), new Scalar(255, 0, 0, 0), 4, LINE_AA, 0);
+                    rectangle(inputmat, new Point(roi.x * wfactor, roi.y * hfactor), new Point((roi.x + roi.width) * wfactor, (roi.y + roi.height) * hfactor), new Scalar(255, 128, 255, 0), 8, LINE_AA, 0);
                 }
                 if(mShowPip){
 
