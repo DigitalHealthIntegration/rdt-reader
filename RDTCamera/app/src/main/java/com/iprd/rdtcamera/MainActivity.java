@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
-    private ImageView mRdtView;
+    private ImageView mRdtView,mTrackedView;
     private ImageView disRdtResultImage;
     Button mGetResult;
     Button startBtn;
@@ -162,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         mRdtView = findViewById(R.id.RdtDetectImage);
+        mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
         disRdtResultImage = findViewById(R.id.disRdtResultImage);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
@@ -195,7 +196,8 @@ public class MainActivity extends AppCompatActivity {
         mRdtApi.setRotation(true);
 
         mRdtApi.setmShowPip(true);
-        //mRdtApi.setSaveImages(true);
+        mRdtApi.setLinearflow(false);
+        mRdtApi.setTracking(true);
 //        mRdtApi.saveInput(true);
 //        mRdtApi.setSavePoints(true);
 
@@ -409,6 +411,7 @@ public class MainActivity extends AppCompatActivity {
                 status.mSharpness = mRdtApi.getSharpness();
                 status.mBrightness = mRdtApi.getBrightness();
             }
+            Bitmap TrackedImage = status.mTrackedImage;
             long et = System.currentTimeMillis()-st;
             Log.i("BBF",status.mBoundingBoxX+"x"+status.mBoundingBoxY+"-"+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
 
@@ -420,9 +423,15 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     Bitmap b = mRdtApi.getPipMat();
+                    if(TrackedImage!=null){
+                        mTrackedView.setImageBitmap(TrackedImage);
+                        mTrackedView.setVisibility(View.VISIBLE);
+                    }else{
+                        mTrackedView.setVisibility(View.INVISIBLE);
+                    }
                     mRdtView.setImageBitmap(b);
                     mRdtView.setVisibility(View.VISIBLE);
-                    repositionRect(status);
+                    //repositionRect(status);
                 }
             });
 

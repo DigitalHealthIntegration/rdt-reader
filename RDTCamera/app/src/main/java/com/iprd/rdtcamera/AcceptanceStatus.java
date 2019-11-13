@@ -1,5 +1,9 @@
 package com.iprd.rdtcamera;
 
+import android.graphics.Bitmap;
+
+import org.opencv.core.Mat;
+
 public class AcceptanceStatus {
     public static final short NOT_COMPUTED = 100;
     public static final short TOO_HIGH = 1;
@@ -17,6 +21,8 @@ public class AcceptanceStatus {
     public short mBoundingBoxWidth, mBoundingBoxHeight;
     public short mSteady;
 
+    public Bitmap mTrackedImage =null;
+
     AcceptanceStatus() {
         setDefaultStatus();
     }
@@ -31,5 +37,6 @@ public class AcceptanceStatus {
         mPerspectiveDistortion = NOT_COMPUTED;
         mBoundingBoxX = mBoundingBoxY= mBoundingBoxWidth=mBoundingBoxHeight=-1;
         mSteady = NOT_COMPUTED;
+        mTrackedImage=null;
     }
 };

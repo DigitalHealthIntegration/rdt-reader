@@ -48,7 +48,8 @@ public class RdtAPI {
     private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
     private ObjectDetection mTensorFlow;//=null;
     private static volatile boolean mInprogress = false;
-    boolean mTrackingEnable = true;
+    boolean mTrackingEnable = false;
+    boolean mLinearflow=true;
     private static volatile boolean mRDTProcessing = false;
     private static volatile boolean mRDTProcessingResultAvailable = false;
     Mat mInputMat;
@@ -71,6 +72,7 @@ public class RdtAPI {
     boolean ismPreviousRDT=false;
     Mat mPreviousMat=null;
     Mat mPipMat=null;
+    Mat mTrackedMat=null;
     private final Object piplock = new Object();
 
     public void setmShowPip(boolean mShowPip) {
@@ -88,6 +90,10 @@ public class RdtAPI {
     public void setTracking(boolean mTrackingEnable){
         this.mTrackingEnable = mTrackingEnable;
     }
+    public void setLinearflow(boolean linearflow){
+        this.mLinearflow = linearflow;
+    }
+
 
     public void setRotation(boolean mSetRotation) {
         this.mSetRotation = mSetRotation;
@@ -305,11 +311,17 @@ public class RdtAPI {
                                 UpdateBB(greyMat, ret, lt, rb.x - lt.x, greyMat.cols(), rb.y - lt.y, greyMat.rows());
                                 Log.i("BBTrack", ret.mBoundingBoxX + "x" + ret.mBoundingBoxY + " " + ret.mBoundingBoxWidth + "x" + ret.mBoundingBoxHeight);
                                 ret.mRDTFound = true;
+                                if(mTrackingEnable) {
+                                    mTrackedMat = matinput.clone();
+                                    rectangle(mTrackedMat, new Point(ret.mBoundingBoxX, ret.mBoundingBoxY), new Point(ret.mBoundingBoxX + ret.mBoundingBoxWidth, ret.mBoundingBoxY + ret.mBoundingBoxHeight), new Scalar(255, 0, 0, 0), 8, LINE_AA, 0);
+                                }
                             }
                         } else {
                             mPreviousStudy = true;
                         }
                     }
+                }else{
+                    mPreviousStudy = false;
                 }
             }
             ismPreviousRDT = false;
@@ -331,7 +343,7 @@ public class RdtAPI {
                         ret.mBoundingBoxWidth = mStatus.mBoundingBoxWidth;
                         ret.mBoundingBoxHeight = mStatus.mBoundingBoxHeight;
                         if(mTrackingEnable) {
-                            warpmat = ImageRegistration.FindMotionRefIns(greyMat, mGreyMat);
+                            warpmat = ImageRegistration.FindMotionRefIns(greyMat,mGreyMat);
                             if (warpmat != null) {
                                 Log.i("Tx-Ty ROITrack", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
                                 if (!((Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY))) {
@@ -343,6 +355,10 @@ public class RdtAPI {
                                     Log.i("Points", mStatus.mBoundingBoxX + "x" + mStatus.mBoundingBoxY + "->" + lt.x + "x" + lt.y);
                                     UpdateBB(mGreyMat, ret, lt, rb.x - lt.x, greyMat.cols(), rb.y - lt.y, greyMat.rows());
                                     Log.i("BB ROITrack", ret.mBoundingBoxX + "x" + ret.mBoundingBoxY + " " + ret.mBoundingBoxWidth + "x" + ret.mBoundingBoxHeight);
+                                    if(mTrackingEnable) {
+                                        mTrackedMat = matinput.clone();
+                                        rectangle(mTrackedMat, new Point(ret.mBoundingBoxX, ret.mBoundingBoxY), new Point(ret.mBoundingBoxX + ret.mBoundingBoxWidth, ret.mBoundingBoxY + ret.mBoundingBoxHeight), new Scalar(255, 0, 0, 0), 8, LINE_AA, 0);
+                                    }
                                 }
                             }
                         }
@@ -358,24 +374,29 @@ public class RdtAPI {
                 if (!mRDTProcessing) {
                     mRDTProcessing = true;
                     mRDTProcessingResultAvailable = false;
-                    if(mInputMat!= null)mInputMat.release();
-                    if(mGreyMat!= null)mGreyMat.release();
-                    if(mGreyMatResized!= null)mGreyMatResized.release();
+                    if (mInputMat != null) mInputMat.release();
+                    if (mGreyMat != null) mGreyMat.release();
+                    if (mGreyMatResized != null) mGreyMatResized.release();
                     mInputMat = matinput.clone();
                     mGreyMat = greyMat.clone();
                     mGreyMatResized = greyMatResized.clone();
                     mStatus = new AcceptanceStatus();
-                    //Lets run it as thread
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ProcessRDT(mStatus, mInputMat, mGreyMatResized);
-                        }
-                    }).start();
+                    if (mLinearflow) {
+                        ProcessRDT(mStatus, mInputMat, mGreyMatResized);
+                        ret = mStatus;
+                    } else {
+                        //Lets run it as thread
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ProcessRDT(mStatus, mInputMat, mGreyMatResized);
+                            }
+                        }).start();
+                    }
                 }
             }
-            mPostProcessingTime = System.currentTimeMillis();
 
+            mPostProcessingTime = System.currentTimeMillis();
             if(mPlaybackMode) {
                 if(ret.mRDTFound)rectangle(matinput, new Point(ret.mBoundingBoxX, ret.mBoundingBoxY), new Point(ret.mBoundingBoxX +ret.mBoundingBoxWidth, ret.mBoundingBoxY+ret.mBoundingBoxHeight), new Scalar(255, 0, 0, 0), 4, LINE_AA, 0);
                 mLocalcopy = matinput.clone();
@@ -406,6 +427,15 @@ public class RdtAPI {
             greyMatResized.release();
             greyMat.release();
             matinput.release();
+            if((mTrackedMat!= null)){
+                if(ret.mRDTFound) {
+                    Mat TrackedImage = new Mat(360, 640, mTrackedMat.type());
+                    resize(mTrackedMat, TrackedImage, new Size(360, 640));
+                    ret.mTrackedImage = getBitmapFromMat(TrackedImage);
+                }
+                mTrackedMat.release();
+                mTrackedMat=null;
+            }
             mInprogress = false;
             mPostProcessingTime = System.currentTimeMillis()-mPostProcessingTime;
         }
@@ -457,7 +487,6 @@ public class RdtAPI {
                     rectangle(inputmat, new Point(roi.x * wfactor, roi.y * hfactor), new Point((roi.x + roi.width) * wfactor, (roi.y + roi.height) * hfactor), new Scalar(255, 128, 255, 0), 8, LINE_AA, 0);
                 }
                 if(mShowPip){
-
                     synchronized (piplock) {
                         mPipMat = new Mat(360, 640, inputmat.type());
                         resize(inputmat, mPipMat, new Size(360, 640));
@@ -578,7 +607,5 @@ public class RdtAPI {
             //Do some basic validations to check
             //if user object does not break any assumption of system
         }
-
     }
-
 }

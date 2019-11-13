@@ -119,6 +119,9 @@ public class ActivityVideo extends AppCompatActivity {
         //call the setter for saving functions
         Utils.ApplySettings(this, null, mRdtApi);
         mRdtApi.setmPlaybackMode(true);
+        mRdtApi.setLinearflow(true);
+        mRdtApi.setTracking(false);
+
         //mRdtApi.saveInput(true);
         //mRdtApi.setSavePoints(true);
         //mRdtApi.setSaveImages(true);

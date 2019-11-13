@@ -422,9 +422,6 @@ public class ObjectDetection {
         }
 
         //translate
-
-
-
         Point C_arrow_scaled = new Point(C_arrow[0]*scale,C_arrow[1]*scale);
         Point C_Cpattern_scaled = new Point(C_Cpattern[0]*scale,C_Cpattern[1]*scale);
         Point C_Infl_scaled = new Point(C_Infl[0]*scale,C_Infl[1]*scale);
@@ -483,9 +480,8 @@ public class ObjectDetection {
         while(cnt_arr<Arrow.size()){
             cnt_c=0;
             try{
-                    for (Map.Entry arrowElement : Arrow.get(cnt_arr).entrySet()) {
-
-                        while(cnt_c<Cpattern.size()){
+                for (Map.Entry arrowElement : Arrow.get(cnt_arr).entrySet()) {
+                    while(cnt_c<Cpattern.size()){
                         cnt_i=0;
                         float arrowconf = (float) arrowElement.getKey();
                         Vector cxcywha = (Vector) arrowElement.getValue();
@@ -525,23 +521,21 @@ public class ObjectDetection {
                                         C_Cpattern_best = C_Cpattern;
                                         C_infl_best = C_Inlf;
                                         best_scale_rot=scale_rot.clone();
-                                        //                                roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
+                                        //roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
                                     }
                                 }
                                 cnt_i++;
                             }
                         }
-                    cnt_c++;
-                }
-
+                        cnt_c++;
+                    }
                 }
             }catch (IndexOutOfBoundsException e){
                 Log.e("Error","Index out of bound exception");
                 exit=true;
             }
-        cnt_arr++;
+            cnt_arr++;
         }
-
         //double scale=best_scale_rot.x;
         double angleRads=best_scale_rot.y;
         if(angleRads>Math.PI)

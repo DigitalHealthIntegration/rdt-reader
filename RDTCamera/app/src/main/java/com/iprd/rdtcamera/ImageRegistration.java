@@ -40,7 +40,7 @@ public class ImageRegistration {
         pyrDown(ins, ins);
         Mat warpMatrix=null;
         if(mRefPyr!= null) {
-            warpMatrix = getTransformation(mRefPyr, ins);
+            warpMatrix = getTransformation(mRefPyr,ins);
         }
         if(saveref)mRefPyr = ins.clone();
 //        SaveMatrix(mRefPyr,"m1");
@@ -68,17 +68,15 @@ public class ImageRegistration {
         return warpMatrix;
     }
 
-
-
     public static Mat getTransformation(Mat ref, Mat ins) {
        // Log.d("Transform",ref.cols()+"x"+ref.rows()+ " " +ins.cols()+"x"+ins.rows());
         final int warp_mode = MOTION_TRANSLATION;
         Mat warpMatrix = Mat.eye(2,3,CV_32F);
-       try {
+        try {
             int numIter = 50;
             double terminationEps = 1e-3;
             TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
-            findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, ins);
+            findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, new Mat());
         }catch(Exception e){
             Log.e("Exception","Exception in FindTransformECC");
             return null;

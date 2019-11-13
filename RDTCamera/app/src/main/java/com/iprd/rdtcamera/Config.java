@@ -21,8 +21,6 @@ public class Config{
         setDefaults();
     }
 
-
-
     public void setDefaults() {
         mMaxScale = 75;
         mMinScale = 5;
