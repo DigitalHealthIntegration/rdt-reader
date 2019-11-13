@@ -23,6 +23,11 @@ public class AcceptanceStatus {
 
     public Bitmap mTrackedImage =null;
 
+    public String GetResult(){
+        String s = mRDTFound?"1":"0"+","+mBoundingBoxX+"x"+mBoundingBoxY+"-"+mBoundingBoxWidth+"x"+mBoundingBoxHeight+","+mBrightness +","+mSharpness+","+mScale
+                +","+mDisplacementX +","+mDisplacementY+","+mPerspectiveDistortion+","+mSteady;
+        return s;
+    }
     AcceptanceStatus() {
         setDefaultStatus();
     }

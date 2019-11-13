@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import static org.hamcrest.Matchers.*;
 
+import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Size;
@@ -44,7 +45,7 @@ public class ExampleInstrumentedTest {
     Mat GetGreyMat(Bitmap inp){
         Mat out = new Mat();
         Mat grey = new Mat();
-       // Utils.bitmapToMat(inp, out);
+        Utils.bitmapToMat(inp, out);
         cvtColor(out, grey, Imgproc.COLOR_RGBA2GRAY);
         return grey;
     }
@@ -56,30 +57,66 @@ public class ExampleInstrumentedTest {
         return GetGreyMat(b);
     }
 
+
     @Test
+    public void TestSetNV12() {
+        int width=928;
+        int height = 720;
+        int roix=25;
+        int roiy=100;
+        int roiwidth=20;
+        int roiheight = 80;
+
+        int[] img;
+        img = new int[(int)(width*height*1.5)];
+        for(int i=0;i< roiheight;i++){
+            int offsetY = roiy*width;
+            int offsetUV = width*height + (roiy>>1)*width;
+
+            for(int j=0;j<roiwidth;j++){
+                int offsetYTotal = offsetY+roix+j;
+                int offsetUVTotal = offsetUV+ 2*((roix+j)>>1);
+                //lets write first and last row
+                if((i ==0) ||(i ==(roiheight -1))){
+                    img[offsetYTotal]=255;
+                    img[offsetUVTotal]=0;
+                    img[offsetUVTotal+1]=0;
+                }else if((j==0)||(j == (roiwidth-1))){
+                    img[offsetYTotal]=255;
+                    img[offsetUVTotal]=0;
+                    img[offsetUVTotal+1]=0;
+                }
+            }
+        }
+    }
+
+        @Test
     public void TestRegistration() {
-       // Mat ins= getMat("/NotFound0.jpg");
-        // Mat ref= getMat("/NotFound0.jpg");
-        byte data[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        try {
+            //Mat ins = getMat("/NotFound0.jpg");
+            //Mat ref = getMat("/NotFound0.jpg");
+            byte data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         Mat ref =  new Mat(3, 3, CV_8U, ByteBuffer.wrap(data));
         Mat ins =  new Mat(3, 3, CV_8U, ByteBuffer.wrap(data));
 
+            long st = System.currentTimeMillis();
+            Mat warpmat = ImageRegistration.getTransformation(ref, ins);
+            long et = System.currentTimeMillis() - st;
+            //       Log.d("Timing ", String.valueOf(et));
 
-        long st  = System.currentTimeMillis();
-        Mat warpmat = ImageRegistration.getTransformation(ref,ins);
-        long et  = System.currentTimeMillis()-st;
- //       Log.d("Timing ", String.valueOf(et));
+            double scale = Math.sqrt(warpmat.get(0, 0)[0] * warpmat.get(0, 0)[0] + warpmat.get(0, 1)[0] * warpmat.get(0, 1)[0]);
 
-        double scale = Math.sqrt(warpmat.get(0,0)[0]*warpmat.get(0,0)[0]+warpmat.get(0,1)[0]*warpmat.get(0,1)[0]);
+            Assert.assertThat("Scale Tx test", scale, is(equalTo(1.0)));
+            Assert.assertThat("Tx test", warpmat.get(0, 2)[0], is(equalTo(0.0)));
+            Assert.assertThat("Ty test", warpmat.get(1, 2)[0], is(equalTo(0.0)));
 
-        Assert.assertThat("Scale Tx test",scale, is(equalTo(1.0)));
-        Assert.assertThat("Tx test",warpmat.get(0,2)[0], is(equalTo(0.0)));
-        Assert.assertThat("Ty test",warpmat.get(1,2)[0], is(equalTo(0.0)));
+            Assert.assertThat("rx test", warpmat.get(0, 0)[0], is(equalTo(0.0)));
+            Assert.assertThat("ry test", warpmat.get(1, 1)[0], is(equalTo(0.0)));
 
-        Assert.assertThat("rx test",warpmat.get(0,0)[0], is(equalTo(0.0)));
-        Assert.assertThat("ry test",warpmat.get(1,1)[0], is(equalTo(0.0)));
-
-
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+        }
 //
 
 //        Log.d("Scale ", String.valueOf(scale));
