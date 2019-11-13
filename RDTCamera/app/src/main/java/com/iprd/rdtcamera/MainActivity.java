@@ -394,12 +394,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         void Process(final Bitmap capFrame) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
                     ProcessBitmap(capFrame);
-                }
-            }).start();
+//                }
+//            }).start();
         }
 
         private void ProcessBitmap(Bitmap capFrame) {
@@ -753,6 +753,7 @@ public class MainActivity extends AppCompatActivity {
 
     AcceptanceStatus prevStat;
     long prevTime=0;
+    static int counter =0;
     private void repositionRect(AcceptanceStatus status){
 
         if(mRectView == null)return;
@@ -760,9 +761,12 @@ public class MainActivity extends AppCompatActivity {
         if(status.mRDTFound){
             prevTime = System.currentTimeMillis();
             prevStat = status;
+            counter = 0;
         }else {
             long curr = System.currentTimeMillis();
-            mRectView.setVisibility(View.INVISIBLE);
+            counter++;
+            if(counter>150)
+                mRectView.setVisibility(View.INVISIBLE);
             if(rdtDataToBeDisplay != null) {
                 rdtDataToBeDisplay.setVisibility(View.INVISIBLE);
             }

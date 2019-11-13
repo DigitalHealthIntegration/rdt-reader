@@ -7,6 +7,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
+import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.imgproc.Imgproc.INTER_LINEAR;
 import static org.opencv.imgproc.Imgproc.WARP_INVERSE_MAP;
@@ -42,6 +43,8 @@ public class ImageRegistration {
             warpMatrix = getTransformation(mRefPyr, ins);
         }
         if(saveref)mRefPyr = ins.clone();
+//        SaveMatrix(mRefPyr,"m1");
+//        SaveMatrix(ins,"m2");
         return warpMatrix;
     }
 
@@ -58,6 +61,10 @@ public class ImageRegistration {
         pyrDown(ref, ref);
         Mat warpMatrix=null;
         warpMatrix = getTransformation(ref, ins);
+        if(warpMatrix != null) {
+//            SaveMatrix(ref, "n1");
+//            SaveMatrix(ins, "n2");
+        }
         return warpMatrix;
     }
 

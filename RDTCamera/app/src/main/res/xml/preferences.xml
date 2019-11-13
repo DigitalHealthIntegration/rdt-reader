@@ -64,6 +64,18 @@
         android:key="rdtCheckUrl"
         android:defaultValue="http://3.95.254.129:9000/Quidel/QuickVue"
         android:summary="Please Provide RDT Server URL"></EditTextPreference>
+    <EditTextPreference android:title="RDT Max Allowed Translation X"
+        android:key="mMaxAllowedTranslationX"
+        android:defaultValue="5"
+        android:summary="Please Provide RDT MaxTranslationX"></EditTextPreference>
+    <EditTextPreference android:title="RDT Max Allowed Translation Y"
+        android:key="mMaxAllowedTranslationY"
+        android:defaultValue="5"
+        android:summary="Please Provide RDT MaxTranslationY"></EditTextPreference>
+    <EditTextPreference android:title="Enable Tracking"
+        android:key="mTrackingEnable"
+        android:defaultValue="5"
+        android:summary="EnableTracking"></EditTextPreference>
 
 
 </PreferenceScreen>

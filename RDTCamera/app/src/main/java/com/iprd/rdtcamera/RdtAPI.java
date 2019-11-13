@@ -48,7 +48,7 @@ public class RdtAPI {
     private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
     private ObjectDetection mTensorFlow;//=null;
     private static volatile boolean mInprogress = false;
-
+    boolean mTrackingEnable = true;
     private static volatile boolean mRDTProcessing = false;
     private static volatile boolean mRDTProcessingResultAvailable = false;
     Mat mInputMat;
@@ -84,6 +84,10 @@ public class RdtAPI {
     }
 
     boolean mShowPip = false;
+
+    public void setTracking(boolean mTrackingEnable){
+        this.mTrackingEnable = mTrackingEnable;
+    }
 
     public void setRotation(boolean mSetRotation) {
         this.mSetRotation = mSetRotation;
@@ -266,42 +270,45 @@ public class RdtAPI {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
-            Mat warpmat = ImageRegistration.FindMotion(greyMat,true);
             Point lt = null,rb=null;
-            if(warpmat!=null) {
-                int level = 4;
-                Mat warp = scaleAffineMat(warpmat,level);
-                Log.i("Tx-Ty Inp",warpmat.get(0, 2)[0] +"x"+warpmat.get(1, 2)[0]);
-                if (Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY) {
-                    ret.mSteady = TOO_HIGH;
-                    mPreviousStudy = false;
-                    mPreProcessingTime = System.currentTimeMillis() - st;
-                    Log.i("Motion Detected", "Too much Motion");
-                    mPreviousRBPoint=new Point(0,0);
-                    mPreviousLTPoint=new Point(0,0);
-                    if(mPlaybackMode) {
-                        mLocalcopy = matinput.clone();
-                    }
-                    return ret;
-                }else{
-                    if((mPreviousStudy)&&(ismPreviousRDT)) {
-                        //if we have previous Bounding box then we should be able to translate it.
-                        //update the new bounding box result.
-                        //Speculate point
-                        //Lets predict the next rectangle
-                        //Tracking BB
-                        ret.mSteady = GOOD;
-                        if((null != mPreviousLTPoint)&&(null != mPreviousRBPoint) ) {
-                            PrintAffineMat("Track",warp);
-                            lt = warpPoint(new Point(mPreviousLTPoint.x , mPreviousLTPoint.y),warp);
-                            rb = warpPoint(new Point(mPreviousRBPoint.x+mPreviousLTPoint.x , mPreviousRBPoint.y+mPreviousLTPoint.y),warp);
-                            //Log.i("Previous Mat", mPreviousLTPoint.x+"x"+mPreviousLTPoint.y+" "+mPreviousRBPoint.x+"x"+mPreviousRBPoint.y);
-                            UpdateBB(greyMat, ret, lt, rb.x-lt.x, greyMat.cols(), rb.y-lt.y, greyMat.rows());
-                            Log.i("BBTrack", ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+" "+ ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
-                            ret.mRDTFound = true;
+            Mat warpmat=null;
+            if(mTrackingEnable) {
+                warpmat = ImageRegistration.FindMotion(greyMat, true);
+                if (warpmat != null) {
+                    int level = 4;
+                    Mat warp = scaleAffineMat(warpmat, level);
+                    Log.i("Tx-Ty Inp", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
+                    if ((Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY)) {
+                        ret.mSteady = TOO_HIGH;
+                        mPreviousStudy = false;
+                        mPreProcessingTime = System.currentTimeMillis() - st;
+                        Log.i("Motion Detected", "Too much Motion");
+                        mPreviousRBPoint = new Point(0, 0);
+                        mPreviousLTPoint = new Point(0, 0);
+                        if (mPlaybackMode) {
+                            mLocalcopy = matinput.clone();
                         }
-                    }else{
-                        mPreviousStudy=true;
+                        return ret;
+                    } else {
+                        if ((mPreviousStudy) && (ismPreviousRDT)) {
+                            //if we have previous Bounding box then we should be able to translate it.
+                            //update the new bounding box result.
+                            //Speculate point
+                            //Lets predict the next rectangle
+                            //Tracking BB
+                            ret.mSteady = GOOD;
+                            if ((null != mPreviousLTPoint) && (null != mPreviousRBPoint)) {
+                                PrintAffineMat("Track", warp);
+                                lt = warpPoint(new Point(mPreviousLTPoint.x, mPreviousLTPoint.y), warp);
+                                rb = warpPoint(new Point(mPreviousRBPoint.x + mPreviousLTPoint.x, mPreviousRBPoint.y + mPreviousLTPoint.y), warp);
+                                //Log.i("Previous Mat", mPreviousLTPoint.x+"x"+mPreviousLTPoint.y+" "+mPreviousRBPoint.x+"x"+mPreviousRBPoint.y);
+                                UpdateBB(greyMat, ret, lt, rb.x - lt.x, greyMat.cols(), rb.y - lt.y, greyMat.rows());
+                                Log.i("BBTrack", ret.mBoundingBoxX + "x" + ret.mBoundingBoxY + " " + ret.mBoundingBoxWidth + "x" + ret.mBoundingBoxHeight);
+                                ret.mRDTFound = true;
+                            }
+                        } else {
+                            mPreviousStudy = true;
+                        }
                     }
                 }
             }
@@ -323,18 +330,20 @@ public class RdtAPI {
                         ret.mBoundingBoxY = mStatus.mBoundingBoxY;
                         ret.mBoundingBoxWidth = mStatus.mBoundingBoxWidth;
                         ret.mBoundingBoxHeight = mStatus.mBoundingBoxHeight;
-                        warpmat = ImageRegistration.FindMotionRefIns(greyMat,mGreyMat);
-                        if(warpmat!=null) {
-                            Log.i("Tx-Ty ROITrack", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
-                            if (!((Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY))) {
-                                int level = 4;
-                                Mat warp = scaleAffineMat(warpmat,level);
-                                PrintAffineMat("ROITrack",warp);
-                                lt = warpPoint(new Point(mStatus.mBoundingBoxX , mStatus.mBoundingBoxY),warp);
-                                rb = warpPoint(new Point(mStatus.mBoundingBoxX+mStatus.mBoundingBoxWidth, mStatus.mBoundingBoxY+mStatus.mBoundingBoxHeight),warp);
-                                Log.i("Points",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+"->"+lt.x+"x"+lt.y);
-                                UpdateBB(mGreyMat, ret, lt, rb.x-lt.x, greyMat.cols(), rb.y-lt.y, greyMat.rows());
-                                Log.i("BB ROITrack", ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+" "+ ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
+                        if(mTrackingEnable) {
+                            warpmat = ImageRegistration.FindMotionRefIns(greyMat, mGreyMat);
+                            if (warpmat != null) {
+                                Log.i("Tx-Ty ROITrack", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
+                                if (!((Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY))) {
+                                    int level = 4;
+                                    Mat warp = scaleAffineMat(warpmat, level);
+                                    PrintAffineMat("ROITrack", warp);
+                                    lt = warpPoint(new Point(mStatus.mBoundingBoxX, mStatus.mBoundingBoxY), warp);
+                                    rb = warpPoint(new Point(mStatus.mBoundingBoxX + mStatus.mBoundingBoxWidth, mStatus.mBoundingBoxY + mStatus.mBoundingBoxHeight), warp);
+                                    Log.i("Points", mStatus.mBoundingBoxX + "x" + mStatus.mBoundingBoxY + "->" + lt.x + "x" + lt.y);
+                                    UpdateBB(mGreyMat, ret, lt, rb.x - lt.x, greyMat.cols(), rb.y - lt.y, greyMat.rows());
+                                    Log.i("BB ROITrack", ret.mBoundingBoxX + "x" + ret.mBoundingBoxY + " " + ret.mBoundingBoxWidth + "x" + ret.mBoundingBoxHeight);
+                                }
                             }
                         }
                     }else{
@@ -542,6 +551,16 @@ public class RdtAPI {
 
         public RdtAPIBuilder setXMin(short mXMin) {
             mConfig.setmXMin(mXMin);
+            return this;
+        }
+
+        public RdtAPIBuilder setmMaxAllowedTranslationX(short mX) {
+            mConfig.setmMaxAllowedTranslationX(mX);
+            return this;
+        }
+
+        public RdtAPIBuilder setmMaxAllowedTranslationY(short mY) {
+            mConfig.setmMaxAllowedTranslationY(mY);
             return this;
         }
 

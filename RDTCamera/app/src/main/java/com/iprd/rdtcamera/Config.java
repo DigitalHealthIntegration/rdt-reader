@@ -14,8 +14,8 @@ public class Config{
     public float mMinBrightness;
     public byte[] mTfliteB;
     public MappedByteBuffer mMappedByteBuffer;
-    public int mMaxAllowedTranslationX;
-    public int mMaxAllowedTranslationY;
+    public short mMaxAllowedTranslationX;
+    public short mMaxAllowedTranslationY;
 
     public Config() {
         setDefaults();
@@ -35,8 +35,8 @@ public class Config{
         mMinBrightness = 110.0f;
         mTfliteB=null;
         mMappedByteBuffer=null;
-        mMaxAllowedTranslationY = 10; //level 4
-        mMaxAllowedTranslationX = 10; //level 4
+        mMaxAllowedTranslationY = 6; //level 4
+        mMaxAllowedTranslationX = 6; //level 4
     }
     public void setmMappedByteBuffer(MappedByteBuffer mMappedByteBuffer) {
         this.mMappedByteBuffer = mMappedByteBuffer;
@@ -82,10 +82,10 @@ public class Config{
         this.mMaxScale = mMaxScale;
     }
 
-    public void setmMaxAllowedTranslationX(int mMaxAllowedTranslationX) {
+    public void setmMaxAllowedTranslationX(short mMaxAllowedTranslationX) {
         this.mMaxAllowedTranslationX = mMaxAllowedTranslationX;
     }
-    public void setmMaxAllowedTranslationY(int mMaxAllowedTranslationY) {
+    public void setmMaxAllowedTranslationY(short mMaxAllowedTranslationY) {
         this.mMaxAllowedTranslationY = mMaxAllowedTranslationY;
     }
 

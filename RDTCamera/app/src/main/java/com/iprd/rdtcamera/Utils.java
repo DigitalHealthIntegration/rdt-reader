@@ -129,6 +129,7 @@ public class Utils {
         Short mShowImageData=0;
         Config config= new Config();
         boolean mSaveNegativeData= false;
+        boolean mTrackingEnable=true;
         try {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
             config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
@@ -140,11 +141,16 @@ public class Utils {
             config.mMinSharpness = Float.parseFloat(prefs.getString("mMinSharpness", config.mMinSharpness +""));
             config.mMaxBrightness = Float.parseFloat(prefs.getString("mMaxBrightness", config.mMaxBrightness+""));
             config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
+            config.mMaxAllowedTranslationX = Short.parseShort(prefs.getString("mMaxAllowedTranslationX", config.mMaxAllowedTranslationX+""));
+            config.mMaxAllowedTranslationY = Short.parseShort(prefs.getString("mMaxAllowedTranslationY", config.mMaxAllowedTranslationY+""));
             mTopTh = Float.parseFloat(prefs.getString("mTopTh", mTopTh+""));
             //mBotTh = Float.parseFloat(prefs.getString("mBotTh", mBotTh+""));
             mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
             short t  = Short.parseShort(prefs.getString("mSaveNegativeData", mSaveNegativeData?"1":"0"));
             if(t!=0) mSaveNegativeData =true;
+            t  = Short.parseShort(prefs.getString("mTrackingEnable", mTrackingEnable?"1":"0"));
+            if(t==0) mTrackingEnable = false;
+
         }catch (NumberFormatException nfEx){//prefs.getString("mMinBrightness", "110.0f")
             Log.i("RDT","Exception in  Shared Pref switching to default");
             config.setDefaults();
@@ -161,10 +167,13 @@ public class Utils {
             builder.setXMin(config.mXMin);
             builder.setYMax(config.mYMax);
             builder.setYMin(config.mYMin);
+            builder.setmMaxAllowedTranslationX(config.mMaxAllowedTranslationX);
+            builder.setmMaxAllowedTranslationY(config.mMaxAllowedTranslationY);
         }
         if(rdt !=null){
             rdt.getTensorFlow().setTopThreshold(mTopTh);
             rdt.setSaveNegativeData(mSaveNegativeData);
+            rdt.setTracking(mTrackingEnable);
         }
         return mShowImageData;
     }
