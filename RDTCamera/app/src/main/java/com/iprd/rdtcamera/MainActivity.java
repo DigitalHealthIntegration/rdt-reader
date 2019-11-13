@@ -72,6 +72,7 @@ import java.util.concurrent.Semaphore;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission_group.CAMERA;
+import static com.iprd.rdtcamera.Httpok.mHttpURL;
 import static com.iprd.rdtcamera.ModelInfo.mModelFileName;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.floodFill;
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
-
+    private ImageView mRdtView;
     private ImageView disRdtResultImage;
     Button mGetResult;
     Button startBtn;
@@ -160,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         mGetResult = findViewById(R.id.getResult);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+        mRdtView = findViewById(R.id.RdtDetectImage);
         mRectView = findViewById(R.id.rdtRect);
         disRdtResultImage = findViewById(R.id.disRdtResultImage);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
@@ -192,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         mRdtApi = rdtAPIBuilder.build();
         mRdtApi.setRotation(true);
 
+        mRdtApi.setmShowPip(true);
         //mRdtApi.setSaveImages(true);
 //        mRdtApi.saveInput(true);
 //        mRdtApi.setSavePoints(true);
@@ -416,6 +419,9 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Bitmap b = mRdtApi.getPipMat();
+                    mRdtView.setImageBitmap(b);
+                    mRdtView.setVisibility(View.VISIBLE);
                     repositionRect(status);
                 }
             });
@@ -596,13 +602,12 @@ public class MainActivity extends AppCompatActivity {
                 private void rdtResults(byte[] bytes) throws IOException {
                     OutputStream output = null;
                     try {
-                        String urlString = prefs.getString("rdtCheckUrl","http://34.204.97.37:9000/Quidel/QuickVue");
+                        String urlString = prefs.getString("rdtCheckUrl",mHttpURL);
                         System.out.println(">>>>>>>>"+urlString);
                         String guid = String.valueOf(java.util.UUID.randomUUID());
                         String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                         try{
                             Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
-
                             mr.setCtx(getApplicationContext());
                             mr.execute();
                         }catch(Exception ex){

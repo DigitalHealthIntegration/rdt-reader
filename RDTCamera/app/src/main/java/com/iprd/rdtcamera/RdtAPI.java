@@ -10,6 +10,7 @@ import org.opencv.core.MatOfDouble;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.nio.MappedByteBuffer;
@@ -23,6 +24,7 @@ import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.ImageRegistration.getTransformation;
 import static com.iprd.rdtcamera.CvUtils.warpPoint;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
+import static com.iprd.rdtcamera.Utils.getBitmapFromMat;
 import static com.iprd.rdtcamera.Utils.rotateRect;
 import static com.iprd.rdtcamera.Utils.saveImage;
 import static java.time.Instant.MIN;
@@ -39,6 +41,7 @@ import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.putText;
 import static org.opencv.imgproc.Imgproc.pyrDown;
 import static org.opencv.imgproc.Imgproc.rectangle;
+import static org.opencv.imgproc.Imgproc.resize;
 
 public class RdtAPI {
     private Config mConfig;
@@ -67,6 +70,21 @@ public class RdtAPI {
     boolean mPreviousStudy=false;
     boolean ismPreviousRDT=false;
     Mat mPreviousMat=null;
+    Mat mPipMat=null;
+    private final Object piplock = new Object();
+
+    public void setmShowPip(boolean mShowPip) {
+        this.mShowPip = mShowPip;
+    }
+    public Bitmap getPipMat(){
+        synchronized (piplock) {
+            if (mPipMat == null) return null;
+            return getBitmapFromMat(mPipMat);
+        }
+    }
+
+    boolean mShowPip = false;
+
     public void setRotation(boolean mSetRotation) {
         this.mSetRotation = mSetRotation;
     }
@@ -234,8 +252,6 @@ public class RdtAPI {
     }
 
     public AcceptanceStatus checkFrame(Bitmap capFrame) {
-
-
         mInprogress = true;
         mBrightness = -1;
         mSharpness = -1;
@@ -262,8 +278,7 @@ public class RdtAPI {
                     mPreProcessingTime = System.currentTimeMillis() - st;
                     Log.i("Motion Detected", "Too much Motion");
                     mPreviousRBPoint=new Point(0,0);
-                    mPreviousLTPoint =new Point(0,0);
-
+                    mPreviousLTPoint=new Point(0,0);
                     if(mPlaybackMode) {
                         mLocalcopy = matinput.clone();
                     }
@@ -279,8 +294,9 @@ public class RdtAPI {
                         if((null != mPreviousLTPoint)&&(null != mPreviousRBPoint) ) {
                             PrintAffineMat("Track",warp);
                             lt = warpPoint(new Point(mPreviousLTPoint.x , mPreviousLTPoint.y),warp);
+                            rb = warpPoint(new Point(mPreviousRBPoint.x+mPreviousLTPoint.x , mPreviousRBPoint.y+mPreviousLTPoint.y),warp);
                             //Log.i("Previous Mat", mPreviousLTPoint.x+"x"+mPreviousLTPoint.y+" "+mPreviousRBPoint.x+"x"+mPreviousRBPoint.y);
-                            UpdateBB(greyMat, ret, lt, mPreviousRBPoint.x, greyMat.cols(), mPreviousRBPoint.y, greyMat.rows());
+                            UpdateBB(greyMat, ret, lt, rb.x-lt.x, greyMat.cols(), rb.y-lt.y, greyMat.rows());
                             Log.i("BBTrack", ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+" "+ ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
                             ret.mRDTFound = true;
                         }
@@ -315,8 +331,9 @@ public class RdtAPI {
                                 Mat warp = scaleAffineMat(warpmat,level);
                                 PrintAffineMat("ROITrack",warp);
                                 lt = warpPoint(new Point(mStatus.mBoundingBoxX , mStatus.mBoundingBoxY),warp);
+                                rb = warpPoint(new Point(mStatus.mBoundingBoxX+mStatus.mBoundingBoxWidth, mStatus.mBoundingBoxY+mStatus.mBoundingBoxHeight),warp);
                                 Log.i("Points",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+"->"+lt.x+"x"+lt.y);
-                                UpdateBB(mGreyMat, ret, lt, ret.mBoundingBoxWidth, greyMat.cols(), ret.mBoundingBoxHeight, greyMat.rows());
+                                UpdateBB(mGreyMat, ret, lt, rb.x-lt.x, greyMat.cols(), rb.y-lt.y, greyMat.rows());
                                 Log.i("BB ROITrack", ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+" "+ ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
                             }
                         }
@@ -427,8 +444,16 @@ public class RdtAPI {
                     hfactor = inputmat.rows() / 1280f;
                 }
                 //handle rotation TBD
-                if (mSaveInput || mPlaybackMode)
+                if (mSaveInput || mPlaybackMode || mShowPip) {
                     rectangle(inputmat, new Point(roi.x * wfactor, roi.y * hfactor), new Point((roi.x + roi.width) * wfactor, (roi.y + roi.height) * hfactor), new Scalar(255, 0, 0, 0), 4, LINE_AA, 0);
+                }
+                if(mShowPip){
+
+                    synchronized (piplock) {
+                        mPipMat = new Mat(360, 640, inputmat.type());
+                        resize(inputmat, mPipMat, new Size(360, 640));
+                    }
+                }
                 if (mSaveInput) SaveMatrix(inputmat, "output");
 
                 retStatus.mBoundingBoxX = (short) (roi.x * wfactor);

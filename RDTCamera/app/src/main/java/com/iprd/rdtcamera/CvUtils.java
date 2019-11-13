@@ -38,8 +38,8 @@ public class CvUtils {
         Mat warp= warpmat.clone();
         //level 4 mat
         int factor = 1<<level;
-        warp.put(0,1,warp.get(0,1)[0]*factor);
-        warp.put(1,0,warp.get(1,0)[0]*factor);
+        //warp.put(0,1,warp.get(0,1)[0]*factor);
+        //warp.put(1,0,warp.get(1,0)[0]*factor);
         warp.put(0,2,warp.get(0,2)[0]*factor);
         warp.put(1,2,warp.get(1,2)[0]*factor);
         return warp;

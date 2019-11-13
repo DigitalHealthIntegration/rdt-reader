@@ -65,7 +65,7 @@ public class ImageRegistration {
 
     public static Mat getTransformation(Mat ref, Mat ins) {
        // Log.d("Transform",ref.cols()+"x"+ref.rows()+ " " +ins.cols()+"x"+ins.rows());
-        final int warp_mode = MOTION_EUCLIDEAN;
+        final int warp_mode = MOTION_TRANSLATION;
         Mat warpMatrix = Mat.eye(2,3,CV_32F);
        try {
             int numIter = 50;

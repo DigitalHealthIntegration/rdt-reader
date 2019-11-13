@@ -35,6 +35,17 @@
         app:layout_constraintBottom_toBottomOf="@+id/ResultView"
         app:layout_constraintEnd_toEndOf="parent" />
 
+
+    <ImageView
+        android:id="@+id/RdtDetectImage"
+        android:layout_width="147dp"
+        android:layout_height="221dp"
+        android:layout_marginTop="48dp"
+        android:visibility="invisible"
+        app:layout_constraintDimensionRatio="H,9:16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ProgressBar
         android:id="@+id/loader"
         android:layout_width="100dp"
@@ -48,6 +59,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5" />
+
     <Switch
         android:id="@+id/torch"
         android:layout_width="97dp"
@@ -105,6 +117,7 @@
         android:visibility="invisible"
         app:layout_constraintStart_toStartOf="@+id/texture"
         app:layout_constraintTop_toTopOf="parent" />
+
     <Button
         android:id="@+id/getResult"
         android:layout_width="wrap_content"

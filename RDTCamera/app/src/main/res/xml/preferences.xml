@@ -62,7 +62,7 @@
 
     <EditTextPreference android:title="RDT Server URL"
         android:key="rdtCheckUrl"
-        android:defaultValue="http://34.204.97.37:9000/Quidel/QuickVue"
+        android:defaultValue="http://3.95.254.129:9000/Quidel/QuickVue"
         android:summary="Please Provide RDT Server URL"></EditTextPreference>
 
 

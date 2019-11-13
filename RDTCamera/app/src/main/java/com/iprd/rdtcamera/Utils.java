@@ -57,13 +57,19 @@ public class Utils {
     public static void SaveMatrix(Mat tmp,String prefix) {
         Bitmap finalBitmap = null;
         try {
-            finalBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
-            org.opencv.android.Utils.matToBitmap(tmp, finalBitmap);
+            finalBitmap = getBitmapFromMat(tmp);
             saveImage(finalBitmap,prefix);
         }
         catch (CvException e){
             Log.d("Exception",e.getMessage());
         }
+    }
+
+    public static Bitmap getBitmapFromMat(Mat tmp) {
+        Bitmap finalBitmap;
+        finalBitmap = Bitmap.createBitmap(tmp.cols(), tmp.rows(), Bitmap.Config.ARGB_8888);
+        org.opencv.android.Utils.matToBitmap(tmp, finalBitmap);
+        return finalBitmap;
     }
 
 
