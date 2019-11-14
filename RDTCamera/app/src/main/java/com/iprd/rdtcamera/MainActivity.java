@@ -411,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
                 status.mSharpness = mRdtApi.getSharpness();
                 status.mBrightness = mRdtApi.getBrightness();
             }
-            Bitmap TrackedImage = status.mTrackedImage;
+            Bitmap TrackedImage = status.mInfo.mTrackedImage;
             long et = System.currentTimeMillis()-st;
             Log.i("BBF",status.mBoundingBoxX+"x"+status.mBoundingBoxY+"-"+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
 
