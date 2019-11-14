@@ -17,8 +17,8 @@ import keras.metrics
 import train_blue_red
 
 
-modelToLoad = './red_blue.hdf5'
-export_path = './tensorflow-yolov3/models/Flu_audere_line/1'
+modelToLoad = './weights-latest_model_YCrCb_test.hdf5'
+export_path = './tensorflow-yolov3/models/Flu_audere_line/2'
 
 
 if __name__ == "__main__":

@@ -13,7 +13,6 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import sys
 
-
 sys.path.append(RDT_GIT_ROOT)
 import flasker
 
@@ -68,7 +67,6 @@ def ViewRdt(request):
                 imagefile=request.FILES['image']
                 img_str=imagefile.read()
                 imagefile.close()
-                print(img_str)
                 m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str)
                 if retFlag==True:
                     print(m.to_string)
