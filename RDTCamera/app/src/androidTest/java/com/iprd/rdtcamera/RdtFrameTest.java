@@ -12,17 +12,17 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 //import androidx.test.runner.AndroidJUnit4;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
@@ -34,15 +34,15 @@ public class RdtFrameTest {
 
     @Test
     public void test1(){
-        String imgPath = Environment.getExternalStorageDirectory().getPath()+"/RDT_Images";
-        ArrayList<String> list = getImageList(imgPath);
-        for (String s: list
-             ) {
-            byte[] blob = ReadFromSdcard(s);
-            Log.i("Size ",s+"->"+blob.length);
-            assertTrue("Unable to read " + imgPath,blob !=null);
-        }
+//        String imgPath = Environment.getExternalStorageDirectory().getPath()+"/RDT_Images";
+//        ArrayList<String> list = getImageList(imgPath);
+//        for (String s: list) {
+//            byte[] blob = ReadFromSdcard(s);
+//            Log.i("Size ",s+"->"+blob.length);
+//            assertTrue("Unable to read " + imgPath,blob !=null);
+//        }
     }
+
 
     @Test
     public void test2(){
@@ -50,14 +50,47 @@ public class RdtFrameTest {
 
         String imgPath = Environment.getExternalStorageDirectory().getPath()+"/RDT_Images";
         ArrayList<String> list = getImageList(imgPath);
-        for (String s: list
-        ) {
-            byte[] blob = ReadFromSdcard(s);
-           // Log.i("File Info ", s + "->" + blob.length);
-            assertTrue("Unable to read " + imgPath, blob != null);
-            Bitmap capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
-            AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
-            Log.i("Result ", s + " : " + status.GetResult());
+        FileWriter fileWriter;
+        BufferedWriter bfWriter = null;
+
+        if(list.size() > 0) {
+
+            String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RDT_Images_Folder/";
+            File f = new File(fileDir);
+            if(!f.exists()){
+                f.mkdir();
+            }
+
+            File file = new CreateCsvFile(fileDir, "RDT_Images_Results.csv").invoke();
+
+            for (int i=0; i<list.size(); i++) {
+                byte[] blob = ReadFromSdcard(list.get(i));
+                // Log.i("File Info ", s + "->" + blob.length);
+                assertTrue("Unable to read " + imgPath, blob != null);
+                Bitmap capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
+                AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
+                Log.i("Result ", list.get(i) + " : " + status.GetResult());
+
+                if (file.exists()) {
+                    try {
+                        if(i == 0) {
+                            fileWriter = new FileWriter(file);
+                            bfWriter = new BufferedWriter(fileWriter);
+                            bfWriter.write("Image, mSharpness, mScale, mBrightness, mPerspectiveDistortion, mDisplacementX, mDisplacementY, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mSteady\n");
+                        }
+                        bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
+                                    +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mSteady+"\n");
+
+                        if(i == list.size()-1) {
+                            bfWriter.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+
         }
     }
 
@@ -144,5 +177,25 @@ public class RdtFrameTest {
     }
     static {
         System.loadLibrary("opencv_java3");
+    }
+
+    private class CreateCsvFile {
+        private String fileDir;
+        private String fileName;
+
+        public CreateCsvFile(String fileDir, String fileName) {
+            this.fileDir = fileDir;
+            this.fileName = fileName;
+        }
+
+        public File invoke() {
+            File file = new File(fileDir+File.separator+fileName);
+
+            if(!file.exists()) {
+                try {file.createNewFile();}
+                catch (IOException e) {e.printStackTrace();}
+            }
+            return file;
+        }
     }
 }
