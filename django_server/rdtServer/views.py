@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import sys
 
+
 sys.path.append(RDT_GIT_ROOT)
 import flasker
 
@@ -68,12 +69,29 @@ def ViewRdt(request):
                 img_str=imagefile.read()
                 imagefile.close()
                 print(img_str)
-                m,retFlag = flasker.processRdtRequest(UUID,include_proof,img_str)
+                m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str)
                 if retFlag==True:
-                    return HttpResponse(m.to_string, content_type=m.content_type)
+                    print(m.to_string)
+                    boundary = m.boundary
+                    print("Boundary value: "+boundary)
+                    r1 = m.fields.get("metadata")
+                    finalRspTxt = "\n"+boundary+"\nContent-Disposition: form-data; name=\"metadata\"; filename=\""+r1[0]+"\"\nContent-Type: "+r1[2]+"\r\n\r\n"+r1[1]
+                    print(finalRspTxt)
+                    if rc != -2:
+                        #this means rdt found
+                        r2 = m.fields.get("image")
+                        finalRspImg = "\n"+boundary+"\nContent-Disposition: form-data; name=\"image\"; filename=\""+r2[0]+"\"\nContent-Type: "+r2[2]+"\r\n\r\n"+r2[1].decode("utf-8")
+                        fullRsp = finalRspTxt+"\n"+finalRspImg+"\n"+boundary
+                    else:
+                        fullRsp = finalRspTxt+"\n"+boundary
+                    
+                    finalRsp = HttpResponse(fullRsp,content_type="multipart/form-data; boundary="+boundary,status="200")
+                    return finalRsp
+                    #return HttpResponse(finalRsp,status="200")
                 else:
                     return HttpResponse(m, content_type="application/json")
-            except IOError:
+            except IOError as ioe:
+                    print("IOError raised while processing rdt - ")
                     return HttpResponse("<h1>Rdt Post IO error</h1>",status="400")
             except ValueError:
                     return HttpResponse("<h1>Rdt internal Post failure</h1>",status="400")

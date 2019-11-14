@@ -27,6 +27,28 @@
         app:layout_constraintDimensionRatio="H,9:16"
         />
 
+    <ImageView
+        android:id="@+id/disRdtResultImage"
+        android:layout_width="61dp"
+        android:layout_height="128dp"
+        android:layout_marginTop="8dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/loader"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:indeterminate="true"
+        android:visibility="invisible"
+        android:indeterminateTint="@color/colorGrey"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
     <Switch
         android:id="@+id/torch"
         android:layout_width="97dp"
@@ -74,15 +96,52 @@
 
     <TextView
         android:id="@+id/rdtDataToBeDisplay"
-        android:layout_width="175dp"
-        android:layout_height="139dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="67dp"
+        android:layout_height="521dp"
         android:backgroundTint="#00ffffff"
         android:text=""
         android:textColor="@color/colorBlue"
         android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="@+id/texture"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/getResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="72dp"
+        android:text="Get Result"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.06"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/ResultView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="628dp"
+        android:layout_marginEnd="8dp"
+        android:text="TextView"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/saveData"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/getResult"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/startBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="72dp"
+        android:text="Start"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.076"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

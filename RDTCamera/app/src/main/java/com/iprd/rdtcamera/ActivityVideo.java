@@ -3,6 +3,7 @@ package com.iprd.rdtcamera;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -12,6 +13,7 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
@@ -35,6 +37,7 @@ import org.jcodec.api.JCodecException;
 import org.jcodec.common.AndroidUtil;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Picture;
+import org.jcodec.scale.BitmapUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -49,6 +52,7 @@ import static android.Manifest.permission_group.CAMERA;
 
 public class ActivityVideo extends AppCompatActivity {
     private static final int PICK_VIDEO_REQUEST = 1001;
+    private static final String mModelFileName="tflite.lite";
     static String TAG = ActivityVideo.class.getName();
     enum PlayPause {PLAY, PAUSE};
     Uri mVideoUri;
@@ -57,13 +61,14 @@ public class ActivityVideo extends AppCompatActivity {
     Button mPlayPause;
     Button mGetResult;
     ImageView mShowImage,mRdtImage;
+    TextView mResultView;
     Button preferenceSettingBtn;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
     private RdtAPI mRdtApi;
     Short mShowImageData;
     Bitmap mCapFrame;
     ProgressBar mCyclicProgressBar;
-
+    SharedPreferences prefs;
 
     PlayPause mState = PlayPause.PAUSE;
     boolean mRunningloop = false;
@@ -90,6 +95,7 @@ public class ActivityVideo extends AppCompatActivity {
         mCyclicProgressBar = findViewById(R.id.loader);
         mRdtImage = findViewById(R.id.rdt);
         mGetResult = findViewById(R.id.getResult);
+        mResultView = findViewById(R.id.ResultView);
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,9 +104,11 @@ public class ActivityVideo extends AppCompatActivity {
                 startActivity(i);
             }
         });
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
         MappedByteBuffer mMappedByteBuffer = null;
         try {
-            mMappedByteBuffer = Utils.loadModelFile(getAssets(), "tflite.lite");
+            mMappedByteBuffer = Utils.loadModelFile(getAssets(), mModelFileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -122,6 +130,7 @@ public class ActivityVideo extends AppCompatActivity {
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
+                mResultView.setVisibility(View.INVISIBLE);
                 mRunningloop = false;
                 mPlayPause.setText("");
                 try {
@@ -141,10 +150,12 @@ public class ActivityVideo extends AppCompatActivity {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
                 byte[] byteArray = stream.toByteArray();
-                String urlString = "http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
-                String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+
+                String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");
+                String guid = String.valueOf(java.util.UUID.randomUUID());
+                String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                 try{
-                    Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage);
+                    Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage,mResultView);
                     mr.setCtx(getApplicationContext());
                     mr.execute();
                 }catch(Exception ex){
@@ -165,6 +176,7 @@ public class ActivityVideo extends AppCompatActivity {
                 mState = PlayPause.PLAY;
                 setFilePickerVisibility(false);
                 mPlayPause.setText("");
+                mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
@@ -256,10 +268,26 @@ public class ActivityVideo extends AppCompatActivity {
                     break;
                 } else {
                     System.out.println(picture.getWidth() + "x" + picture.getHeight() + " " + picture.getColor());
+                    long st = System.currentTimeMillis();
+
                     mCapFrame = AndroidUtil.toBitmap(picture);
-                    Log.i("Madhav", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
+                    Log.i("IPRD", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
+                    long et = System.currentTimeMillis()- st;
+                    Log.i("Bitmap Conversion Time "," "+ et);
+
+                    st = System.currentTimeMillis();
                     final AcceptanceStatus status = mRdtApi.checkFrame(mCapFrame);
-                    String frNoSB = count + " S[" + mRdtApi.getSharpness() + "]" + "B[" + mRdtApi.getBrightness() + "]";
+                    et = System.currentTimeMillis()- st;
+
+                    Log.i("Pre Divide Time ",""+ mRdtApi.getDivideTime());
+                    Log.i("TfLite Time ",""+ mRdtApi.getTfliteTime());
+                    Log.i("ROI Finding Time ",""+ mRdtApi.getROIFindingTime());
+
+                    Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
+                    Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
+                    Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
+                    Log.i("Total Processing Time "," "+ et);
+                    String frNoSB = "F["+count + "]\nS[" + mRdtApi.getSharpness() + "]\n" + "B[" + mRdtApi.getBrightness() + "]";
                     mRdtApi.SetText(frNoSB, status);
                     final Bitmap ret = mRdtApi.getLocalcopyAsBitmap();
                     runOnUiThread(new Runnable() {

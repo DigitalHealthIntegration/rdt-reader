@@ -1,21 +1,2 @@
 #!/bin/bash
-set -euo pipefail
-
-SELF_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
-cd "$SELF_DIR"
-
-rsync --delete -a tensorflow-yolov3-models/models/ tensorflow-yolov3/models
-
-function cleanup() {
-  (
-    cd "$SELF_DIR/tensorflow-yolov3"
-    git checkout ./core/config.py
-  )
-}
-trap cleanup EXIT
-
-sed --in-place \
-    -e "s|D:/source/repos|/home/rdtreader|g" \
-    "tensorflow-yolov3/core/config.py"
-
 docker image build -f ./Dockerfile -t iprd-rdt-reader .

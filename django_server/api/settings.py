@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'pg6u-67q3_&l7u9z&&epfv56i&n14%iww2@rdnpv9&y+i&ziv9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -70,7 +70,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api.wsgi.application'
-RDT_GIT_ROOT = '/home/rdtreader/rdt-reader' 
+RDT_GIT_ROOT = "/home/rdtreader/rdt-reader" 
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
