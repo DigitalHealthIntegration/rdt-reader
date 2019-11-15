@@ -12,6 +12,8 @@ from .serializers import AlignSerializer
 from django.views.decorators.csrf import csrf_exempt
 import json
 import sys
+import logging
+
 
 
 sys.path.append(RDT_GIT_ROOT)
@@ -53,30 +55,27 @@ def ViewRdt(request):
     if request.method == 'POST':
         form = RequestForm(request.POST,request.FILES)
         #form = RequestForm(request.POST)
-        print("Form content: {0}".format(form))
-        print("Process form content")
+        logging.debug("Form content: {0}".format(form))
         if form.is_valid():
             try:
                 md=form['metadata'].value()
-                print(md)
+                logging.debug(md)
                 UUID=json.loads(md)["UUID"]
-                print(UUID)
+                logging.debug(UUID)
                 include_proof=json.loads(md)["Include_Proof"]
-                print(include_proof)
                 message="No Flu"
                 rc = 0
                 imagefile=request.FILES['image']
                 img_str=imagefile.read()
                 imagefile.close()
-                print(img_str)
+                logging.info(img_str)
                 m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str)
                 if retFlag==True:
                     print(m.to_string)
                     boundary = m.boundary
-                    print("Boundary value: "+boundary)
                     r1 = m.fields.get("metadata")
                     finalRspTxt = "\n"+boundary+"\nContent-Disposition: form-data; name=\"metadata\"; filename=\""+r1[0]+"\"\nContent-Type: "+r1[2]+"\r\n\r\n"+r1[1]
-                    print(finalRspTxt)
+                    logging.debug(finalRspTxt)
                     if rc != -2:
                         #this means rdt found
                         r2 = m.fields.get("image")
@@ -91,14 +90,17 @@ def ViewRdt(request):
                 else:
                     return HttpResponse(m, content_type="application/json")
             except IOError as ioe:
-                    print("IOError raised while processing rdt - ")
+                    logging.error("IOError raised while processing rdt")
                     return HttpResponse("<h1>Rdt Post IO error</h1>",status="400")
             except ValueError:
+                    logging.error("ValError raised while processing rdt")
                     return HttpResponse("<h1>Rdt internal Post failure</h1>",status="400")
                             
         else:
+            logging.error("Invalid http POST form data")
             return HttpResponse("<h1>Rdt Post failure</h1>",status="400")
     else:
+        logging.error("Unsupported http request")
         return HttpResponse("<h1>Request not supported</h1>",status="405")
 
 @csrf_exempt
