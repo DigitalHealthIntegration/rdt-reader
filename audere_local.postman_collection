@@ -35,7 +35,7 @@
 					]
 				},
 				"url": {
-					"raw": "http://0.0.0.0:9000/align",
+					"raw": "http://0.0.0.0:9000/Quidel/QuickVue",
 					"protocol": "http",
 					"host": [
 						"0",
