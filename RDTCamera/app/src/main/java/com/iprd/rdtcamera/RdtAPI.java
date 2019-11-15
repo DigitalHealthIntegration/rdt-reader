@@ -272,6 +272,8 @@ public class RdtAPI {
         try {
             long st  = System.currentTimeMillis();
             Utils.bitmapToMat(capFrame, matinput);
+            if (false) SaveMatrix(matinput, "Input");
+
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
             Point lt = null,rb=null;
             Mat warpmat=null;
@@ -281,7 +283,7 @@ public class RdtAPI {
                     int level = 4;
                     Mat warp = scaleAffineMat(warpmat, level);
                     //ComputeVector
-                    mMotionVectorMat = CvUtils.ComputeVector(warp);
+                    mMotionVectorMat=  CvUtils.ComputeVector(warp);
                     Log.i("Tx-Ty Inp", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
                     if ((Math.abs(warpmat.get(0, 2)[0]) > mConfig.mMaxAllowedTranslationX || Math.abs(warpmat.get(1, 2)[0]) > mConfig.mMaxAllowedTranslationY)) {
                         ret.mSteady = TOO_HIGH;
