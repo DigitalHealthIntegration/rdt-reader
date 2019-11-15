@@ -87,7 +87,7 @@ function startTesting(fname,cb){
 						var dataToBeSend = {};
 						dataToBeSend.metadata = '{"UUID":"a432f9681-a7ff-43f8-a1a6-f777e9362654","Quality_parameters":{"brightness":"10"},"RDT_Type":"Flu_Audere","Include_Proof":"True"}';
 						dataToBeSend.image = fs.createReadStream(fname);
-						const url = 'http://127.0.0.1:9000/align';		            
+						const url = 'http://127.0.0.1:9000/Quidel/QuickVue';		            
 						console.log('Sending file '+ fname);
 						https.post({url:url, formData: dataToBeSend}, function optionalCallback(err, httpResponse, body) {
 						resolve(body);
