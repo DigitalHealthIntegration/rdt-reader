@@ -29,6 +29,7 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Size;
@@ -38,10 +39,12 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Switch;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -133,13 +136,14 @@ public class MainActivity extends AppCompatActivity {
     public Switch mode;
     public Switch torch;
     public Switch saveData;
+    boolean isGridDispaly;
+    TableLayout gridTable;
 
     int idx;
     RdtAPI mRdtApi=null;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder=null;
 
     private boolean checkpermission(){
-        System.out.println("..>>"+ WRITE_EXTERNAL_STORAGE);
         int res  = ContextCompat.checkSelfPermission(getApplicationContext(), CAMERA);
         int res1 = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
         int res2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
@@ -181,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
+
         byte[] mTfliteB=null;
         MappedByteBuffer mMappedByteBuffer=null;
         try {
@@ -305,6 +310,14 @@ public class MainActivity extends AppCompatActivity {
                 disRdtResultImage.setVisibility(View.INVISIBLE);
             }
         });
+//        final CheckBoxPreference checkboxPref = (CheckBoxPreference) getPreferenceManager().findPreference("checkboxPref");
+//
+//        checkboxPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                Log.d("MyApp", "Pref " + preference.getKey() + " changed to " + newValue.toString());
+//                return true;
+//            }
+//        });
     }
 
     void progressbar(boolean isVisible){
@@ -481,6 +494,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean openCamera(int width, int height) {
+
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "is camera open");
         try {
@@ -814,6 +828,14 @@ public class MainActivity extends AppCompatActivity {
         startBackgroundThread();
         if (mTextureView.isAvailable()) {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+            isGridDispaly = prefs.getBoolean("gridView",false);
+//            gridTable =  findViewById(R.id.gridTable);
+//            if(isGridDispaly) {
+//                gridTable.setVisibility(View.VISIBLE);
+//            }
+//            else {
+//                gridTable.setVisibility(View.INVISIBLE);
+//            }
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
