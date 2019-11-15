@@ -21,7 +21,6 @@ from rdtServer.views import DoHealthCheck
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('align/',ViewRdt),
     path('Quidel/QuickVue',ViewRdt),
     path('Quidel/QuickVue/',ViewRdt),
     path('health-check',DoHealthCheck),
