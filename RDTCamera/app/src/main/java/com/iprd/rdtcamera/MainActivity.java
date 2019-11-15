@@ -156,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
 
         mGetResult = findViewById(R.id.getResult);
@@ -198,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
         mRdtApi.setmShowPip(true);
         mRdtApi.setLinearflow(false);
         mRdtApi.setTracking(true);
+
 //        mRdtApi.saveInput(true);
 //        mRdtApi.setSavePoints(true);
 
@@ -411,7 +414,7 @@ public class MainActivity extends AppCompatActivity {
                 status.mSharpness = mRdtApi.getSharpness();
                 status.mBrightness = mRdtApi.getBrightness();
             }
-            Bitmap TrackedImage = status.mTrackedImage;
+            Bitmap TrackedImage = status.mInfo.mTrackedImage;
             long et = System.currentTimeMillis()-st;
             Log.i("BBF",status.mBoundingBoxX+"x"+status.mBoundingBoxY+"-"+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
 
@@ -434,10 +437,8 @@ public class MainActivity extends AppCompatActivity {
                     //repositionRect(status);
                 }
             });
-
             sem.release();
             Log.d("~~~~~~~~~~~","Lock Released []");
-
         }
     };
 

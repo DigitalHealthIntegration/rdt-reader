@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 
 import org.opencv.core.Mat;
 
+
 public class AcceptanceStatus {
     public static final short NOT_COMPUTED = 100;
     public static final short TOO_HIGH = 1;
@@ -21,8 +22,7 @@ public class AcceptanceStatus {
     public short mBoundingBoxWidth, mBoundingBoxHeight;
     public short mSteady;
 
-    public Bitmap mTrackedImage =null;
-
+    public InformationStatus mInfo;
     public String GetResult(){
         String s = mRDTFound?"1":"0"+","+mBoundingBoxX+"x"+mBoundingBoxY+"-"+mBoundingBoxWidth+"x"+mBoundingBoxHeight+","+mBrightness +","+mSharpness+","+mScale
                 +","+mDisplacementX +","+mDisplacementY+","+mPerspectiveDistortion+","+mSteady;
@@ -42,6 +42,6 @@ public class AcceptanceStatus {
         mPerspectiveDistortion = NOT_COMPUTED;
         mBoundingBoxX = mBoundingBoxY= mBoundingBoxWidth=mBoundingBoxHeight=-1;
         mSteady = NOT_COMPUTED;
-        mTrackedImage=null;
+        mInfo=new InformationStatus();
     }
 };

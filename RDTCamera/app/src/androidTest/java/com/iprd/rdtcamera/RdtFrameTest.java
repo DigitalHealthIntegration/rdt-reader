@@ -14,6 +14,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.opencv.core.Mat;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,7 +26,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import org.opencv.android.Utils;
+import org.opencv.core.Rect;
 
+import static com.iprd.rdtcamera.Utils.getBitmapFromMat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -43,7 +47,6 @@ public class RdtFrameTest {
 //        }
     }
 
-
     @Test
     public void test2(){
         RdtAPI mRdtApi=getRdtAPI();
@@ -60,14 +63,31 @@ public class RdtFrameTest {
             if(!f.exists()){
                 f.mkdir();
             }
-
             File file = new CreateCsvFile(fileDir, "RDT_Images_Results.csv").invoke();
-
             for (int i=0; i<list.size(); i++) {
+                //String s = "/storage/emulated/0/RDT_Images/FluA/Morning/IMG_1613.jpg";
                 byte[] blob = ReadFromSdcard(list.get(i));
                 // Log.i("File Info ", s + "->" + blob.length);
                 assertTrue("Unable to read " + imgPath, blob != null);
                 Bitmap capFrame = BitmapFactory.decodeByteArray(blob, 0, blob.length);
+                Mat matinput = new Mat();
+                Utils.bitmapToMat(capFrame, matinput);
+                if(matinput.width()< matinput.height()){
+                    //Rotate mat;
+                    com.iprd.rdtcamera.Utils.rotateFrame(matinput, -90);
+                    //Find the biggest rectangle.
+                }
+                int width = matinput.width();
+                int height = matinput.height();
+                int wfactor = width/16;
+                int hfactor = height/9;
+                int factor  = wfactor >hfactor?hfactor:wfactor;
+                int newWidth = factor*16;
+                int newHeight = factor*9;
+                Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
+                Mat croppedImage = matinput.submat(r);
+                capFrame = getBitmapFromMat(croppedImage);
+
                 AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
                 Log.i("Result ", list.get(i) + " : " + status.GetResult());
 
@@ -88,9 +108,7 @@ public class RdtFrameTest {
                         e.printStackTrace();
                     }
                 }
-
             }
-
         }
     }
 
@@ -110,6 +128,7 @@ public class RdtFrameTest {
         mRdtApi.setSaveImages(true);
         mRdtApi.setTracking(false);
         mRdtApi.setLinearflow(true);
+        mRdtApi.setmPlaybackMode(true);
         return mRdtApi;
     }
 
