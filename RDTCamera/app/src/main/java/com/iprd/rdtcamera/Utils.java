@@ -40,6 +40,13 @@ public class Utils {
             file.mkdirs();
         }
     }
+    static void  createDirectoryFromGivenPath(String dirPath) {
+
+        File file = new File(dirPath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
 
     public static void SaveROIImage(Mat greyMat, int x1, int y1, int x2, int y2) {
         Mat tmp = new Mat();
@@ -59,6 +66,17 @@ public class Utils {
         try {
             finalBitmap = getBitmapFromMat(tmp);
             saveImage(finalBitmap,prefix);
+        }
+        catch (CvException e){
+            Log.d("Exception",e.getMessage());
+        }
+    }
+    //
+    public static void SaveMatrixWithGivenPath(Mat tmp,String prefix, String path) {
+        Bitmap finalBitmap = null;
+        try {
+            finalBitmap = getBitmapFromMat(tmp);
+            saveImageNew(finalBitmap,prefix, path);
         }
         catch (CvException e){
             Log.d("Exception",e.getMessage());
@@ -84,6 +102,50 @@ public class Utils {
             out = new FileOutputStream(myImage);
             m.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.flush();
+
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    //
+    public static void saveImageNew(Bitmap m,String suff, String imagePath) {
+        String storageLocation = Environment.getExternalStorageDirectory().getAbsolutePath()+"/RDTCROP";
+        String folderPath = imagePath.substring(imagePath.indexOf("/RDT_Images/")+11,imagePath.lastIndexOf('/'));
+        String imageName = imagePath.substring(imagePath.lastIndexOf('/')+1 ,imagePath.lastIndexOf(".jpg"));
+
+        createDirectoryFromGivenPath(storageLocation+folderPath+"/");
+        File myImage = new File(storageLocation+folderPath+"/"+imageName+ ".jpg");
+        Log.i("Saving File",myImage.getAbsolutePath());
+        mImageCount++;
+        if (myImage.exists()) myImage.delete();
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(myImage);
+            m.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void saveImageInfolder(Bitmap m,String suff) {
+        CreateDirectory();
+        File myImage = new File(dirpath+"Image" + mImageCount+suff + ".jpg");
+        Log.i("Saving File",myImage.getAbsolutePath());
+        mImageCount++;
+        if (myImage.exists()) myImage.delete();
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(myImage);
+            m.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+
             out.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();

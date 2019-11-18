@@ -32,6 +32,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
+import static com.iprd.rdtcamera.Utils.SaveMatrixWithGivenPath;
 import static com.iprd.rdtcamera.Utils.getBitmapFromMat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -95,7 +96,8 @@ public class RdtFrameTest {
                 Scalar sg = new Scalar(0, 0, 255, 0);
                 putText(croppedImage, list.get(i), new Point(30, 100), 0, 2, sg, 2, LINE_AA, false);
 
-                SaveMatrix(croppedImage,"CroppedInput");
+               // SaveMatrix(croppedImage,"CroppedInput");
+                SaveMatrixWithGivenPath(croppedImage,"CroppedInput",list.get(i));
                 AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
                 Log.i("Result ", list.get(i) + " : " + status.GetResult());
 
