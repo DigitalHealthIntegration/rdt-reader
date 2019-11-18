@@ -130,7 +130,7 @@ public class CvUtils {
         Log.d("MotionVector", r +"["+Math.toDegrees(angleRadian) +"]");
 //        Log.d("Points", "[100,100] -> ["+x1+","+y1+"]");
         if(m == null) {
-            m = new Mat(200, 200, CV_8UC3);
+            m = new Mat(200, 200, CV_8UC4);
             m.setTo(new Scalar(0));
         }
         line(m, new Point(100,100), new Point(x1,y1),s,5);

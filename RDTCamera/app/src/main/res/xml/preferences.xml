@@ -67,7 +67,7 @@
 
     <EditTextPreference android:title="RDT Server URL"
         android:key="rdtCheckUrl"
-        android:defaultValue="http://3.95.254.129:9000/Quidel/QuickVue"
+        android:defaultValue="http://3.82.14.134:9000/Quidel/QuickVue"
         android:summary="Please Provide RDT Server URL"></EditTextPreference>
     <EditTextPreference android:title="RDT Max Allowed Translation X"
         android:key="mMaxAllowedTranslationX"
@@ -81,6 +81,5 @@
         android:key="mTrackingEnable"
         android:defaultValue="5"
         android:summary="EnableTracking"></EditTextPreference>
-
 
 </PreferenceScreen>

@@ -301,15 +301,15 @@ public class RdtAPI {
             Log.i("10 frame", p.x + "x" + p.y);
             Log.i("1 frame", warp.get(0,2)[0] + "x" + warp.get(1,2)[0]);
 
-            Scalar sg = new Scalar(0,255,0);
-            mMotionVectorMat = CvUtils.ComputeVector(p,mMotionVectorMat,sg);
+            Scalar sr = new Scalar(255,0,0,0);//RGBA
+            mMotionVectorMat = CvUtils.ComputeVector(p,mMotionVectorMat,sr);
             ret.mSteady = GOOD;
             if(mComputeVector_FinalMVector.x > 40.0){
                 ret.mSteady = TOO_HIGH;
             }
 
-            Scalar sb = new Scalar(0,0,255);
-            mMotionVectorMat = CvUtils.ComputeVector(new Point(warp.get(0,2)[0],warp.get(1,2)[0]),mMotionVectorMat,sb);
+            Scalar sg = new Scalar(0,255,0,0);
+            mMotionVectorMat = CvUtils.ComputeVector(new Point(warp.get(0,2)[0],warp.get(1,2)[0]),mMotionVectorMat,sg);
             if(mComputeVector_FinalMVector.x > 40.0){
                 ret.mSteady = TOO_HIGH;
             }

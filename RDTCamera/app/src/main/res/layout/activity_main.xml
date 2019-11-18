@@ -49,8 +49,8 @@
         android:layout_height="wrap_content"
         android:text="TextView"
         android:visibility="visible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rdtDataToBeDisplay" />
+        app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn"
+        app:layout_constraintBottom_toTopOf="@+id/RdtDetectImage" />
 
     <ImageView
         android:id="@+id/RdtTrackedImage"
