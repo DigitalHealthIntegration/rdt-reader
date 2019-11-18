@@ -6,7 +6,7 @@ import os
 from settings import RDT_GIT_ROOT
 from settings import FLU_AUDERE_PATH
 from settings import FLU_AUDERE_LINE_PATH
-
+from settings import LINE_MODEL_VER
 path = os.path.join(os.getcwd(),"tensorflow-yolov3")
 sys.path.append(path)
 
@@ -183,7 +183,10 @@ class LineDetector:
         img_no_sclae = np.copy(img_inp)
         img_inp = img_inp/255.0
         img_inp = np.array(img_inp,dtype=np.float32)
-        img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2YCrCb)
+        if LINE_MODEL_VER==1:
+            img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2RGB)
+        else:
+            img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2YCrCb)
 
         for i in range(96):
             st = i*5
@@ -196,7 +199,6 @@ class LineDetector:
             preds = self.predictorFn({"input_image": shred_img})
             preds=list(preds["predictions"][0])
             feat_class =preds.index(max(preds))
-
             if feat_class==0:
                 y.append(0)
             elif feat_class==1:
