@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import sys
+RDT_GIT_ROOT = 'D:\\source\\repos\\rdt-reader' 
+
+sys.path.append(RDT_GIT_ROOT)
+import flasker
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,6 +34,10 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+try:
+    SERV = flasker.FluServer()
+except IOError:
+    print("Possible tensorflow error")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -70,7 +79,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api.wsgi.application'
-RDT_GIT_ROOT = 'D:\\source\\repos\\rdt-reader' 
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases

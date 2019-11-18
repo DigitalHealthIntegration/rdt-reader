@@ -13,7 +13,6 @@ __C.RDT_Reader                        = edict()
 __C.RDT_Reader.CLASSES                = "D:/source/repos/object_detection_mobile_v2/dataset/classes/rdt.names"
 __C.RDT_Reader.ORIGINAL_WEIGHT        = ""
 __C.RDT_Reader.DEMO_WEIGHT            = ""
-
 # Train options
 __C.TRAIN                       = edict()
 

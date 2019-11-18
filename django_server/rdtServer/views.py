@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django import forms
-from api.settings import RDT_GIT_ROOT
+from api.settings import RDT_GIT_ROOT,SERV
 from .forms import RequestForm
 from rest_framework import generics
 from rest_framework import status
@@ -67,7 +67,7 @@ def ViewRdt(request):
                 imagefile=request.FILES['image']
                 img_str=imagefile.read()
                 imagefile.close()
-                m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str)
+                m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str,SERV)
                 if retFlag==True:
                     print(m.to_string)
                     boundary = m.boundary

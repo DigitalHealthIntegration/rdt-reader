@@ -20,8 +20,8 @@ import base64
 import time
 import os.path
 from os import path
-
-
+import settings as file_path_sets
+# from tensorflow-yolov3.core import config as cfg
 
 def reduceByConfidence(dictBoxC,dictBoxL):
     """This function handles multple object detection by selecting the one with the highest score.
@@ -42,7 +42,8 @@ def reduceByConfidence(dictBoxC,dictBoxL):
             if len(dictBoxC[key])>1:
                 for ind,score in enumerate(dictBoxC[key]):
                     if(score>maxConf):
-                        filtDictBoxL[key]=dictBoxL[key][ind]
+                        print("prediction",dictBoxL[key][ind])
+                        filtDictBoxL[key]=int(dictBoxL[key][ind]/10)
                         maxConf=score
                     else:
                         pass
@@ -294,15 +295,19 @@ def postProcessDetections(labels):
     dictOfBoxesConf={}
     dictOfBoxesL={}
     for l in labels:
-        if l[-1]!=3:
-            try:
-                dictOfBoxesConf[str(int(l[-1]))].append(l[-2])
-                dictOfBoxesL[str(int(l[-1]))].append([l[0],l[1],l[2],l[3]])
-            except Exception as e:
-                dictOfBoxesConf[str(int(l[-1]))]=[]
-                dictOfBoxesL[str(int(l[-1]))]=[]
-                dictOfBoxesConf[str(int(l[-1]))].append(l[-2])
-                dictOfBoxesL[str(int(l[-1]))].append([l[0],l[1],l[2],l[3]])
+        try:
+            if file_path_sets.YOLO_MODEL_VER==1:
+                class_feat = str(int(l[-1]))
+            elif file_path_sets.YOLO_MODEL_VER==2:
+                class_feat = str(int(l[-1]/10))
+            # print(class_feat)
+            dictOfBoxesConf[class_feat].append(l[-2])
+            dictOfBoxesL[class_feat].append([l[0],l[1],l[2],l[3]])
+        except Exception as e:
+            dictOfBoxesConf[class_feat]=[]
+            dictOfBoxesL[class_feat]=[]
+            dictOfBoxesConf[class_feat].append(l[-2])
+            dictOfBoxesL[class_feat].append([l[0],l[1],l[2],l[3]])
     reducedL=reduceByConfidence(dictOfBoxesConf,dictOfBoxesL)
     try:
         centreTop = returnCentre(reducedL["0"])
@@ -425,7 +430,7 @@ class FluServer:
         self.__lineDetector = LineDetector()
 
     def callyolo(self, image):
-
+        print("calling yolo")
         return self.__yolo.wrapper(image)
 
     def callLineDetector(self, image):
@@ -474,7 +479,7 @@ def runPipeline(img,serverObj):
         rc = -2
     return rc
 
-def processRdtRequest(UUID,include_proof,img_str):
+def processRdtRequest(UUID,include_proof,img_str,serv):
     '''
         Reads rdt input image and tells the result: No rdt, No flu, Type A flu, Type B flu. Handles errors as well.
         This function is called from the rest API code which extracts the required data from the request and calls this function.
@@ -485,18 +490,20 @@ def processRdtRequest(UUID,include_proof,img_str):
     try:
         nparr = np.fromstring(img_str, np.uint8)
         img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+        org_h, org_w, _ = img_np.shape
+        cfg
+        print("height",org_h,"weight",org_w)
+        if (org_h>org_w):
+            img_np=cv2.transpose(img_np)
+            img_np=cv2.flip(img_np,flipCode=0)
+
         print("Reading rdt img")
     except IOError:
         print("Unable to open rdt jpeg")
     
     im0 = np.copy(img_np)
     st = time.time()
-    try:
-        serv = FluServer()
-    except IOError:
-        print("Possible tensorflow error")
-    finally:
-        boxes = serv.callyolo(img_np)
+    boxes = serv.callyolo(img_np)
     et = time.time()
     t1=et-st
     try:

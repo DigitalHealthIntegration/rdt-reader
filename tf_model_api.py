@@ -30,7 +30,7 @@ from core.config import cfg
 import tensorflow as tf
 
 class YOLO:
-    def __init__(self, input_size=512,numClasses=4,weightsPath=FLU_AUDERE_PATH):
+    def __init__(self, input_size=512,weightsPath=FLU_AUDERE_PATH):
         """This function initializes the YOLO model and warms it up and returns predictor function handle
             
             Args:
@@ -41,7 +41,7 @@ class YOLO:
         
         """
         self.input_size = input_size
-        self.num_classes = numClasses
+        self.num_classes =len(utils.read_class_names(cfg.YOLO.CLASSES)) 
         self.score_threshold  = cfg.TEST.SCORE_THRESHOLD
         self.iou_threshold    = cfg.TEST.IOU_THRESHOLD
         self.weightsPath = weightsPath
@@ -86,14 +86,16 @@ class YOLO:
         """
         org_image = np.copy(image)
         org_h, org_w, _ = org_image.shape
-
+    
         image_data = utils.image_preporcess(image, [self.input_size, self.input_size])
         image_data = image_data[np.newaxis, ...]
 
 
 
         start_grpc = dt.utcnow()
+
         result = self.predictorFn({"input":image_data})
+
         end_grpc = dt.utcnow()
 
         self.grpc_delta = end_grpc - start_grpc
@@ -101,7 +103,8 @@ class YOLO:
         pred_sbbox = result["pred_sbbox"]
         pred_mbbox = result["pred_mbbox"]
         pred_lbbox = result["pred_lbbox"]
-        
+        print("af pred")
+
         pred_bbox = np.concatenate([np.reshape(pred_sbbox, (-1, 5 + self.num_classes)),
                                     np.reshape(pred_mbbox, (-1, 5 + self.num_classes)),
                                     np.reshape(pred_lbbox, (-1, 5 + self.num_classes))], axis=0)
@@ -180,7 +183,7 @@ class LineDetector:
         img_no_sclae = np.copy(img_inp)
         img_inp = img_inp/255.0
         img_inp = np.array(img_inp,dtype=np.float32)
-        img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2RGB)
+        img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2YCrCb)
 
         for i in range(96):
             st = i*5
@@ -192,11 +195,13 @@ class LineDetector:
             shred_img = shred_img[np.newaxis]
             preds = self.predictorFn({"input_image": shred_img})
             preds=list(preds["predictions"][0])
-            if preds.index(max(preds))==0:
+            feat_class =preds.index(max(preds))
+
+            if feat_class==0:
                 y.append(0)
-            elif preds.index(max(preds))==1:
+            elif feat_class==1:
                 y.append(1)
-            elif preds.index(max(preds))==2:
+            elif feat_class==2:
                 y.append(2)
         print("sliding window predictions :",y)
         y_avg = self.slidingMaxpool(y,3,1)
