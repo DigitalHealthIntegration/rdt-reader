@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.opencv.core.CvType.CV_8U;
+import static org.opencv.core.CvType.CV_8UC3;
+import static org.opencv.core.CvType.CV_8UC4;
 import static org.opencv.imgproc.Imgproc.line;
 
 public class CvUtils {
@@ -92,9 +94,10 @@ public class CvUtils {
         double l=CvUtils.computePredictionLoss(ref,ins,imgSize);
     }
     public static Point mComputeVector_FinalPoint=new Point();
-    public static Mat ComputeVector(Mat warp) {
-        double y = warp.get(1, 2)[0];
-        double x = warp.get(0, 2)[0];
+
+    public static Mat ComputeVector(Point translation,Mat m,Scalar s) {
+        double y = translation.y;//warp.get(1, 2)[0];
+        double x = translation.x;//warp.get(0, 2)[0];
         double r = Math.sqrt(x * x + y * y);
 
         double angleRadian = Math.atan2(y, x);
@@ -107,7 +110,7 @@ public class CvUtils {
 //        } else if (x >= 0.0 && y < 0.0) {
 //            angleRadian = angleRadian + Math.PI * 2;
 //        }
-         double x1 = Math.abs(r * Math.cos(angleRadian));
+        double x1 = Math.abs(r * Math.cos(angleRadian));
         double y1 = Math.abs(r * Math.sin(angleRadian));
         double angle = Math.toDegrees(angleRadian);
         if( angle>=0 && angle <=90){
@@ -126,9 +129,10 @@ public class CvUtils {
         Point p = new Point(x1,y1);
         Log.d("MotionVector", r +"["+Math.toDegrees(angleRadian) +"]");
         Log.d("Points", "[100,100] -> ["+x1+","+y1+"]");
-        Mat m = new Mat(200,200,CV_8U);
+        m = new Mat(200,200,CV_8UC3);
         m.setTo(new Scalar(0));
-        line(m, new Point(100,100), new Point(x1,y1), new Scalar(255,255,0,255),10);
+
+        line(m, new Point(100,100), new Point(x1,y1),s,5);
         mComputeVector_FinalPoint=p;
         return m;
     }

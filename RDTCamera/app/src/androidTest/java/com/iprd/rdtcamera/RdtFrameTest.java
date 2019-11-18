@@ -27,11 +27,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.opencv.android.Utils;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 
+import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static com.iprd.rdtcamera.Utils.getBitmapFromMat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.opencv.core.Core.LINE_AA;
+import static org.opencv.imgproc.Imgproc.putText;
 
 @RunWith(AndroidJUnit4.class)
 public class RdtFrameTest {
@@ -87,7 +92,10 @@ public class RdtFrameTest {
                 Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
                 Mat croppedImage = matinput.submat(r);
                 capFrame = getBitmapFromMat(croppedImage);
+                Scalar sg = new Scalar(0, 0, 255, 0);
+                putText(croppedImage, list.get(i), new Point(30, 100), 0, 2, sg, 2, LINE_AA, false);
 
+                SaveMatrix(croppedImage,"CroppedInput");
                 AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
                 Log.i("Result ", list.get(i) + " : " + status.GetResult());
 

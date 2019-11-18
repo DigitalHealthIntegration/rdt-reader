@@ -170,6 +170,8 @@ public class MainActivity extends AppCompatActivity {
         mRdtView = findViewById(R.id.RdtDetectImage);
         mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
+        //mRectView.setImageDrawable(R.drawable.grid);
+
         disRdtResultImage = findViewById(R.id.disRdtResultImage);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
         mCyclicProgressBar = findViewById(R.id.loader);
@@ -403,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (!mRdtApi.isInprogress() && sem.tryAcquire(1) == true) {
                 try {
-                    Log.d("~~~~~~~~~~~","Lock Acquired `[=>]");
+                    //Log.d("~~~~~~~~~~~","Lock Acquired `[=>]");
                     Bitmap capFrame = mTextureView.getBitmap();
                     Process(capFrame);
                 } catch (Exception e) {
@@ -451,7 +453,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             sem.release();
-            Log.d("~~~~~~~~~~~","Lock Released []");
+            ///Log.d("~~~~~~~~~~~","Lock Released []");
         }
     };
 
