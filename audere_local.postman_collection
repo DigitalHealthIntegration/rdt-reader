@@ -22,7 +22,7 @@
 					"formdata": [
 						{
 							"key": "metadata",
-							"value": "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"False\"}",
+							"value": "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}",
 							"contentType": "application/json",
 							"type": "text"
 						},
@@ -30,7 +30,7 @@
 							"key": "image",
 							"contentType": "image/jpeg",
 							"type": "file",
-							"src": "/C:/Users/developer/Downloads/IMG_20190812_190749.jpg"
+							"src": "D:/code/rdt-reader/1.jpg"
 						}
 					]
 				},
@@ -45,7 +45,7 @@
 					],
 					"port": "9000",
 					"path": [
-						"align"
+						"Quidel/QuickVue"
 					],
 					"query": [
 						{
