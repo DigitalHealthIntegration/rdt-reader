@@ -72,6 +72,8 @@ import java.util.concurrent.Semaphore;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission_group.CAMERA;
+import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
+import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.Httpok.mHttpURL;
 import static com.iprd.rdtcamera.ModelInfo.mModelFileName;
 import static org.opencv.imgproc.Imgproc.cvtColor;
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView disRdtResultImage;
     Button mGetResult;
     Button startBtn;
-    TextView mResultView;
+    TextView mResultView,mMotionText;
     Boolean isPreviewOff = false;
     Boolean shouldOffTorch = false;
 
@@ -166,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         mRdtView = findViewById(R.id.RdtDetectImage);
         mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
+        mMotionText = findViewById(R.id.MotionText);
         //mRectView.setImageDrawable(R.drawable.grid);
 
         disRdtResultImage = findViewById(R.id.disRdtResultImage);
@@ -433,6 +436,12 @@ public class MainActivity extends AppCompatActivity {
                         mTrackedView.setVisibility(View.VISIBLE);
                     }else{
                         mTrackedView.setVisibility(View.INVISIBLE);
+                    }
+
+                    if(status.mSteady ==GOOD){
+                        mMotionText.setText("GOOD");
+                    }else if(status.mSteady == TOO_HIGH){
+                        mMotionText.setText("TOO_HIGH");
                     }
                     mRdtView.setImageBitmap(b);
                     mRdtView.setVisibility(View.VISIBLE);

@@ -94,7 +94,7 @@ public class CvUtils {
         double l=CvUtils.computePredictionLoss(ref,ins,imgSize);
     }
     public static Point mComputeVector_FinalPoint=new Point();
-
+    public static Point mComputeVector_FinalMVector=new Point();
     public static Mat ComputeVector(Point translation,Mat m,Scalar s) {
         double y = translation.y;//warp.get(1, 2)[0];
         double x = translation.x;//warp.get(0, 2)[0];
@@ -104,7 +104,7 @@ public class CvUtils {
         if(angleRadian < 0){
             angleRadian += Math.PI * 2;;
         }
-        Log.d("ComputedAngle", r+"["+Math.toDegrees(angleRadian) +"]");
+//        Log.d("ComputedAngle", r+"["+Math.toDegrees(angleRadian) +"]");
 //        if (x < 0.0) { //2  and 3 quad
 //            angleRadian = angleRadian + Math.PI;
 //        } else if (x >= 0.0 && y < 0.0) {
@@ -128,13 +128,14 @@ public class CvUtils {
         }
         Point p = new Point(x1,y1);
         Log.d("MotionVector", r +"["+Math.toDegrees(angleRadian) +"]");
-        Log.d("Points", "[100,100] -> ["+x1+","+y1+"]");
-        m = new Mat(200,200,CV_8UC3);
-        m.setTo(new Scalar(0));
-
+//        Log.d("Points", "[100,100] -> ["+x1+","+y1+"]");
+        if(m == null) {
+            m = new Mat(200, 200, CV_8UC3);
+            m.setTo(new Scalar(0));
+        }
         line(m, new Point(100,100), new Point(x1,y1),s,5);
         mComputeVector_FinalPoint=p;
+        mComputeVector_FinalMVector = new Point(r,Math.toDegrees(angleRadian));
         return m;
     }
-
 }
