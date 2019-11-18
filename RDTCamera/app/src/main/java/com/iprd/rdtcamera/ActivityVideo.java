@@ -60,7 +60,7 @@ public class ActivityVideo extends AppCompatActivity {
     Button mSelectVideo;
     Button mPlayPause;
     Button mGetResult;
-    ImageView mShowImage,mRdtImage;
+    ImageView mShowImage,mRdtImage,mTrackedView;
     Button preferenceSettingBtn;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
     private RdtAPI mRdtApi;
@@ -95,6 +95,8 @@ public class ActivityVideo extends AppCompatActivity {
         mRdtImage = findViewById(R.id.rdt);
         mGetResult = findViewById(R.id.getResult);
         mResultView = findViewById(R.id.ResultView);
+        mTrackedView = findViewById(R.id.RdtTrackedImage);
+
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -285,10 +287,17 @@ void setmGetResultVisibility(final boolean vis) {
                     String frNoSB = "FR["+count +"]\n"+ "S[" + mRdtApi.getSharpness() + "]" +"\n"+ "B[" + mRdtApi.getBrightness() + "]";
                     mRdtApi.SetText(frNoSB, status);
                     final Bitmap ret = mRdtApi.getLocalcopyAsBitmap();
+                    Bitmap TrackedImage = status.mInfo.mTrackedImage;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             mShowImage.setImageBitmap(ret);
+                            if(TrackedImage!=null){
+                                mTrackedView.setImageBitmap(TrackedImage);
+                                mTrackedView.setVisibility(View.VISIBLE);
+                            }else{
+                                mTrackedView.setVisibility(View.INVISIBLE);
+                            }
                         }
                     });
                 }

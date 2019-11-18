@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Assert;
@@ -14,12 +16,23 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
+import static com.iprd.rdtcamera.CvUtils.ComputeVector;
+import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
+import static com.iprd.rdtcamera.CvUtils.mComputeVector_FinalPoint;
+import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
+import static com.iprd.rdtcamera.ImageRegistration.ComputeMotion;
 import static com.iprd.rdtcamera.ObjectDetection.warpPoint;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -145,6 +158,41 @@ public class RegTest {
 //        Assert.assertThat("rx test",warpmat.get(0,0)[0], is(equalTo(0.0001)));
 //        Assert.assertThat("ry test",warpmat.get(1,1)[0], is(equalTo(0.0001)));
     }
+
+    @Test
+    public void TestComputeMotion() {
+        long st  = System.currentTimeMillis();
+        String prefname = "/Tx/Image";
+        String postfname = "Input.jpg";
+        String name = prefname+"13"+postfname;
+        Mat input = getMap(name);
+        ArrayList<Mat> arrMat= new ArrayList<>();
+        Rect init=new Rect(685,199,72,1276);
+        Mat warp = ComputeMotion(input);
+        for(int i=14;i<31;i++) {
+            name = prefname + i + postfname;
+            input = getMap(name);
+            warp = ComputeMotion(input);
+            arrMat.add(warp);
+            PrintAffineMat(""+i,warp);
+            Point p = null;
+            Scalar s = new Scalar(255,0,0,255);
+            Mat mag = ComputeVector(new Point(warp.get(0,2)[0],warp.get(0,2)[0]),null,s);
+            Log.i("Point ", mComputeVector_FinalPoint.x+"x"+mComputeVector_FinalPoint.y);
+            Point lt = CvUtils.warpPoint(new Point(init.x, init.y), warp);
+            Point rb = CvUtils.warpPoint(new Point(init.x + init.width, init.y + init.height), warp);
+            Imgproc.circle(input, lt, 3, new Scalar(0, 255, 0,0), 2);
+            Imgproc.circle(input, rb, 3, new Scalar(0, 255, 0,0), 2);
+            com.iprd.rdtcamera.Utils.SaveMatrix(input,"Test");
+            init.x = (int) lt.x;
+            init.y = (int) lt.y;
+            init.width = (int) (rb.x-lt.x);
+            init.height= (int) (rb.y-lt.y);
+            assertTrue("Tx should be -ve ",warp.get(0,2)[0]< 0);
+
+        }
+    }
+
     static {
         System.loadLibrary("opencv_java3");
     }

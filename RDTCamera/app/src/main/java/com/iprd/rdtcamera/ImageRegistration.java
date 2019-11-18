@@ -7,6 +7,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
+import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
+import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.imgproc.Imgproc.INTER_LINEAR;
@@ -66,6 +68,25 @@ public class ImageRegistration {
 //            SaveMatrix(ins, "n2");
         }
         return warpMatrix;
+    }
+
+    public static Mat ComputeMotion(Mat greyMat) {
+        Mat warp;
+        Mat warpmat = ImageRegistration.FindMotion(greyMat, true);
+        if (warpmat != null) {
+            int level = 4;
+            warp = scaleAffineMat(warpmat, level);
+            PrintAffineMat("warp", warp);
+            //ComputeVector
+            Log.i("Tx-Ty Inp", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
+        }else{
+            warp = Mat.eye(2,3,CV_32F);
+            warp.put(0,0,1.0);
+            warp.put(1,1,1.0);
+            warp.put(0,2,greyMat.width());
+            warp.put(1,2,greyMat.height());
+        }
+        return warp;
     }
 
     public static Mat getTransformation(Mat ref, Mat ins) {
