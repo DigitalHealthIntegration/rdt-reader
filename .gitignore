@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 /conda_env
 node_modules
+ALL_heatmaps
