@@ -832,13 +832,13 @@ public class MainActivity extends AppCompatActivity {
         if (mTextureView.isAvailable()) {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
             isGridDispaly = prefs.getBoolean("gridView",false);
-//            gridTable =  findViewById(R.id.gridTable);
-//            if(isGridDispaly) {
-//                gridTable.setVisibility(View.VISIBLE);
-//            }
-//            else {
-//                gridTable.setVisibility(View.INVISIBLE);
-//            }
+            gridTable =  findViewById(R.id.gridTable);
+            if(isGridDispaly) {
+                gridTable.setVisibility(View.VISIBLE);
+            }
+            else {
+                gridTable.setVisibility(View.INVISIBLE);
+            }
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
