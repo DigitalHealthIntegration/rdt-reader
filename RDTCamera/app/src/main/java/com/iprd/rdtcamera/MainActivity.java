@@ -27,6 +27,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.CheckBoxPreference;
@@ -59,8 +60,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
     public Switch saveData;
     boolean isGridDispaly;
     TableLayout gridTable;
+    byte[] mImageBytes=null;
 
     int idx;
     RdtAPI mRdtApi=null;
@@ -290,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
                     mCyclicProgressBar.bringToFront();
                 }*/
                 //progressbar(true);
+                mImageBytes=null;
                 getRDTResultData();
                 startBtn.setVisibility(View.VISIBLE);
                 mResultView.setVisibility(View.INVISIBLE);
@@ -553,7 +558,7 @@ public class MainActivity extends AppCompatActivity {
             Size videoSize =closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
-                    ImageFormat.YUV_420_888, 3);
+                    ImageFormat.YUV_420_888, 2);
             mImageReader.setOnImageAvailableListener(mImageAvailable,mBackgroundHandler);
 
             // Get all available size for the textureSurface preview window
@@ -580,6 +585,31 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+    public void rdtResults( byte[] bytes) {
+        OutputStream output = null;
+        try {
+            String urlString = prefs.getString("rdtCheckUrl",mHttpURL);
+            System.out.println(">>>>>>>>"+urlString);
+            String guid = String.valueOf(java.util.UUID.randomUUID());
+            String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+            try{
+                Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
+                mr.setCtx(getApplicationContext());
+                mr.execute();
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+        } finally {
+            if (null != output) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private void getRDTResultData(){
@@ -613,44 +643,25 @@ public class MainActivity extends AppCompatActivity {
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
-                    Thread.yield();
+                    //Thread.yield();
                     Image image = null;
                     try {
-                        progressbar(true);
+
                         image = reader.acquireLatestImage();
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                        byte[] bytes = new byte[buffer.capacity()];
-                        buffer.get(bytes);
-                        rdtResults(bytes);
+                        mImageBytes = new byte[buffer.capacity()];
+                        buffer.get(mImageBytes);
+                        Log.d("Get Size ", String.valueOf(buffer.capacity()));
+                        // rdtResults(bytes);
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
+//                    } catch (FileNotFoundException e) {
+//                        e.printStackTrace();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+                    }
+                    finally {
                         if (image != null) {
                             image.close();
-                        }
-                    }
-                }
-
-                private void rdtResults(byte[] bytes) throws IOException {
-                    OutputStream output = null;
-                    try {
-                        String urlString = prefs.getString("rdtCheckUrl",mHttpURL);
-                        System.out.println(">>>>>>>>"+urlString);
-                        String guid = String.valueOf(java.util.UUID.randomUUID());
-                        String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
-                        try{
-                            Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
-                            mr.setCtx(getApplicationContext());
-                            mr.execute();
-                        }catch(Exception ex){
-                            ex.printStackTrace();
-                        }
-                    } finally {
-                        if (null != output) {
-                            output.close();
                         }
                     }
                 }
@@ -662,6 +673,16 @@ public class MainActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     isPreviewOff = true;
+                    Toast.makeText(MainActivity.this, "Saved:" + "out.jpg", Toast.LENGTH_SHORT).show();
+                    if(mImageBytes != null && mImageBytes.length >0) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressbar(true);
+                                rdtResults(mImageBytes);
+                            }
+                        });
+                    }
                     /*try {
                         //Thread.sleep(500);
                     } catch (InterruptedException e) {
@@ -842,6 +863,7 @@ public class MainActivity extends AppCompatActivity {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
             isGridDispaly = prefs.getBoolean("gridView",false);
             gridTable =  findViewById(R.id.gridTable);
+
             if(isGridDispaly) {
                 gridTable.setVisibility(View.VISIBLE);
             }
@@ -884,9 +906,10 @@ public class MainActivity extends AppCompatActivity {
     public void onPause() {
         Log.d(TAG,"onPause called");
         mTextureView.setVisibility(View.GONE);
+        super.onPause();
+
         closeCamera();
         stopBackgroundThread();
-        super.onPause();
     }
 
     @Override

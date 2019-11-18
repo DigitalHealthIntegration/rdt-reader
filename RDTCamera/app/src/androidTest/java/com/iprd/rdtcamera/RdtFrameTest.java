@@ -93,8 +93,8 @@ public class RdtFrameTest {
                 Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
                 Mat croppedImage = matinput.submat(r);
                 capFrame = getBitmapFromMat(croppedImage);
-                Scalar sg = new Scalar(0, 0, 255, 0);
-                putText(croppedImage, list.get(i), new Point(30, 100), 0, 2, sg, 2, LINE_AA, false);
+//                Scalar sg = new Scalar(0, 0, 255, 0);
+//                putText(croppedImage, list.get(i), new Point(30, 100), 0, 2, sg, 2, LINE_AA, false);
 
                // SaveMatrix(croppedImage,"CroppedInput");
                 SaveMatrixWithGivenPath(croppedImage,"CroppedInput",list.get(i));

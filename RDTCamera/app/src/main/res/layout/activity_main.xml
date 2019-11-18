@@ -173,13 +173,15 @@
 
     <TableLayout
         android:id="@+id/gridTable"
-        android:layout_width="401dp"
-        android:layout_height="696dp"
-        android:paddingLeft="-1dp"
-        android:paddingRight="-1dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp"
+        app:layout_constraintDimensionRatio="H,9:16"
+
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="-2dp"
-        tools:layout_editor_absoluteY="-10dp">
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
 
         <TableRow
             android:layout_height="40dp"

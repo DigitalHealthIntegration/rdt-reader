@@ -272,9 +272,10 @@ public class ObjectDetection {
 
                 if(mSavePoints) {
                     Imgproc.rectangle(tmp_for_draw, new Point(ret.x, ret.y), new Point(ret.x + ret.width, ret.y + ret.height), new Scalar(255, 0, 255), 1);
-                    Utils.SavecentersImage(tmp_for_draw);
                 }
             }
+            if(mSavePoints) Utils.SavecentersImage(tmp_for_draw);
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }

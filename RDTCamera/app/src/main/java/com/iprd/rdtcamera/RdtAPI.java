@@ -57,24 +57,16 @@ public class RdtAPI {
     Mat mGreyMat;
     Mat mGreyMatResized;
     AcceptanceStatus mStatus=null;
-    int mTaskID=-1;
     Vector<Mat> mWarpList= new Vector<>();
 
     private short mBrightness;
     private short mSharpness;
     Mat mLocalcopy;
-    Mat mRefPyr=null;
     boolean mPlaybackMode;
     long mTensorFlowProcessTime;
     long mPreProcessingTime;
     long mPostProcessingTime;
-    Point mPreviousLTPoint;
-    Point mPreviousRBPoint;
-    boolean mPreviousStudy=false;
-    boolean ismPreviousRDT=false;
-    Mat mPreviousMat=null;
     Mat mPipMat=null;
-    Mat mTrackedMat=null;
     Mat mMotionVectorMat=null;
     private final Object piplock = new Object();
 
@@ -329,8 +321,6 @@ public class RdtAPI {
                     ret.mBoundingBoxY = mStatus.mBoundingBoxY;
                     ret.mBoundingBoxWidth = mStatus.mBoundingBoxWidth;
                     ret.mBoundingBoxHeight = mStatus.mBoundingBoxHeight;
-                    mTrackedMat = matinput.clone();
-                    rectangle(mTrackedMat, new Point(ret.mBoundingBoxX, ret.mBoundingBoxY), new Point(ret.mBoundingBoxX + ret.mBoundingBoxWidth, ret.mBoundingBoxY + ret.mBoundingBoxHeight), new Scalar(255, 0, 0, 0), 8, LINE_AA, 0);
                 }else{
                     ret.mRDTFound =false;
                 }
@@ -384,9 +374,6 @@ public class RdtAPI {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if(((!ret.mRDTFound) && mTensorFlow.getSaveImages())||(mSaveNegativeData&&ret.mRDTFound)){
-//                saveImage(capFrame,"Color");
-            }
             Log.i("BB ",ret.mBoundingBoxX+"x"+ret.mBoundingBoxY+"-"+ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);
             greyMatResized.release();
             greyMat.release();
@@ -396,15 +383,6 @@ public class RdtAPI {
                 mMotionVectorMat.release();
                 mMotionVectorMat=null;
             }
-//            if((mTrackedMat!= null)){
-//                if(ret.mRDTFound) {
-//                    Mat TrackedImage = new Mat(360, 640, mTrackedMat.type());
-//                    resize(mTrackedMat, TrackedImage, new Size(360, 640));
-//                    ret.mInfo.mTrackedImage = getBitmapFromMat(TrackedImage);
-//                }
-//                mTrackedMat.release();
-//                mTrackedMat=null;
-//            }
             mInprogress = false;
             mPostProcessingTime = System.currentTimeMillis()-mPostProcessingTime;
         }

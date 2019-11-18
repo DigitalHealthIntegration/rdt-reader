@@ -39,7 +39,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     JSONObject mJsonResult=null;
     Button mGetResult = null;
 
-    static String mHttpURL="http://3.95.254.129:9000/Quidel/QuickVue";
+    static String mHttpURL="http://3.82.14.134:9000/Quidel/QuickVue";
     public void setCtx(Context mCtx) {
         this.mCtx = mCtx;
     }
