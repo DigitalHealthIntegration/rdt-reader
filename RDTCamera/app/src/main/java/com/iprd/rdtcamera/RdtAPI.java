@@ -20,6 +20,8 @@ import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
 import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
+import static com.iprd.rdtcamera.CvUtils.mComputeVector_FinalMVector;
+import static com.iprd.rdtcamera.CvUtils.mComputeVector_FinalPoint;
 import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.CvUtils.warpPoint;
 import static com.iprd.rdtcamera.ImageRegistration.ComputeMotion;
@@ -299,11 +301,18 @@ public class RdtAPI {
             Log.i("10 frame", p.x + "x" + p.y);
             Log.i("1 frame", warp.get(0,2)[0] + "x" + warp.get(1,2)[0]);
 
-            Scalar s = new Scalar(0,255,0);
-            mMotionVectorMat = CvUtils.ComputeVector(p,mMotionVectorMat,s);
-            s = new Scalar(0,0,255);
-            mMotionVectorMat = CvUtils.ComputeVector(new Point(warp.get(0,2)[0],warp.get(1,2)[0]),null,s);
+            Scalar sg = new Scalar(0,255,0);
+            mMotionVectorMat = CvUtils.ComputeVector(p,mMotionVectorMat,sg);
+            ret.mSteady = GOOD;
+            if(mComputeVector_FinalMVector.x > 40.0){
+                ret.mSteady = TOO_HIGH;
+            }
 
+            Scalar sb = new Scalar(0,0,255);
+            mMotionVectorMat = CvUtils.ComputeVector(new Point(warp.get(0,2)[0],warp.get(1,2)[0]),mMotionVectorMat,sb);
+            if(mComputeVector_FinalMVector.x > 40.0){
+                ret.mSteady = TOO_HIGH;
+            }
             //process frame
             Rect detectedRoi = null;
             Mat rotatedmat = new Mat();

@@ -82,9 +82,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5" />
 
-
-
-
     <Button
         android:id="@+id/SelectFile"
         android:layout_width="wrap_content"
