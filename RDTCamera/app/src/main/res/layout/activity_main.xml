@@ -171,4 +171,361 @@
         app:layout_constraintHorizontal_bias="0.076"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <TableLayout
+        android:id="@+id/gridTable"
+        android:layout_width="401dp"
+        android:layout_height="696dp"
+        android:paddingLeft="-1dp"
+        android:paddingRight="-1dp"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="-2dp"
+        tools:layout_editor_absoluteY="-10dp">
+
+        <TableRow
+            android:layout_height="40dp"
+            android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+        </TableRow>
+
+        <TableRow android:padding="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=" " />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text="" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="77dp"
+                android:layout_weight="1"
+                android:background="@drawable/cell_shape"
+                android:text=""
+                app:layout_constraintDimensionRatio="H, 1:1" />
+        </TableRow>
+
+    </TableLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
