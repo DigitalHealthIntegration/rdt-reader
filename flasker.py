@@ -42,8 +42,7 @@ def reduceByConfidence(dictBoxC,dictBoxL):
             if len(dictBoxC[key])>1:
                 for ind,score in enumerate(dictBoxC[key]):
                     if(score>maxConf):
-                        print("prediction",dictBoxL[key][ind])
-                        filtDictBoxL[key]=int(dictBoxL[key][ind]/10)
+                        filtDictBoxL[key]=dictBoxL[key][ind]
                         maxConf=score
                     else:
                         pass
@@ -330,6 +329,27 @@ def postProcessDetections(labels):
 
     return result
 
+def generateRDTcropV2(boxes,im0,targets):
+    """Generate RDT cropped image from object detection output
+        
+        Args:
+
+            boxes (numpy.ndarray) : Bounding boxes of objects detected and the confidence score
+            im0 (numpy.ndarray) : Input image
+            targets (dict) : Centers of red and blue line (Used for debugging only)
+        
+        Returns:
+       
+            dict : Response with RDT crop if found
+    """  
+    BOX_A=[]
+    BOX_C=[]
+    BOX_I=[]
+
+    for prediction in boxes:
+        class_feat =int(prediction[-1]/10)
+        orientation
+
 def generateRDTcrop(boxes,im0,targets):
     """Generate RDT cropped image from object detection output
         
@@ -491,11 +511,13 @@ def processRdtRequest(UUID,include_proof,img_str,serv):
         nparr = np.fromstring(img_str, np.uint8)
         img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
         org_h, org_w, _ = img_np.shape
-        cfg
-        print("height",org_h,"weight",org_w)
-        if (org_h>org_w):
-            img_np=cv2.transpose(img_np)
-            img_np=cv2.flip(img_np,flipCode=0)
+        if file_path_sets.YOLO_MODEL_VER==1:
+            pass
+        elif file_path_sets.YOLO_MODEL_VER==2:
+            print("height",org_h,"weight",org_w)
+            if (org_h>org_w):
+                img_np=cv2.transpose(img_np)
+                img_np=cv2.flip(img_np,flipCode=0)
 
         print("Reading rdt img")
     except IOError:
