@@ -235,7 +235,6 @@ public class Utils {
         if(rdt !=null){
             rdt.getTensorFlow().setTopThreshold(mTopTh);
             rdt.setSaveNegativeData(mSaveNegativeData);
-            rdt.setTracking(mTrackingEnable);
         }
         return mShowImageData;
     }

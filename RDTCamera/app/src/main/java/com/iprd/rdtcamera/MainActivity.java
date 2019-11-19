@@ -209,11 +209,7 @@ public class MainActivity extends AppCompatActivity {
         rdtAPIBuilder = rdtAPIBuilder.setModel(mMappedByteBuffer);
         mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,null);
         mRdtApi = rdtAPIBuilder.build();
-        mRdtApi.setRotation(true);
-
         mRdtApi.setmShowPip(true);
-        mRdtApi.setLinearflow(false);
-        mRdtApi.setTracking(true);
 
 //        mRdtApi.saveInput(true);
 //        mRdtApi.setSavePoints(true);
