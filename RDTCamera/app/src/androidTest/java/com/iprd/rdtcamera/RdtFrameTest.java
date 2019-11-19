@@ -136,7 +136,7 @@ public class RdtFrameTest {
         mRdtApi = builder.build();
         mRdtApi.setSavePoints(true);
         mRdtApi.setSaveImages(true);
-        mRdtApi.setTracking(false);
+//        mRdtApi.setTracking(false);
         mRdtApi.setLinearflow(true);
         mRdtApi.setmPlaybackMode(true);
         return mRdtApi;

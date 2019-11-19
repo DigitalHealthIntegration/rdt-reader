@@ -60,8 +60,9 @@
         android:textColor="@color/colorAccent"
         android:textSize="14dp"
         android:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@+id/RdtDetectImage"
-        app:layout_constraintStart_toStartOf="@+id/RdtDetectImage" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/RdtDetectImage"
+        app:layout_constraintTop_toBottomOf="@+id/RdtDetectImage" />
 
     <ImageView
         android:id="@+id/RdtTrackedImage"
