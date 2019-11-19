@@ -203,32 +203,32 @@ public class ObjectDetection {
                     for (int j = 0; j < numberAnchors; j++) {
                         int computedIndex = row * numberBlocks[1] + col;
                         int targetClass = ArgMax(Arrays.copyOfRange(output[0][computedIndex][j],0,31));
-                            float confidence = output[0][computedIndex][j][targetClass];
-                            if (confidence> mThreshold) {
-                                int offsetStartIndex = numberClasses;
-                                float cx = (float) ((col + 0.5) * resizeFactor[1] + output[0][computedIndex][j][offsetStartIndex] * inputSize[1])*widthFactor;
-                                float cy = (float) ((row + 0.5) * resizeFactor[0] + output[0][computedIndex][j][offsetStartIndex+1] * inputSize[0])*heightFactor;
-                                float w = (float) (aspectAnchors[j * 2+1]*Math.exp(output[0][computedIndex][j][offsetStartIndex+2] ))*widthFactor;
-                                float h = (float) (aspectAnchors[j * 2 ]*Math.exp(output[0][computedIndex][j][offsetStartIndex+3]))*heightFactor;
-                                Vector v = new Vector();
-                                int typeOfFeat=targetClass/10;
-                                float predictedOrientation =  orientationAngles[targetClass % 10];
-                                v.add(cx);
-                                v.add(cy);
-                                v.add(w);
-                                v.add(h);
-                                v.add(predictedOrientation);
-                                HashMap<Float, Vector<Float>> hMap = new HashMap<>();
-                                hMap.put(confidence, v);
-                                if (typeOfFeat==2){
-                                    vectorTableArrow.add(hMap);
-                                }
-                                else if (typeOfFeat==1){
-                                    vectorTableCpattern.add(hMap);
-                                }
-                                else if (typeOfFeat==0){
-                                    vectorTableInfluenza.add(hMap);
-                                }
+                        float confidence = output[0][computedIndex][j][targetClass];
+                        if (confidence> mThreshold) {
+                            int offsetStartIndex = numberClasses;
+                            float cx = (float) ((col + 0.5) * resizeFactor[1] + output[0][computedIndex][j][offsetStartIndex] * inputSize[1])*widthFactor;
+                            float cy = (float) ((row + 0.5) * resizeFactor[0] + output[0][computedIndex][j][offsetStartIndex+1] * inputSize[0])*heightFactor;
+                            float w = (float) (aspectAnchors[j * 2+1]*Math.exp(output[0][computedIndex][j][offsetStartIndex+2] ))*widthFactor;
+                            float h = (float) (aspectAnchors[j * 2 ]*Math.exp(output[0][computedIndex][j][offsetStartIndex+3]))*heightFactor;
+                            Vector v = new Vector();
+                            int typeOfFeat=targetClass/10;
+                            float predictedOrientation =  orientationAngles[targetClass % 10];
+                            v.add(cx);
+                            v.add(cy);
+                            v.add(w);
+                            v.add(h);
+                            v.add(predictedOrientation);
+                            HashMap<Float, Vector<Float>> hMap = new HashMap<>();
+                            hMap.put(confidence, v);
+                            if (typeOfFeat==2){
+                                vectorTableArrow.add(hMap);
+                            }
+                            else if (typeOfFeat==1){
+                                vectorTableCpattern.add(hMap);
+                            }
+                            else if (typeOfFeat==0){
+                                vectorTableInfluenza.add(hMap);
+                            }
                         }
                     }
                 }
