@@ -336,6 +336,7 @@ public class RdtAPI {
                 mGreyMat = greyMat.clone();
                 mGreyMatResized = greyMatResized.clone();
                 mStatus = new AcceptanceStatus();
+                mStatus.mSteady = ret.mSteady;
                 if (mLinearflow) {
                     ProcessRDT(mStatus, mInputMat, mGreyMatResized);
                     ret = mStatus;

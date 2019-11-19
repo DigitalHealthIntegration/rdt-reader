@@ -45,7 +45,7 @@
 
     <TextView
         android:id="@+id/MotionText"
-        android:layout_width="80dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
         android:visibility="visible"
@@ -58,9 +58,10 @@
         android:layout_height="wrap_content"
         android:text=""
         android:textColor="@color/colorAccent"
+        android:textSize="14dp"
         android:visibility="visible"
         app:layout_constraintTop_toBottomOf="@+id/RdtDetectImage"
-        app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn" />
+        app:layout_constraintStart_toStartOf="@+id/RdtDetectImage" />
 
     <ImageView
         android:id="@+id/RdtTrackedImage"
