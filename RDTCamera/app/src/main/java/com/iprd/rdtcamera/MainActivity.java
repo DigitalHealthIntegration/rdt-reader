@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView disRdtResultImage;
     Button mGetResult;
     Button startBtn;
-    TextView mResultView,mMotionText;
+    TextView mResultView,mMotionText,mStatusView;
     Boolean isPreviewOff = false;
     Boolean shouldOffTorch = false;
 
@@ -177,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
         mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
         mMotionText = findViewById(R.id.MotionText);
+        mStatusView = findViewById(R.id.Status);
         //mRectView.setImageDrawable(R.drawable.grid);
 
         disRdtResultImage = findViewById(R.id.disRdtResultImage);
@@ -451,7 +452,14 @@ public class MainActivity extends AppCompatActivity {
                     }else{
                         mTrackedView.setVisibility(View.INVISIBLE);
                     }
-
+                    if(status.mRDTFound){
+                        String t = "steady=" +status.mSteady;
+                        t+="\nsharp=" + status.mSharpness;
+                        t+="\nscale=" + status.mScale;
+                        t+="\nbright=" + status.mBrightness;
+                        t+="\nperspec=" + status.mPerspectiveDistortion;
+                        mStatusView.setText(t);
+                    }
                     if(status.mSteady ==GOOD){
                         mMotionText.setText("GOOD");
                     }else if(status.mSteady == TOO_HIGH){

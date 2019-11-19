@@ -47,10 +47,20 @@
         android:id="@+id/MotionText"
         android:layout_width="80dp"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:text=""
         android:visibility="visible"
         app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn"
         app:layout_constraintBottom_toTopOf="@+id/RdtDetectImage" />
+
+    <TextView
+        android:id="@+id/Status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="@color/colorAccent"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@+id/RdtDetectImage"
+        app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn" />
 
     <ImageView
         android:id="@+id/RdtTrackedImage"
