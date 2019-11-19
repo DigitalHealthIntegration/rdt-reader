@@ -23,14 +23,6 @@ public class Config{
         setDefaults();
     }
 
-    public void setmMaxFrameTranslationalMagnitude(short mMaxFrameTranslationalMagnitude) {
-        this.mMaxFrameTranslationalMagnitude = mMaxFrameTranslationalMagnitude;
-    }
-
-    public void setmMax10FrameTranslationalMagnitude(short mMax10FrameTranslationalMagnitude) {
-        this.mMax10FrameTranslationalMagnitude = mMax10FrameTranslationalMagnitude;
-    }
-
     public void setDefaults() {
         mMaxScale = 75;
         mMinScale = 5;
@@ -97,6 +89,14 @@ public class Config{
     }
     public void setmMaxAllowedTranslationY(short mMaxAllowedTranslationY) {
         this.mMaxAllowedTranslationY = mMaxAllowedTranslationY;
+    }
+
+    public void setMaxFrameTranslationalMagnitude(short mMaxFrameTranslationalMagnitude) {
+        this.mMaxFrameTranslationalMagnitude = mMaxFrameTranslationalMagnitude;
+    }
+
+    public void setMax10FrameTranslationalMagnitude(short mMax10FrameTranslationalMagnitude) {
+        this.mMax10FrameTranslationalMagnitude = mMax10FrameTranslationalMagnitude;
     }
 
 }

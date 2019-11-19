@@ -77,6 +77,14 @@
         android:key="mMaxAllowedTranslationY"
         android:defaultValue="5"
         android:summary="Please Provide RDT MaxTranslationY"></EditTextPreference>
+    <EditTextPreference android:title="RDT Max Frame Translation Magnitude"
+        android:key="mMaxFrameTranslationalMagnitude"
+        android:defaultValue="100"
+        android:summary="Please Provide RDT Max FrameTranslational Magnitude"></EditTextPreference>
+    <EditTextPreference android:title="RDT Max 10 Frame Translation Magnitude"
+        android:key="mMax10FrameTranslationalMagnitude"
+        android:defaultValue="100"
+        android:summary="Please Provide RDT Max 10 Frame Translation Magnitude"></EditTextPreference>
     <EditTextPreference android:title="Enable Tracking"
         android:key="mTrackingEnable"
         android:defaultValue="5"

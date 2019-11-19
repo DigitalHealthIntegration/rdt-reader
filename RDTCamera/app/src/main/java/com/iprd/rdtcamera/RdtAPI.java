@@ -540,6 +540,16 @@ public class RdtAPI {
             return this;
         }
 
+        public RdtAPIBuilder setMaxFrameTranslationalMagnitude(short mMaxFrameTranslationalMagnitude) {
+            mConfig.setMaxFrameTranslationalMagnitude(mMaxFrameTranslationalMagnitude);
+            return this;
+        }
+
+        public RdtAPIBuilder setMax10FrameTranslationalMagnitude(short mMax10FrameTranslationalMagnitude) {
+            mConfig.setMax10FrameTranslationalMagnitude(mMax10FrameTranslationalMagnitude);
+            return this;
+        }
+
         public RdtAPIBuilder setMinScale(short mMinScale) {
             mConfig.setmMinScale(mMinScale);
             return this;
