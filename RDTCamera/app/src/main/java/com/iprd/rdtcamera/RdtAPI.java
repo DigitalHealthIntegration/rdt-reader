@@ -127,9 +127,6 @@ public class RdtAPI {
         return mConfig;
     }
 
-    public void setSaveImages(boolean b){
-        mTensorFlow.setSaveImages(b);
-    }
     public AcceptanceStatus getAcceptanceStatus() {
         return mAcceptanceStatus;
     }
@@ -191,6 +188,8 @@ public class RdtAPI {
         laplacian.release();
         double sharpness =(float) std.get(0,0)[0]*std.get(0,0)[0];
         mSharpness = (short) sharpness;
+        ret.mInfo.mSharpness = (int)sharpness;
+
         //Log.d("Sharpness","mSharpness " + sharpness);
         if (sharpness < mConfig.mMinSharpness){
             ret.mSharpness = TOO_LOW;
@@ -205,6 +204,7 @@ public class RdtAPI {
         Scalar tempVal = mean(grey);
         double brightness = tempVal.val[0];
         mBrightness = (short) brightness;
+        ret.mInfo.mBrightness = mBrightness;
         //Log.d("Brightness","mBrightness "+brightness);
         if (brightness > mConfig.mMaxBrightness) {
             ret.mBrightness = TOO_HIGH;
@@ -362,6 +362,7 @@ public class RdtAPI {
                 return ret;
             }
             Mat imageROI = greyMat.submat(new Rect(ret.mBoundingBoxX,ret.mBoundingBoxY,ret.mBoundingBoxWidth,ret.mBoundingBoxHeight));// greyMatResized.submat(detectedRoi);
+            //SaveMatrix(imageROI,"ROI");
             if (!computeBlur(imageROI,ret)) {
                 return ret;
             }

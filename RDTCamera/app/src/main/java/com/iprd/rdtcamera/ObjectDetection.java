@@ -77,14 +77,6 @@ public class ObjectDetection {
     Interpreter mTflite;
     Interpreter.Options tf_options = new Interpreter.Options();
 
-    boolean mSaveImage=false;
-    public void setSaveImages(boolean b){
-        mSaveImage =b;
-    }
-    public boolean getSaveImages(){
-        return mSaveImage;
-    }
-
     public void setTopThreshold(double top){
         mThreshold = top;
     }
