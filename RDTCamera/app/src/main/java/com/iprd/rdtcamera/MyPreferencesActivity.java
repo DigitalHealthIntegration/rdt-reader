@@ -10,7 +10,6 @@ import android.preference.PreferenceFragment;
 import static com.iprd.rdtcamera.MainActivity.MY_PREFS_NAME;
 
 public class MyPreferencesActivity extends PreferenceActivity {
-   ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -47,6 +47,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,6 +76,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Logger;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -176,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
         Context c = getApplicationContext();
         prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(c);
         gridTable =  findViewById(R.id.gridTable);
-        gridTable.setVisibility(View.INVISIBLE);
+        gridTable.setVisibility(View.VISIBLE);
 
         mRdtView = findViewById(R.id.RdtDetectImage);
         mTrackedView = findViewById(R.id.RdtTrackedImage);
@@ -335,6 +337,31 @@ public class MainActivity extends AppCompatActivity {
 //        });
     }
 
+    private void setAndDisplayGrid() {
+        float cell_height = mTextureView.getWidth()>0 ? mTextureView.getWidth()/5 : 0;
+        float cell_width = mTextureView.getHeight() > 0 ? mTextureView.getHeight()/9 : 0;
+        TableLayout tableLayout = (TableLayout) findViewById(R.id.gridTable);
+
+        for(int j=0 ; j<9 ; j++) {
+            TableRow tableRowr = new TableRow(this);
+
+            tableRowr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
+            for (int i = 0; i < 5; i++) {
+                TextView b = new TextView(this);
+                b.setText("");
+
+                b.setHeight((int) Math.floor(cell_height)-2);
+                b.setWidth((int) Math.ceil(cell_width)+2);
+                b.setBackgroundResource(R.drawable.cell_shape);
+                b.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                tableRowr.addView(b);
+            }
+
+            tableLayout.addView(tableRowr, new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
+        }
+    }
+
     void progressbar(boolean isVisible){
         runOnUiThread(new Runnable() {
             @Override
@@ -392,13 +419,14 @@ public class MainActivity extends AppCompatActivity {
                                               int width, int height) {
 
             openCamera(width, height);
-
         }
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture,
                                                 int width, int height) {
             configureTransform(width, height);
+            Log.d(">>>",">>>>>>>>>>>>>>>>>>>>>>>1>>>>>");
+            setAndDisplayGrid();
         }
 
         @Override
@@ -873,7 +901,7 @@ public class MainActivity extends AppCompatActivity {
         startBackgroundThread();
         if (mTextureView.isAvailable()) {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
-            isGridDispaly = prefs.getBoolean("gridView",false);
+            isGridDispaly = prefs.getBoolean("gridView",true);
             Log.d("!!!!!!!!!!!!!!!!!!!!!",""+isGridDispaly);
 
 

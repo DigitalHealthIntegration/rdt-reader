@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" android:defaultValue="true">
 
     <CheckBoxPreference android:title="Show Grid View"
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:summary="This option if selected will display the grid on camera preview "
         android:key="gridView" />
 
