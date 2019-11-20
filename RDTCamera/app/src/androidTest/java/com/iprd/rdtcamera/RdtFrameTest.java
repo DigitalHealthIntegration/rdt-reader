@@ -79,14 +79,16 @@ public class RdtFrameTest {
                 Utils.bitmapToMat(capFrame, matinput);
                 if(matinput.width()< matinput.height()){
                     //Rotate mat;
-                    com.iprd.rdtcamera.Utils.rotateFrame(matinput, -90);
+                    matinput = com.iprd.rdtcamera.Utils.rotateFrame(matinput, -90);
                     //Find the biggest rectangle.
                 }
+                //Lets Rescale it.
+
                 int width = matinput.width();
                 int height = matinput.height();
                 int wfactor = width/16;
                 int hfactor = height/9;
-                int factor  = wfactor >hfactor?hfactor:wfactor;
+                int factor  = wfactor;//wfactor>hfactor?hfactor:wfactor;
                 int newWidth = factor*16;
                 int newHeight = factor*9;
                 Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
@@ -128,7 +130,6 @@ public class RdtFrameTest {
         builder = builder.setByteModel(c.mTfliteB);
         mRdtApi = builder.build();
         mRdtApi.setSavePoints(true);
-        mRdtApi.setSaveImages(true);
         mRdtApi.setRotation(false);
         mRdtApi.setLinearflow(true);
         mRdtApi.setmPlaybackMode(true);

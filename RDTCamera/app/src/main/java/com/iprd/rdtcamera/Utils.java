@@ -124,7 +124,6 @@ public class Utils {
         createDirectoryFromGivenPath(storageLocation+folderPath+"/");
         File myImage = new File(storageLocation+folderPath+"/"+imageName+ ".jpg");
         Log.i("Saving File",myImage.getAbsolutePath());
-        mImageCount++;
         if (myImage.exists()) myImage.delete();
         FileOutputStream out = null;
         try {
