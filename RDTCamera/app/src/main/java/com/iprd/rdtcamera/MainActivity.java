@@ -10,6 +10,7 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -252,9 +253,9 @@ public class MainActivity extends AppCompatActivity {
         saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    mRdtApi.setSaveImages(true);
+                    mRdtApi.setSavePoints(true);
                 } else {
-                    mRdtApi.setSaveImages(false);
+                    mRdtApi.setSavePoints(false);
                 }
             }
         });
@@ -462,7 +463,10 @@ public class MainActivity extends AppCompatActivity {
                         t+="\nscale=" + status.mScale;
                         t+="\nbright=" + status.mBrightness;
                         t+="\nperspec=" + status.mPerspectiveDistortion;
+                        t+="\nS=" + status.mInfo.mSharpness;
+                        t+="\nB=" + status.mInfo.mBrightness;
                         mStatusView.setText(t);
+                        mStatusView.setTextColor(Color.GREEN);
                     }
                     if(status.mSteady ==GOOD){
                         mMotionText.setText("GOOD");
@@ -681,7 +685,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     isPreviewOff = true;
-                    Toast.makeText(MainActivity.this, "Saved:" + "out.jpg", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(MainActivity.this, "Saved:" + "out.jpg", Toast.LENGTH_SHORT).show();
                     if(mImageBytes != null && mImageBytes.length >0) {
                         runOnUiThread(new Runnable() {
                             @Override

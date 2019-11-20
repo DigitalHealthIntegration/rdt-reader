@@ -211,6 +211,9 @@ public class Utils {
             config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
             config.mMaxAllowedTranslationX = Short.parseShort(prefs.getString("mMaxAllowedTranslationX", config.mMaxAllowedTranslationX+""));
             config.mMaxAllowedTranslationY = Short.parseShort(prefs.getString("mMaxAllowedTranslationY", config.mMaxAllowedTranslationY+""));
+            config.mMaxFrameTranslationalMagnitude = Short.parseShort(prefs.getString("mMaxFrameTranslationalMagnitude", config.mMaxFrameTranslationalMagnitude+""));
+            config.mMax10FrameTranslationalMagnitude = Short.parseShort(prefs.getString("mMax10FrameTranslationalMagnitude", config.mMax10FrameTranslationalMagnitude+""));
+
             mTopTh = Float.parseFloat(prefs.getString("mTopTh", mTopTh+""));
             //mBotTh = Float.parseFloat(prefs.getString("mBotTh", mBotTh+""));
             mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));

@@ -63,7 +63,6 @@ public class RdtFrameTest {
         BufferedWriter bfWriter = null;
 
         if(list.size() > 0) {
-
             String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RDT_Images_Folder/";
             File f = new File(fileDir);
             if(!f.exists()){
@@ -93,14 +92,9 @@ public class RdtFrameTest {
                 Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
                 Mat croppedImage = matinput.submat(r);
                 capFrame = getBitmapFromMat(croppedImage);
-//                Scalar sg = new Scalar(0, 0, 255, 0);
-//                putText(croppedImage, list.get(i), new Point(30, 100), 0, 2, sg, 2, LINE_AA, false);
-
-               // SaveMatrix(croppedImage,"CroppedInput");
                 SaveMatrixWithGivenPath(croppedImage,"CroppedInput",list.get(i));
                 AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
                 Log.i("Result ", list.get(i) + " : " + status.GetResult());
-
                 if (file.exists()) {
                     try {
                         if(i == 0) {
@@ -110,7 +104,6 @@ public class RdtFrameTest {
                         }
                         bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
                                     +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mSteady+"\n");
-
                         if(i == list.size()-1) {
                             bfWriter.close();
                         }
@@ -136,7 +129,7 @@ public class RdtFrameTest {
         mRdtApi = builder.build();
         mRdtApi.setSavePoints(true);
         mRdtApi.setSaveImages(true);
-//        mRdtApi.setTracking(false);
+        mRdtApi.setRotation(false);
         mRdtApi.setLinearflow(true);
         mRdtApi.setmPlaybackMode(true);
         return mRdtApi;
