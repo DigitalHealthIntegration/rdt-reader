@@ -6,6 +6,7 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Environment;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -27,6 +28,10 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
+
+import static android.content.Context.MODE_PRIVATE;
+import static com.iprd.rdtcamera.MainActivity.MY_PREFS_NAME;
 
 public class Utils {
 
@@ -193,7 +198,8 @@ public class Utils {
         boolean mSaveNegativeData= false;
         boolean mTrackingEnable=true;
         try {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
+            SharedPreferences prefs = c.getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
+
             config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
             config.mMinScale = Short.parseShort(prefs.getString("mMinScale", config.mMinScale+""));
             config.mXMin = Short.parseShort(prefs.getString("mXMin",  config.mXMin+""));

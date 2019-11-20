@@ -105,7 +105,7 @@ public class ActivityVideo extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         MappedByteBuffer mMappedByteBuffer = null;
         try {
             mMappedByteBuffer = Utils.loadModelFile(getAssets(), mModelFileName);

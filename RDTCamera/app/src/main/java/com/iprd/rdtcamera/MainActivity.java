@@ -87,6 +87,7 @@ import static org.opencv.imgproc.Imgproc.floodFill;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
+    public static final String MY_PREFS_NAME = "MyPrefsFile";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
     private ImageView mRdtView,mTrackedView;
@@ -171,7 +172,10 @@ public class MainActivity extends AppCompatActivity {
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
 
         mGetResult = findViewById(R.id.getResult);
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        Context c = getApplicationContext();
+        prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(c);
+        gridTable =  findViewById(R.id.gridTable);
+        gridTable.setVisibility(View.INVISIBLE);
 
         mRdtView = findViewById(R.id.RdtDetectImage);
         mTrackedView = findViewById(R.id.RdtTrackedImage);
@@ -866,7 +870,8 @@ public class MainActivity extends AppCompatActivity {
         if (mTextureView.isAvailable()) {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
             isGridDispaly = prefs.getBoolean("gridView",false);
-            gridTable =  findViewById(R.id.gridTable);
+            Log.d("!!!!!!!!!!!!!!!!!!!!!",""+isGridDispaly);
+
 
             if(isGridDispaly) {
                 gridTable.setVisibility(View.VISIBLE);
