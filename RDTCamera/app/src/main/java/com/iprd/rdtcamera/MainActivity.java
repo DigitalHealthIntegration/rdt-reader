@@ -425,7 +425,6 @@ public class MainActivity extends AppCompatActivity {
         public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture,
                                                 int width, int height) {
             configureTransform(width, height);
-            Log.d(">>>",">>>>>>>>>>>>>>>>>>>>>>>1>>>>>");
             setAndDisplayGrid();
         }
 
@@ -655,6 +654,7 @@ public class MainActivity extends AppCompatActivity {
     private void getRDTResultData(){
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
+            Log.d("getRDTResultData() :1","...............................1");
             String cameraId = manager.getCameraIdList()[0];
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             Size[] jpegSizes = null;
@@ -686,18 +686,23 @@ public class MainActivity extends AppCompatActivity {
                     //Thread.yield();
                     Image image = null;
                     try {
-
                         image = reader.acquireLatestImage();
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                         mImageBytes = new byte[buffer.capacity()];
                         buffer.get(mImageBytes);
                         Log.d("Get Size ", String.valueOf(buffer.capacity()));
-                        // rdtResults(bytes);
+                        if(mImageBytes != null && mImageBytes.length >0) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressbar(true);
+                                    rdtResults(mImageBytes);
+                                }
+                            });
+                        }
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
-//                    } catch (FileNotFoundException e) {
-//                        e.printStackTrace();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                     finally {
                         if (image != null) {
@@ -713,21 +718,15 @@ public class MainActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     isPreviewOff = true;
-//                    Toast.makeText(MainActivity.this, "Saved:" + "out.jpg", Toast.LENGTH_SHORT).show();
                     if(mImageBytes != null && mImageBytes.length >0) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                progressbar(true);
-                                rdtResults(mImageBytes);
+                               progressbar(true);
+                              //  rdtResults(mImageBytes);
                             }
                         });
                     }
-                    /*try {
-                        //Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }*/
                 }
             };
             mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
