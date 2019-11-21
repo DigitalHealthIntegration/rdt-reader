@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import sys
-RDT_GIT_ROOT = 'D:\\source\\repos\\rdt-reader' 
-
+RDT_GIT_ROOT = 'C:/Users/Kashyap/bkp/source/repos/rdt-reader/' 
+import tensorflow as tf
 sys.path.append(RDT_GIT_ROOT)
 import flasker
 
@@ -35,6 +35,9 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 try:
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth=True
+    sess = tf.Session(config=config)
     SERV = flasker.FluServer()
 except IOError:
     print("Possible tensorflow error")
