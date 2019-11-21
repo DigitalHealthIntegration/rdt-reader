@@ -7,7 +7,9 @@ public class ModelInfo {
     //public static final String mModelFileName="OD_360x640_smaller.lite"; //1400 ms
     //public static final String mModelFileName="OD_360x640.lite"; //3500 ms
     //public static final String mModelFileName="OD_180x320_5x9.lite"; //280 ms
-    public static final String mModelFileName="OD_180x320.lite"; //480 ms
+    //public static final String mModelFileName="OD_180x320.lite"; //480 ms
+    public static final String mModelFileName="OD_360x640_Scale_25.lite"; //1500 ms
+
 
 
 

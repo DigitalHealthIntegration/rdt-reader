@@ -102,9 +102,9 @@ public class RdtFrameTest {
                         if(i == 0) {
                             fileWriter = new FileWriter(file);
                             bfWriter = new BufferedWriter(fileWriter);
-                            bfWriter.write("Image, mSharpness, mScale, mBrightness, mPerspectiveDistortion, mDisplacementX, mDisplacementY, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mSteady\n");
+                            bfWriter.write("Image, mSharpness,mSharpValue, mScale, mBrightness,mBrightValue, mPerspectiveDistortion, mDisplacementX, mDisplacementY, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mSteady\n");
                         }
-                        bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
+                        bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mInfo.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mInfo.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
                                     +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mSteady+"\n");
                         if(i == list.size()-1) {
                             bfWriter.close();

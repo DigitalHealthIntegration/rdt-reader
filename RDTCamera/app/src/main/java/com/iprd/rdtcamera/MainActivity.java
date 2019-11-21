@@ -33,6 +33,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -172,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
 
         mGetResult = findViewById(R.id.getResult);
@@ -459,6 +461,7 @@ public class MainActivity extends AppCompatActivity {
 //            }).start();
         }
 
+        int countertomakedatadisppear=0;
         private void ProcessBitmap(Bitmap capFrame) {
             long st  = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
@@ -474,6 +477,7 @@ public class MainActivity extends AppCompatActivity {
 //            Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
 //            Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
  //           Log.i("Total Processing Time "," "+ et);
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -494,15 +498,24 @@ public class MainActivity extends AppCompatActivity {
                         t+="\nB=" + status.mInfo.mBrightness;
                         mStatusView.setText(t);
                         mStatusView.setTextColor(Color.GREEN);
+                        countertomakedatadisppear=0;
+                    }else{
+                        countertomakedatadisppear++;
+                        if(countertomakedatadisppear > 50) {
+                            mStatusView.setText("No RDT Found");
+                            mStatusView.setTextColor(Color.RED);
+                        }
                     }
+                    //mStatusView.setVisibility(View.VISIBLE);
                     if(status.mSteady ==GOOD){
-                        mMotionText.setText("GOOD");
+                        mMotionText.setText("");
                     }else if(status.mSteady == TOO_HIGH){
-                        mMotionText.setText("TOO_HIGH");
+                        mMotionText.setText("Motion Too High");
+                        mMotionText.setTextColor(Color.RED);
                     }
                     mRdtView.setImageBitmap(b);
                     mRdtView.setVisibility(View.VISIBLE);
-                    //repositionRect(status);
+                    repositionRect(status);
                 }
             });
             sem.release();
@@ -850,39 +863,20 @@ public class MainActivity extends AppCompatActivity {
     long prevTime=0;
     static int counter =0;
     private void repositionRect(AcceptanceStatus status){
+//        DisplayMetrics displayMetrics = new DisplayMetrics();
+//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = mTextureView.getHeight();//displayMetrics.heightPixels;
+        int width = mTextureView.getWidth();//displayMetrics.widthPixels;
 
-        if(mRectView == null)return;
-        if(disRdtResultImage == null) return;
-        if(status.mRDTFound){
-            prevTime = System.currentTimeMillis();
-            prevStat = status;
-            counter = 0;
-        }else {
-            long curr = System.currentTimeMillis();
-            counter++;
-            if(counter>150)
-                mRectView.setVisibility(View.INVISIBLE);
-            if(rdtDataToBeDisplay != null) {
-                rdtDataToBeDisplay.setVisibility(View.INVISIBLE);
-            }
-            return;
-        }
 
         mRectView.bringToFront();
-        rdtDataToBeDisplay.bringToFront();
-        Point boundsRatio = new Point(prevStat.mBoundingBoxWidth*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxHeight*1.0/CAMERA2_PREVIEW_SIZE.getHeight()),
-                positionRatio = new Point(prevStat.mBoundingBoxX*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxY*1.0/CAMERA2_PREVIEW_SIZE.getHeight());
-
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
-        lp.width = prevStat.mBoundingBoxWidth;
-        lp.height=prevStat.mBoundingBoxHeight;
-        lp.setMargins(prevStat.mBoundingBoxX,status.mBoundingBoxY,0,0);
+        lp.width=(int)(width*3.0/5);
+        lp.height=(int)(height*7.0/9);
+        lp.setMargins((int)(width/5.0),(int)(height/9.0),0,0);
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
-        if(mShowImageData !=0) {
-            rdtDataToBeDisplay.setText("S[" + status.mSharpness+ "]\n"+"B[" + status.mBrightness+"]");
-            rdtDataToBeDisplay.setVisibility(View.VISIBLE);
-        }
+
     }
 
     @Override
