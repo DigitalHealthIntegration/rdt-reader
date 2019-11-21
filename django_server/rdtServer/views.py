@@ -69,7 +69,7 @@ def ViewRdt(request):
                 imagefile.close()
                 m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str,SERV)
                 if retFlag==True:
-                    print(m.to_string)
+                    # print(m.to_string)
                     boundary = m.boundary
                     print("Boundary value: "+boundary)
                     r1 = m.fields.get("metadata")
