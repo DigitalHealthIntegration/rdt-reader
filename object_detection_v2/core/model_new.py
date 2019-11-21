@@ -17,7 +17,7 @@ class ObjectDetection(object):
         self.weightsFile      = weightsFile
         self.resize_dim       = tuple(cfg.TEST.INPUT_SIZE) 
         self.number_anchors   = len(cfg.TRAIN.ANCHOR_ASPECTRATIO[0])
-        self.numberBlocks = cfg.TRAIN.NUMBER_BLOCKS
+        self.numberBlocks     = cfg.TRAIN.NUMBER_BLOCKS
         self.model            = self.__build_network__imgClass()
     def __build_network__(self):   
         """This function returns a keras model.
@@ -169,8 +169,12 @@ class ObjectDetection(object):
             inputs = tf.keras.layers.Input(shape=[self.resize_dim[0], self.resize_dim[1], 1])
 
 
+            conv_in = keras.layers.Conv2D(2,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(inputs)
+            conv_in = keras.layers.Conv2D(4,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
+            conv_in = keras.layers.Conv2D(8,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
+            conv_in = keras.layers.Conv2D(16,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
 
-            conv1 = keras.layers.Conv2D(16,(5,5), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(inputs)
+            conv1 = keras.layers.Conv2D(16,(5,5), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
             conv2 = keras.layers.Conv2D(16,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv1)
             maxpool1 = keras.layers.MaxPooling2D((2,2))(conv2)
             drop1 = keras.layers.Dropout(0.2)(maxpool1)
