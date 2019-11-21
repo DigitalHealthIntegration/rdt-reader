@@ -118,7 +118,7 @@ class Test(object):
         # self.testset             = data_loader.loadDataObjSSD('test')
         self.checkpoint_name     = cfg.TEST.EVAL_MODEL_PATH+"/eval.ckpt"
         self.model_path          = cfg.TEST.EVAL_MODEL_PATH+"/model/"
-        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_180x320.lite"
+        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_360x640_.lite"
         self.initial_weight      = cfg.TEST.WEIGHT_FILE
         self.output_node_names   = ["define_loss/reshapedOutput"]
         self.learn_rate_init     = cfg.TRAIN.LEARN_RATE_INIT
@@ -127,7 +127,7 @@ class Test(object):
         self.second_stage_epochs = cfg.TRAIN.SECOND_STAGE_EPOCHS
         self.warmup_periods      = cfg.TRAIN.WARMUP_EPOCHS
         # self.trainset            = data_loader.loadData('train')
-        self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
+        # self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
         # self.trainset             = data_loader.loadDataObjSSDFromYoloFormat('train')
 
         # self.steps_per_period    = len(self.trainset)
@@ -144,10 +144,11 @@ class Test(object):
         
 
     def createTflite(self):
+        
         print(self.model.summary())
         lite = tf.lite.TFLiteConverter.from_keras_model(self.model)
         lite.optimizations = [tf.lite.Optimize.DEFAULT]
-        lite.representative_dataset = self.representative_dataset_gen
+        # lite.representative_dataset = self.representative_dataset_gen
         tflite_quant_model = lite.convert()
         open(self.eval_tflite, "wb").write(tflite_quant_model)
 

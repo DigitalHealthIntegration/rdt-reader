@@ -8,7 +8,6 @@ from core.config import cfg
 from utils import utils
 import json
 from imgaug.augmentables.polys import Polygon
-from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 import tensorflow as tf
 import collections
 import numpy as np

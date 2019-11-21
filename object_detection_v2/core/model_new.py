@@ -191,7 +191,7 @@ class ObjectDetection(object):
             reshapeOutClass = reshapeOut[:,:,:,0:self.num_class]
             reshapeOutReg = reshapeOut[:,:,:,self.num_class:]
             reshapeOutClass = layers.Softmax()(reshapeOutClass)
-            # reshapeOutReg = layers.Activation("linear")(reshapeOutReg)
+            reshapeOutReg = layers.Activation("tanh")(reshapeOutReg)
             concat_1 = layers.concatenate([reshapeOutClass,reshapeOutReg])
 
             model = tf.keras.Model(inputs=inputs,outputs=[concat_1])
