@@ -21,7 +21,7 @@ const csvWriter = createCsvWriter({
 
 
 
-const folderPath = 'D:/source/repos/audere/mono/';//'/home/developer/Documents/RDT Test Image';//RDT Test Image';//RDTLess
+const folderPath = 'C:/Users/Kashyap/bkp/source/repos/audere/Rdtcrop/Rdtcrop';//'/home/developer/Documents/RDT Test Image';//RDT Test Image';//RDTLess
 var arr1 = [];
 var flist = [];
 console.log("Please wait!! \n",folderPath);
@@ -52,85 +52,8 @@ var searchRecursive = function(dir, pattern) {
 	return results;
 };
 
-// flist = searchRecursive(folderPath, '.jpg'); // replace dir and pattern
+flist = searchRecursive(folderPath, '.jpg'); // replace dir and pattern
 																				// as you seem fit	
-flist = ['D:/source/repos/audere/mono/FluB/Morning/IMG_1513.jpg',
-'D:/source/repos/audere/mono/FluB/Morning/IMG_1503.jpg',
-'D:/source/repos/audere/mono/FluB/Morning/IMG_1497.jpg',
-'D:/source/repos/audere/mono/FluB/Morning/IMG_1520.jpg',
-'D:/source/repos/audere/mono/FluB/Morning/IMG_1521.jpg',
-'D:/source/repos/audere/mono/FluB/Morning/IMG_1495.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC9.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC70.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC58.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD38.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC75.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC49.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC62.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC63.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC10.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC38.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC11.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC13.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC76.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC31.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC19.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC30.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD44.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD45.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD1.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC23.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD42.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD46.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD43.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC37.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC36.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BCD41.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC51.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC3.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC44.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC50.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC5.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC57.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC43.jpg',
-'D:/source/repos/audere/mono/FluB/Night/BC4.jpg',
-'D:/source/repos/audere/mono/Negative/Morning/IMG_1567.jpg',
-'D:/source/repos/audere/mono/Negative/Morning/IMG_1566.jpg',
-'D:/source/repos/audere/mono/Negative/Morning/IMG_1570.jpg',
-'D:/source/repos/audere/mono/Negative/Morning/IMG_1571.jpg',
-'D:/source/repos/audere/mono/Negative/Morning/IMG_1569.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1609.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1613.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1608.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1610.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1616.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1603.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1605.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1588.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1594.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1585.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1586.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1591.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1590.jpg',
-'D:/source/repos/audere/mono/FluA/Morning/IMG_1584.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1541.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1555.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1535.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1552.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1550.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1548.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1539.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1556.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1542.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1538.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1529.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1537.jpg',
-'D:/source/repos/audere/mono/FluA+B/Morning/IMG_1540.jpg',
-'D:/source/repos/audere/mono/FluA+B/Afternoon/I16.jpg',
-'D:/source/repos/audere/mono/FluA+B/Afternoon/I5.jpg',
-'D:/source/repos/audere/mono/FluA+B/Afternoon/BCH10.jpg',
-'D:/source/repos/audere/mono/FluA+B/Afternoon/I6.jpg',
-'D:/source/repos/audere/mono/FluA+B/Afternoon/I7.jpg'];
 console.log("FileList !! \n",flist);
 
 var c=0;
@@ -213,25 +136,25 @@ function saveImageJpeg(value,fileName){
 	var str1 = value.substring(value.indexOf('image/jpeg\r\n\r\n')+10);
 	var imgBase64String = str1.substring(0,str1.indexOf('--'));
 	var fs = require('fs');
-	var dir1 = 'D:/source/repos/rdt-reader/output';
+	var dir1 = 'C:/Users/Kashyap/bkp/source/repos/rdt-reader/output';
 	if (!fs.existsSync(dir1)){
 			fs.mkdirSync(dir1);
 	}
 	console.log("FILENAME",fileName);
-	var fname= fileName.substring(fileName.lastIndexOf("/")+1, fileName.length-4);
+	var fname= fileName.substring(fileName.lastIndexOf("\\")+1, fileName.length-4);
 	var dir2 = dir1+'/'+fname;
 	console.log(fname,"$$",dir2);
 	if (!fs.existsSync(dir2)){
 			fs.mkdirSync(dir2);
 	}
 	console.log('Copying file '+ fileName);
-	copyfiles(dir2,'D:/source/repos/rdt-reader/django_server/out.jpg','out.jpg');
-	copyfiles(dir2,'D:/source/repos/rdt-reader/django_server/yolopred.jpg','yolopred.jpg');
-	copyfiles(dir2,'D:/source/repos/rdt-reader/django_server/rdt_crop.jpg','rdt_crop.jpg');
-	copyfiles(dir2,'D:/source/repos/rdt-reader/django_server/resized.jpg','resized.jpg');
-	copyfiles(dir2,'D:/source/repos/rdt-reader/django_server/roi.jpg','roi.jpg');
-	copyfiles(dir2,'D:/source/repos/rdt-reader/django_server/rotated.jpg','rotated.jpg');
-	copyfiles(dir2,'D:/source/repos/rdt-reader/django_server/translated.jpg','translated.jpg');
+	copyfiles(dir2,'C:/Users/Kashyap/bkp/source/repos/rdt-reader/django_server/out.jpg','out.jpg');
+	copyfiles(dir2,'C:/Users/Kashyap/bkp/source/repos/rdt-reader/django_server/yolopred.jpg','yolopred.jpg');
+	copyfiles(dir2,'C:/Users/Kashyap/bkp/source/repos/rdt-reader/django_server/rdt_crop.jpg','rdt_crop.jpg');
+	copyfiles(dir2,'C:/Users/Kashyap/bkp/source/repos/rdt-reader/django_server/resized.jpg','resized.jpg');
+	copyfiles(dir2,'C:/Users/Kashyap/bkp/source/repos/rdt-reader/django_server/roi.jpg','roi.jpg');
+	copyfiles(dir2,'C:/Users/Kashyap/bkp/source/repos/rdt-reader/django_server/rotated.jpg','rotated.jpg');
+	copyfiles(dir2,'C:/Users/Kashyap/bkp/source/repos/rdt-reader/django_server/translated.jpg','translated.jpg');
 	require("fs").writeFile(dir2+'/'+"rxed_crop.jpg", imgBase64String, 'base64', function(err) {
 	//console.log(err);
 
