@@ -47,8 +47,19 @@
         android:layout_height="wrap_content"
         android:text=""
         android:visibility="visible"
-        app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn"
-        app:layout_constraintBottom_toTopOf="@+id/RdtDetectImage" />
+        app:layout_constraintBottom_toTopOf="@+id/RdtDetectImage"
+        app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn" />
+
+    <TextView
+        android:id="@+id/RdtText"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Please place RDT in RedBox"
+        android:visibility="visible"
+        android:gravity="center"
+        app:layout_constraintEnd_toStartOf="@+id/texture"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintTop_toBottomOf="@+id/preferenceSettingBtn" />
 
     <TextView
         android:id="@+id/Status"
@@ -194,7 +205,6 @@
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp"
         tools:visibility="invisible">
-
 
 
     </TableLayout>
