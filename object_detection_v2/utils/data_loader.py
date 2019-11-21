@@ -8,6 +8,7 @@ from core.config import cfg
 from utils import utils
 import json
 from imgaug.augmentables.polys import Polygon
+from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 import tensorflow as tf
 import collections
 import numpy as np
@@ -99,6 +100,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                 # img_path=img_path.replace("//","/").replace("/","\\").replace("object_detection_v2","object_detection_mobile_v2")
                 img = cv2.imread(img_path,cv2.IMREAD_COLOR)
                 original_size=img.shape
+                ogimg = img
                 img = cv2.pyrDown(img)
                 img = cv2.pyrDown(img)
                 # img = iaa.Fliplr(1.0)(images=img)
@@ -114,7 +116,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                     classES=[]
                     list_BBOX = []
                         # BoundingBox(x1=0.2*447, x2=0.85*447, y1=0.3*298, y2=0.95*298),
-
+                    
                     for inde,obj in enumerate(objects):
                         c = np.zeros((num_class,))
                         if obj["tags"][0] in class_pos_id:
@@ -122,11 +124,12 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                             c[int(obj["tags"][0])]=1
                             # print(obj["box"])
                             # print(original_size,resize_dim)
+                            list_BBOX.append(BoundingBox(x1=obj["box"]["x1"], x2=obj["box"]["x2"], y1=obj["box"]["y1"], y2=obj["box"]["y2"]))
                             y1 = obj["box"]["x1"]/original_size[0]*resize_dim[0]
                             x1 = obj["box"]["y1"]/original_size[1]*resize_dim[1]
                             y2 = obj["box"]["x2"]/original_size[0]*resize_dim[0]
                             x2 = obj["box"]["y2"]/original_size[1]*resize_dim[1]
-                            list_BBOX.append(BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2))
+                            #list_BBOX.append(BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2))
                             targs.append([x1,y1,x2,y2])
                             classES.append(c)
 
@@ -165,7 +168,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
 
 
                     #     img = cv2.rectangle(img,(x1,y1),(x2,y2),(255,255,0),2)                
-                    ogimg = img
+                    #ogimg = img
                     img = img/255.0
                     X.append(img)
                     y.append(targets[0])
@@ -176,18 +179,28 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                         for i in range(data_aug_upsample):
                             bbs = BoundingBoxesOnImage(list_BBOX, shape=ogimg.shape)
                             image_aug, bbs_aug = SeqAug(image=ogimg, bounding_boxes=bbs)
+                            img = cv2.pyrDown(image_aug)
+                            img = cv2.pyrDown(img)
+                            # img = iaa.Fliplr(1.0)(images=img)
+                            # print(img)
+                            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                             newtars = []
+                            image_aug =img[...,np.newaxis]
                             for tar in bbs_aug.bounding_boxes:
                                 # print(tar)
 
-                                x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
+                                #x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
+                                y1 = tar.y1/original_size[0]*resize_dim[0]
+                                x1 = tar.x1/original_size[1]*resize_dim[1]
+                                y2 = tar.y2/original_size[0]*resize_dim[0]
+                                x2 = tar.x2/original_size[1]*resize_dim[1]
                                 newtars.append([x1,y1,x2,y2])
                             # print("start")
                             targets,match_ids=convert2target(priorBBoxes,newtars,iou_thresh,classES,number_blocks,resize_dim,num_class,anchorAspect)
                             image_aug=image_aug/255.0
                             X.append(image_aug)
                             y.append(targets[0])
-                            # targets = np.reshape(targets,(1,number_blocks[0],number_blocks[1],len(anchorAspect[0]),num_class+4))
+                            # targets = np.reshape(targets,(1,number_blocks[0],number_blocks[1],len(anchorAspect[0]),8))
 
                             # for tar in bbs_aug.bounding_boxes:
                             #     # print(tar)
@@ -215,12 +228,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                             #         # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
                             #         if max(targets[0,match_id[0],match_id[1],match_id[2],0:num_class])==1:
                             #             # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
-                            #             class_ind = int(np.argmax(targets[0,match_id[0],match_id[1],match_id[2],0:num_class])/10)
-                            #             # print(class_ind,element,np.argmax(targets[0,match_id[0],match_id[1],match_id[2],0:num_class]))
-                            #             cc=[0,0,0,0]
-                            #             cc[class_ind]=255
-                            #             cc=tuple(cc)
-                            #             image_aug = cv2.rectangle(image_aug,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),cc,1)
+                            #             image_aug = cv2.rectangle(image_aug,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),tuple(targets[0,match_id[0],match_id[1],match_id[2],0:num_class]*255),1)
 
                             #     x1=int(x1)#*resize_dim[0])
 
@@ -228,7 +236,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                             #     x2=int(x2)#*resize_dim[0])
                             #     y2=int(y2)#*resize_dim[0])
                                 
-                            #     # image_aug = cv2.rectangle(image_aug,(x1,y1),(x2,y2),(255,0,255),1)      
+                            #     image_aug = cv2.rectangle(image_aug,(x1,y1),(x2,y2),(255,0,255),1)      
                             # cv2.imwrite(rootPathForOutputCheckImages+element,image_aug)
 
                     # name.append(element)
@@ -237,7 +245,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                                 # break
                     if ind==10000 and dataset_type=="train":
                         break
-                    elif ind==7000 and dataset_type=="test":
+                    elif ind==10000 and dataset_type=="test":
                         break
                 # break
                 except KeyError:
@@ -279,6 +287,8 @@ def convert2target(defaultbboxes,targs,thresh,targe_class,number_blocks,shape,nu
     for innnd,t in enumerate(targs) :
         x1y1x2y2 = t
         c = targe_class[innnd]
+        #print(c)
+        
         if t[0]<shape[1] and t[1]<shape[0]:
             if t[2]>shape[1]:
                 t[2]=shape[1]
@@ -308,13 +318,16 @@ def convert2target(defaultbboxes,targs,thresh,targe_class,number_blocks,shape,nu
                                 h_offset = math.log(g_h/p_h)
                                 # print(c)
                                 cx_offset,cy_offset = (cg_x-cp_x)/shape[1],(cg_y-cp_y)/shape[0]
+                                #print("CX_offset",cx_offset,"CY_Offset",cy_offset,"w_offset",w_offset,"h_offset",h_offset,"Shape X Y",shape)
                                 match_ids.append([outer,inner,anch_id])
                                 targets[0,outer,inner,anch_id,0:num_class]=np.asarray(c)
                                 targets[0,outer,inner,anch_id,num_class:] = np.asarray([cx_offset,cy_offset,w_offset,h_offset])
                             # print(targets[0,outer,inner,num_class:])
         else:
-            pass
+            pass    
     cntneg=cntpos/3
+    if cntpos==0:
+        cntneg=5
     while(cntneg>0):
         # print(cntneg)
         skip=0
@@ -566,7 +579,7 @@ def loadDataObjSSD(dataset_type):
 
     return X,y,name
 
-def returnAugmentationObj(percentageOfChance=0.5):
+def returnAugmentationObj(percentageOfChance=0.9):
     """This function returns an augementation pipeline which can be used to augment training data.
         
         Args:
@@ -588,9 +601,9 @@ def returnAugmentationObj(percentageOfChance=0.5):
         [
             
             sometimes(iaa.Affine(
-                translate_percent={"x": (-0.05, 0.05),"y": (-0.05, 0.05)}, # translate by -x to +x percent (per axis)
-                #rotate=(-180, 180), # rotate by -x to +x degrees
-                scale={"x": (0.9, 1.1), "y": (0.9, 1.1)},
+                translate_percent={"x": (-0.03, 0.03),"y": (-0.03, 0.03)}, # translate by -x to +x percent (per axis)
+                rotate=(-10, 10), # rotate by - to +x degrees
+                scale={"x": (0.5, 1.25), "y": (0.5, 1.25)},
             )),
             # iaa.PerspectiveTransform(scale=(0.01, 0.016)) # Add perscpective transform
 
