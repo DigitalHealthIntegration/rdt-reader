@@ -3,7 +3,7 @@ package com.iprd.rdtcamera;
 public class ModelInfo {
 
     //public static final String mModelFileName="OD_360x640_10x19_slow.lite"; //1500 ms
-    // public static final String mModelFileName="OD_360x640_10x19.lite"; //1000 ms
+    //public static final String mModelFileName="OD_360x640_10x19.lite"; //1000 ms
     //public static final String mModelFileName="OD_360x640_smaller.lite"; //1400 ms
     //public static final String mModelFileName="OD_360x640.lite"; //3500 ms
     //public static final String mModelFileName="OD_180x320_5x9.lite"; //280 ms

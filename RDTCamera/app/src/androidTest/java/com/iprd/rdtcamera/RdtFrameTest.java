@@ -130,7 +130,6 @@ public class RdtFrameTest {
         builder = builder.setByteModel(c.mTfliteB);
         mRdtApi = builder.build();
         mRdtApi.setSavePoints(true);
-        mRdtApi.setRotation(false);
         mRdtApi.setLinearflow(true);
         mRdtApi.setmPlaybackMode(true);
         return mRdtApi;
@@ -174,7 +173,7 @@ public class RdtFrameTest {
 
     byte[] mtfliteBytes = null;
     byte[] ReadAssests() throws IOException {
-        InputStream is=this.getClass().getClassLoader().getResourceAsStream("OD_180x320.lite");//OD_180x320.lite");//"OD_360x640_10x19_slow.lite");
+        InputStream is=this.getClass().getClassLoader().getResourceAsStream("OD_360x640_Scale_25.lite");//OD_180x320.lite");//"OD_360x640_10x19_slow.lite");
         mtfliteBytes=new byte[is.available()];
         is.read( mtfliteBytes);
         is.close();

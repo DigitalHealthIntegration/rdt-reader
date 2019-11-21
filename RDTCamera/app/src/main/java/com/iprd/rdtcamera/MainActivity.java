@@ -867,8 +867,6 @@ public class MainActivity extends AppCompatActivity {
 //        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int height = mTextureView.getHeight();//displayMetrics.heightPixels;
         int width = mTextureView.getWidth();//displayMetrics.widthPixels;
-
-
         mRectView.bringToFront();
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
         lp.width=(int)(width*3.0/5);
@@ -876,7 +874,6 @@ public class MainActivity extends AppCompatActivity {
         lp.setMargins((int)(width/5.0),(int)(height/9.0),0,0);
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
-
     }
 
     @Override
