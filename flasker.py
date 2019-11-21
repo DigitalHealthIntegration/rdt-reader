@@ -20,8 +20,18 @@ import base64
 import time
 import os.path
 from os import path
-
-
+import settings as file_path_sets
+# from tensorflow-yolov3.core import config as cfg
+cannonicalArrow=[121.0,152.0,182.0]
+cannonicalCpattern=[596.0,746.0,895.0]
+cannonicalInfl=[699.0,874.0,1048.0]
+ac_can = cannonicalCpattern[1]-cannonicalArrow[1]
+ai_can = cannonicalInfl[1]-cannonicalArrow[1]
+cannonicalA_C_Mid= np.array([449.0,30.0])
+ref_A= np.array([cannonicalArrow[1]-cannonicalA_C_Mid[0],0.0])
+ref_C= np.array([cannonicalCpattern[1]-cannonicalA_C_Mid[0],0.0])
+ref_I= np.array([cannonicalInfl[1]-cannonicalA_C_Mid[0],0.0])
+MAX_VALUE=100000.0
 
 def reduceByConfidence(dictBoxC,dictBoxL):
     """This function handles multple object detection by selecting the one with the highest score.
@@ -294,15 +304,19 @@ def postProcessDetections(labels):
     dictOfBoxesConf={}
     dictOfBoxesL={}
     for l in labels:
-        if l[-1]!=3:
-            try:
-                dictOfBoxesConf[str(int(l[-1]))].append(l[-2])
-                dictOfBoxesL[str(int(l[-1]))].append([l[0],l[1],l[2],l[3]])
-            except Exception as e:
-                dictOfBoxesConf[str(int(l[-1]))]=[]
-                dictOfBoxesL[str(int(l[-1]))]=[]
-                dictOfBoxesConf[str(int(l[-1]))].append(l[-2])
-                dictOfBoxesL[str(int(l[-1]))].append([l[0],l[1],l[2],l[3]])
+        try:
+            if file_path_sets.YOLO_MODEL_VER==1:
+                class_feat = str(int(l[-1]))
+            elif file_path_sets.YOLO_MODEL_VER==2:
+                class_feat = str(int(l[-1]/10))
+            # print(class_feat)
+            dictOfBoxesConf[class_feat].append(l[-2])
+            dictOfBoxesL[class_feat].append([l[0],l[1],l[2],l[3]])
+        except Exception as e:
+            dictOfBoxesConf[class_feat]=[]
+            dictOfBoxesL[class_feat]=[]
+            dictOfBoxesConf[class_feat].append(l[-2])
+            dictOfBoxesL[class_feat].append([l[0],l[1],l[2],l[3]])
     reducedL=reduceByConfidence(dictOfBoxesConf,dictOfBoxesL)
     try:
         centreTop = returnCentre(reducedL["0"])
@@ -324,6 +338,162 @@ def postProcessDetections(labels):
         pass
 
     return result
+
+def angleOfLine(p1,p2):
+    return math.atan2(p2[1]-p1[1],p2[0]-p1[0])
+
+def angle_constraint(orientation,theta_deg):
+    T=30
+    d=abs(orientation-theta_deg)
+    if(d>180): d=360-d
+    if(d>T): return True
+    return False
+def warpPoint(point, R):
+    result=[0,0]
+    result[0] = point[0] * R[0,0] + point[1] *  R[0,1]+  R[0,2]
+    result[1] = point[1] * R[1,0] + point[1] *  R[1,1]+  R[1,2]
+    return result
+    
+
+def detect2(a, c, i):
+    #rotation
+    orientations=[a[-1],c[-1],i[-1]]
+    a=np.array(a[:2])
+    c=np.array(c[:2])
+    i=np.array(i[:2])
+    th1=angleOfLine(a,c)
+    th2=angleOfLine(a,i)
+    theta=(th1+th2)/2
+    if(theta<0): theta+=2*math.pi
+    #avoid feature orientations which are very different from theta
+    theta_deg=math.degrees(theta)
+    if(angle_constraint(orientations[0],theta_deg) or angle_constraint(orientations[1],theta_deg) or angle_constraint(orientations[2],theta_deg)):
+        return MAX_VALUE
+    
+    ac=euclidianDistance(a,c)
+    ai=euclidianDistance(a,i)
+
+    s1=ac/ac_can
+    s2=ai/ai_can
+    scale=math.sqrt(s1*s2)
+
+    #avoid scales which are very different from each other
+    scale_disparity=s1/s2
+    if(scale_disparity>1.25 or scale_disparity<0.75):
+        return MAX_VALUE
+
+    cos_th=math.cos(-1*theta)
+    sin_th=math.sin(-1*theta)
+    R= np.zeros((2,3))
+    R[0,:]=np.array([cos_th/scale,-sin_th/scale,0])
+    R[1,:]=np.array([sin_th/scale,cos_th/scale,0])
+
+    #warp the points
+    a1 = warpPoint(a,R)
+    c1 = warpPoint(c,R)
+    i1 = warpPoint(i,R)
+
+    ac1_mid=[(a1[0]+c1[0])/2,(a1[1]+c1[1])/2]
+    #translate back to 0,0
+    a1=[a1[0]-ac1_mid[0],a1[1]-ac1_mid[1]]
+    c1=[c1[0]-ac1_mid[0],c1[1]-ac1_mid[1]]
+    i1=[i1[0]-ac1_mid[0],i1[1]-ac1_mid[1]]
+
+    #compute the MSE
+    return (euclidianDistance(ref_A,np.array(a1))+euclidianDistance(ref_C,np.array(c1))+euclidianDistance(ref_I,np.array(i1)))/3
+
+def generateRDTcropV2(boxes,im0):
+
+    """Generate RDT cropped image from object detection output
+        
+        Args:
+
+            boxes (numpy.ndarray) : Bounding boxes of objects detected and the confidence score
+            im0 (numpy.ndarray) : Input image
+            targets (dict) : Centers of red and blue line (Used for debugging only)
+        
+        Returns:
+       
+            dict : Response with RDT crop if found
+    """  
+    min_error=MAX_VALUE
+    BOX_A=[]
+    BOX_C=[]
+    BOX_I=[]
+    A_best=[]
+    C_best=[]
+    I_best=[]
+    orientationAngles=[0,22.5,45,135,157.5,180,202.5,225,315,337.5]
+    for prediction in boxes:       
+        class_feat =int(prediction[-1]/10)
+        orientation = orientationAngles[int(prediction[-1]%10)]
+        prediction=list(prediction)
+        prediction.append(orientation)
+        if class_feat==2:
+            BOX_A.append(prediction)
+        elif class_feat==1:
+            BOX_C.append(prediction)
+        elif class_feat==0:
+            BOX_I.append(prediction)
+    BOX_A=sorted(BOX_A, key = lambda x: x[4],reverse=True)
+    BOX_C=sorted(BOX_C, key = lambda x: x[4],reverse=True)
+    BOX_I=sorted(BOX_I, key = lambda x: x[4],reverse=True)
+    if(len(BOX_A)>0 and len(BOX_C)>0 and len(BOX_I)>0):
+    # print(BOX_A[0],BOX_C[0],BOX_I[0])
+        for box_a in BOX_A:
+            C_arrow_predicted=returnCentre(list(box_a[:4]))
+            C_arrow_predicted.append(box_a[-1])
+            for box_c in BOX_C:
+                C_Cpattern_predicted=returnCentre(list(box_c[:4]))
+                C_Cpattern_predicted.append(box_c[-1])
+                for box_i in BOX_I:
+                    C_Infl_predicted=returnCentre(list(box_i[:4]))
+                    C_Infl_predicted.append(box_i[-1])
+
+                    error=detect2(C_arrow_predicted,C_Cpattern_predicted,C_Infl_predicted)                
+                    if error<min_error:
+                        A_best=C_arrow_predicted
+                        C_best=C_Cpattern_predicted
+                        I_best=C_Infl_predicted
+        
+        angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis(np.array(C_best),np.array(A_best),im0,[[0,0],[0,0],[0,0]],0)
+        cv2.imwrite("translated.jpg",im0)
+        # Resize image
+        print("scale",scale_percent)
+        if scale_percent > 5:
+                return [{"message":"Failure"},False]
+        resizedImage = cv2.resize(im0, (int(im0.shape[1]*scale_percent),int(im0.shape[0]*scale_percent)))
+        cv2.imwrite("resized.jpg",resizedImage)
+        [cx_A,cy_A,cx_B,cy_B,cx_C,cy_C] = [cx_A*scale_percent,cy_A*scale_percent,cx_B*scale_percent,cy_B*scale_percent,cx_C*scale_percent,cy_C*scale_percent]
+
+        # Rotate image
+
+        rotatedImage,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=rotate_bound(resizedImage,angleToRotate,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]])
+        cv2.imwrite("rotated.jpg",rotatedImage)
+        # Pad image if the lowest dimension is less than 2000
+        if rotatedImage.shape[0]<=2000:
+            pad = (2000-rotatedImage.shape[0])/2
+            tmp = np.zeros((2000,rotatedImage.shape[1],3))
+            end=2000-pad
+            tmp[int(pad):int(end),:,:]=rotatedImage
+            rotatedImage=tmp
+            [cx_A,cy_A,cx_B,cy_B,cx_C,cy_C] = [cx_A,cy_A+pad,cx_B,cy_B+pad,cx_C,cy_C+pad]
+
+        if rotatedImage.shape[1]<=2000:
+            pad = (2000-rotatedImage.shape[1])/2
+            tmp = np.zeros((rotatedImage.shape[0],2000,3))
+            end=2000-pad
+            tmp[:,int(pad):int(end),:]=rotatedImage
+            rotatedImage=tmp        
+            [cx_A,cy_A,cx_B,cy_B,cx_C,cy_C] = [cx_A+pad,cy_A,cx_B+pad,cy_B,cx_C+pad,cy_C]
+            
+            # Generate RDT cropped image
+        processed,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=returnROI(rotatedImage,[[cx_A,cy_A],[cx_B,cy_B],[cx_C,cy_C]])
+        cv2.imwrite("rdt_crop.jpg",processed)
+        return [{"message":"success"},processed]
+    else:
+        return [{"message":"Failure"},False]
+
 
 def generateRDTcrop(boxes,im0,targets):
     """Generate RDT cropped image from object detection output
@@ -425,7 +595,7 @@ class FluServer:
         self.__lineDetector = LineDetector()
 
     def callyolo(self, image):
-
+        print("calling yolo")
         return self.__yolo.wrapper(image)
 
     def callLineDetector(self, image):
@@ -445,6 +615,7 @@ def runPipeline(img,serverObj):
     im0 = np.copy(img)
     im0 = utils.draw_bbox(im0, boxes, show_label=True)
     resp,roi = generateRDTcrop(boxes,img,[])
+
     rc = -4
     if resp["message"]=="success": 
         cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
@@ -474,7 +645,7 @@ def runPipeline(img,serverObj):
         rc = -2
     return rc
 
-def processRdtRequest(UUID,include_proof,img_str):
+def processRdtRequest(UUID,include_proof,img_str,serv):
     '''
         Reads rdt input image and tells the result: No rdt, No flu, Type A flu, Type B flu. Handles errors as well.
         This function is called from the rest API code which extracts the required data from the request and calls this function.
@@ -485,18 +656,22 @@ def processRdtRequest(UUID,include_proof,img_str):
     try:
         nparr = np.fromstring(img_str, np.uint8)
         img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+        org_h, org_w, _ = img_np.shape
+        if file_path_sets.YOLO_MODEL_VER==1:
+            pass
+        elif file_path_sets.YOLO_MODEL_VER==2:
+            print("height",org_h,"weight",org_w)
+            if (org_h>org_w):
+                img_np=cv2.transpose(img_np)
+                img_np=cv2.flip(img_np,flipCode=0)
+
         print("Reading rdt img")
     except IOError:
         print("Unable to open rdt jpeg")
     
     im0 = np.copy(img_np)
     st = time.time()
-    try:
-        serv = FluServer()
-    except IOError:
-        print("Possible tensorflow error")
-    finally:
-        boxes = serv.callyolo(img_np)
+    boxes = serv.callyolo(img_np)
     et = time.time()
     t1=et-st
     try:
@@ -504,7 +679,9 @@ def processRdtRequest(UUID,include_proof,img_str):
         print("Util processing img")
     except IOError:
         print("Image reading error")
-    resp,roi = generateRDTcrop(boxes,img_np,[])
+    # resp,roi = generateRDTcrop(boxes,img_np,[])
+    resp,roi =generateRDTcropV2(boxes,img_np)
+
     if resp["message"]=="success": 
             try:
                 cv2.imwrite("roi.jpg", roi[1000:1500,:,:])

@@ -13,7 +13,7 @@ with open("images_used_in_training_redblue.txt") as fin:
     fileUsedIntrainingRB=fin.readlines()
     fileUsedIntrainingRB=[root_dir+x.strip().split()[1] for x in fileUsedIntrainingRB]
 print(fileUsedIntrainingRB)
-with open("out.csv","w") as fout:
+with open("out_old_model.csv","w") as fout:
     fout.write("Truth,predicted,filename\n")
     for filename in glob.iglob(root_dir + '**/*.jpg', recursive=True):
         img = cv2.imread(filename)
@@ -39,6 +39,6 @@ with open("out.csv","w") as fout:
             if tmp_pred != 2:
                 failed_images.append(filename)
         fout.write(str(y_truth[-1])+","+str(tmp_pred)+","+filename.replace("/","\\")+"\n")
-        break
+        # break
         print(filename)
         

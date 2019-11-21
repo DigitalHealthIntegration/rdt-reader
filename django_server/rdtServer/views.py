@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django import forms
-from api.settings import RDT_GIT_ROOT
+from api.settings import RDT_GIT_ROOT,SERV
 from .forms import RequestForm
 from rest_framework import generics
 from rest_framework import status
@@ -13,7 +13,6 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import sys
 import logging
-
 
 
 sys.path.append(RDT_GIT_ROOT)
@@ -69,9 +68,9 @@ def ViewRdt(request):
                 img_str=imagefile.read()
                 imagefile.close()
                 logging.info(img_str)
-                m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str)
+                m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str,SERV)
                 if retFlag==True:
-                    print(m.to_string)
+                    # print(m.to_string)
                     boundary = m.boundary
                     r1 = m.fields.get("metadata")
                     finalRspTxt = "\n"+boundary+"\nContent-Disposition: form-data; name=\"metadata\"; filename=\""+r1[0]+"\"\nContent-Type: "+r1[2]+"\r\n\r\n"+r1[1]
