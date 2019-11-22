@@ -461,8 +461,18 @@ public class MainActivity extends AppCompatActivity {
 //            }).start();
         }
 
+        public Bitmap RotateBitmap(Bitmap source, float angle)
+        {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(angle);
+            return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+        }
+
         int countertomakedatadisppear=0;
         private void ProcessBitmap(Bitmap capFrame) {
+
+            //capFrame = RotateBitmap(capFrame,90);
+
             long st  = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
             if(mShowImageData != 0){
@@ -497,7 +507,10 @@ public class MainActivity extends AppCompatActivity {
                         t+="\nS=" + status.mInfo.mSharpness;
                         t+="\nB=" + status.mInfo.mBrightness;
                         mStatusView.setText(t);
-                        mStatusView.setTextColor(Color.GREEN);
+                        if((status.mSharpness == 0)&&( status.mScale == 0)&&(status.mBrightness == 0)&&(status.mPerspectiveDistortion==0))
+                            mStatusView.setTextColor(Color.GREEN);
+                        else
+                            mStatusView.setTextColor(Color.RED);
                         countertomakedatadisppear=0;
                     }else{
                         countertomakedatadisppear++;
