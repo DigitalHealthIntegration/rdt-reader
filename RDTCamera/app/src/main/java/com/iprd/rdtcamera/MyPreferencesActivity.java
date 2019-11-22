@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 
-import static com.iprd.rdtcamera.MainActivity.MY_PREFS_NAME;
+import static com.iprd.rdtcamera.Utils.MY_PREFS_NAME;
 
 public class MyPreferencesActivity extends PreferenceActivity {
 
