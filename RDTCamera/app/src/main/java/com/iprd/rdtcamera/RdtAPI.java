@@ -280,7 +280,6 @@ public class RdtAPI {
                 Log.d("DistYMin",""+ret.mBoundingBoxY*100 +"<"+ mConfig.mYMin*mat.cols());
                 return false;
             }else ret.mDisplacementY = GOOD;
-
         }
 
         ret.mPerspectiveDistortion= GOOD;
