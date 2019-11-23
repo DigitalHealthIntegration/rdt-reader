@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.iprd.rdtcamera.MainActivity.MY_PREFS_NAME;
 
 public class Utils {
 
+    public static final String MY_PREFS_NAME = "MyPrefsFile";
     static String dirpath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RDT/";
     static int mImageCount = 0;
 

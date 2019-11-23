@@ -91,7 +91,6 @@ import static org.opencv.imgproc.Imgproc.floodFill;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
-    public static final String MY_PREFS_NAME = "MyPrefsFile";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
     private ImageView mRdtView,mTrackedView;
