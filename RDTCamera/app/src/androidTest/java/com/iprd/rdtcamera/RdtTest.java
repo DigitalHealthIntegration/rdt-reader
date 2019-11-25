@@ -69,7 +69,6 @@ public class RdtTest {
         builder = builder.setByteModel(c.mTfliteB);
         mRdtApi = builder.build();
         mRdtApi.setSavePoints(true);
-        mRdtApi.setSaveImages(true);
 
 //        mTopTh = 0.9f;
 //        mBotTh = 0.7f;

@@ -63,7 +63,6 @@ public class RdtFrameTest {
         BufferedWriter bfWriter = null;
 
         if(list.size() > 0) {
-
             String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RDT_Images_Folder/";
             File f = new File(fileDir);
             if(!f.exists()){
@@ -80,37 +79,33 @@ public class RdtFrameTest {
                 Utils.bitmapToMat(capFrame, matinput);
                 if(matinput.width()< matinput.height()){
                     //Rotate mat;
-                    com.iprd.rdtcamera.Utils.rotateFrame(matinput, -90);
+                    matinput = com.iprd.rdtcamera.Utils.rotateFrame(matinput, -90);
                     //Find the biggest rectangle.
                 }
+                //Lets Rescale it.
+
                 int width = matinput.width();
                 int height = matinput.height();
                 int wfactor = width/16;
                 int hfactor = height/9;
-                int factor  = wfactor >hfactor?hfactor:wfactor;
+                int factor  = wfactor;//wfactor>hfactor?hfactor:wfactor;
                 int newWidth = factor*16;
                 int newHeight = factor*9;
                 Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
                 Mat croppedImage = matinput.submat(r);
                 capFrame = getBitmapFromMat(croppedImage);
-                Scalar sg = new Scalar(0, 0, 255, 0);
-                putText(croppedImage, list.get(i), new Point(30, 100), 0, 2, sg, 2, LINE_AA, false);
-
-               // SaveMatrix(croppedImage,"CroppedInput");
                 SaveMatrixWithGivenPath(croppedImage,"CroppedInput",list.get(i));
                 AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
                 Log.i("Result ", list.get(i) + " : " + status.GetResult());
-
                 if (file.exists()) {
                     try {
                         if(i == 0) {
                             fileWriter = new FileWriter(file);
                             bfWriter = new BufferedWriter(fileWriter);
-                            bfWriter.write("Image, mSharpness, mScale, mBrightness, mPerspectiveDistortion, mDisplacementX, mDisplacementY, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mSteady\n");
+                            bfWriter.write("Image, mSharpness,mSharpValue, mScale, mBrightness,mBrightValue, mPerspectiveDistortion, mDisplacementX, mDisplacementY, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mSteady\n");
                         }
-                        bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
+                        bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mInfo.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mInfo.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
                                     +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mSteady+"\n");
-
                         if(i == list.size()-1) {
                             bfWriter.close();
                         }
@@ -135,8 +130,6 @@ public class RdtFrameTest {
         builder = builder.setByteModel(c.mTfliteB);
         mRdtApi = builder.build();
         mRdtApi.setSavePoints(true);
-        mRdtApi.setSaveImages(true);
-        mRdtApi.setTracking(false);
         mRdtApi.setLinearflow(true);
         mRdtApi.setmPlaybackMode(true);
         return mRdtApi;
@@ -180,7 +173,7 @@ public class RdtFrameTest {
 
     byte[] mtfliteBytes = null;
     byte[] ReadAssests() throws IOException {
-        InputStream is=this.getClass().getClassLoader().getResourceAsStream("OD_180x320.lite");//OD_180x320.lite");//"OD_360x640_10x19_slow.lite");
+        InputStream is=this.getClass().getClassLoader().getResourceAsStream("OD_360x640_Scale_25.lite");//OD_180x320.lite");//"OD_360x640_10x19_slow.lite");
         mtfliteBytes=new byte[is.available()];
         is.read( mtfliteBytes);
         is.close();

@@ -6,6 +6,7 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Environment;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -27,9 +28,13 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class Utils {
 
+    public static final String MY_PREFS_NAME = "MyPrefsFile";
     static String dirpath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RDT/";
     static int mImageCount = 0;
 
@@ -119,7 +124,6 @@ public class Utils {
         createDirectoryFromGivenPath(storageLocation+folderPath+"/");
         File myImage = new File(storageLocation+folderPath+"/"+imageName+ ".jpg");
         Log.i("Saving File",myImage.getAbsolutePath());
-        mImageCount++;
         if (myImage.exists()) myImage.delete();
         FileOutputStream out = null;
         try {
@@ -193,7 +197,8 @@ public class Utils {
         boolean mSaveNegativeData= false;
         boolean mTrackingEnable=true;
         try {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
+            SharedPreferences prefs = c.getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
+
             config.mMaxScale = Short.parseShort(prefs.getString("mMaxScale",  config.mMaxScale+""));
             config.mMinScale = Short.parseShort(prefs.getString("mMinScale", config.mMinScale+""));
             config.mXMin = Short.parseShort(prefs.getString("mXMin",  config.mXMin+""));
@@ -205,6 +210,9 @@ public class Utils {
             config.mMinBrightness = Float.parseFloat(prefs.getString("mMinBrightness", config.mMinBrightness+""));
             config.mMaxAllowedTranslationX = Short.parseShort(prefs.getString("mMaxAllowedTranslationX", config.mMaxAllowedTranslationX+""));
             config.mMaxAllowedTranslationY = Short.parseShort(prefs.getString("mMaxAllowedTranslationY", config.mMaxAllowedTranslationY+""));
+            config.mMaxFrameTranslationalMagnitude = Short.parseShort(prefs.getString("mMaxFrameTranslationalMagnitude", config.mMaxFrameTranslationalMagnitude+""));
+            config.mMax10FrameTranslationalMagnitude = Short.parseShort(prefs.getString("mMax10FrameTranslationalMagnitude", config.mMax10FrameTranslationalMagnitude+""));
+
             mTopTh = Float.parseFloat(prefs.getString("mTopTh", mTopTh+""));
             //mBotTh = Float.parseFloat(prefs.getString("mBotTh", mBotTh+""));
             mShowImageData  = Short.parseShort(prefs.getString("mShowImageData", "0"));
@@ -235,7 +243,6 @@ public class Utils {
         if(rdt !=null){
             rdt.getTensorFlow().setTopThreshold(mTopTh);
             rdt.setSaveNegativeData(mSaveNegativeData);
-            rdt.setTracking(mTrackingEnable);
         }
         return mShowImageData;
     }

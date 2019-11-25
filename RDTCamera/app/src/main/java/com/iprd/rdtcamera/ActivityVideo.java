@@ -105,7 +105,7 @@ public class ActivityVideo extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         MappedByteBuffer mMappedByteBuffer = null;
         try {
             mMappedByteBuffer = Utils.loadModelFile(getAssets(), mModelFileName);
@@ -122,7 +122,6 @@ public class ActivityVideo extends AppCompatActivity {
         Utils.ApplySettings(this, null, mRdtApi);
         mRdtApi.setmPlaybackMode(true);
         mRdtApi.setLinearflow(true);
-        mRdtApi.setTracking(false);
 
         //mRdtApi.saveInput(true);
         //mRdtApi.setSavePoints(true);

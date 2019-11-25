@@ -16,18 +16,20 @@ public class Config{
     public MappedByteBuffer mMappedByteBuffer;
     public short mMaxAllowedTranslationX;
     public short mMaxAllowedTranslationY;
+    public short mMaxFrameTranslationalMagnitude;
+    public short mMax10FrameTranslationalMagnitude;
 
     public Config() {
         setDefaults();
     }
 
     public void setDefaults() {
-        mMaxScale = 75;
-        mMinScale = 5;
-        mXMin = 15;
-        mXMax = 75;
-        mYMin = 10;
-        mYMax = 75;
+        mMaxScale = 95; //% of width for bb width
+        mMinScale = 5;//% of width for bb width
+        mXMin = 15; //% of width
+        mXMax = 85; //% of width
+        mYMin = 0; //% of HEIGHT
+        mYMax = 100; //% of HEIGHT
         mMinSharpness = 800.0f;
         mMaxBrightness = 220.0f;
         mMinBrightness = 110.0f;
@@ -35,6 +37,8 @@ public class Config{
         mMappedByteBuffer=null;
         mMaxAllowedTranslationY = 6; //level 4
         mMaxAllowedTranslationX = 6; //level 4
+        mMaxFrameTranslationalMagnitude = 100;
+        mMax10FrameTranslationalMagnitude = 200;
     }
     public void setmMappedByteBuffer(MappedByteBuffer mMappedByteBuffer) {
         this.mMappedByteBuffer = mMappedByteBuffer;
@@ -85,6 +89,14 @@ public class Config{
     }
     public void setmMaxAllowedTranslationY(short mMaxAllowedTranslationY) {
         this.mMaxAllowedTranslationY = mMaxAllowedTranslationY;
+    }
+
+    public void setMaxFrameTranslationalMagnitude(short mMaxFrameTranslationalMagnitude) {
+        this.mMaxFrameTranslationalMagnitude = mMaxFrameTranslationalMagnitude;
+    }
+
+    public void setMax10FrameTranslationalMagnitude(short mMax10FrameTranslationalMagnitude) {
+        this.mMax10FrameTranslationalMagnitude = mMax10FrameTranslationalMagnitude;
     }
 
 }

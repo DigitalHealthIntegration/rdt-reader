@@ -42,10 +42,10 @@ android {
 
     sourceSets {
         test {
-            resources.srcDirs += ['sampledata']
+            resources.srcDirs += ['sampledata',"\\src\\main\\assets"]
         }
         androidTest {
-            resources.srcDirs += ['sampledata']
+            resources.srcDirs += ['sampledata',"\\src\\main\\assets"]
         }
     }
 //
