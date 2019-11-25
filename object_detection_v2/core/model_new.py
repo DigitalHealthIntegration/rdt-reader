@@ -169,10 +169,10 @@ class ObjectDetection(object):
             inputs = tf.keras.layers.Input(shape=[self.resize_dim[0], self.resize_dim[1], 1])
 
 
-            conv_in = keras.layers.Conv2D(2,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(inputs)
-            conv_in = keras.layers.Conv2D(4,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
-            conv_in = keras.layers.Conv2D(8,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
-            conv_in = keras.layers.Conv2D(16,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
+            conv_in = keras.layers.Conv2D(16,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(inputs)
+            #conv_in = keras.layers.Conv2D(4,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
+            #conv_in = keras.layers.Conv2D(8,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
+            #conv_in = keras.layers.Conv2D(16,(1,1), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
 
             conv1 = keras.layers.Conv2D(16,(5,5), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv_in)
             conv2 = keras.layers.Conv2D(16,(3,3), padding='valid',activation='relu',kernel_initializer=keras.initializers.lecun_uniform(seed=None))(conv1)

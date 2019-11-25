@@ -118,7 +118,7 @@ class Test(object):
         # self.testset             = data_loader.loadDataObjSSD('test')
         self.checkpoint_name     = cfg.TEST.EVAL_MODEL_PATH+"/eval.ckpt"
         self.model_path          = cfg.TEST.EVAL_MODEL_PATH+"/model/"
-        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_360x640_.lite"
+        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_180x320_newarch.lite"
         self.initial_weight      = cfg.TEST.WEIGHT_FILE
         self.output_node_names   = ["define_loss/reshapedOutput"]
         self.learn_rate_init     = cfg.TRAIN.LEARN_RATE_INIT
