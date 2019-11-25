@@ -28,8 +28,8 @@ public class Config{
         mMinScale = 5;//% of width for bb width
         mXMin = 15; //% of width
         mXMax = 85; //% of width
-        mYMin = 10; //% of HEIGHT
-        mYMax = 90; //% of HEIGHT
+        mYMin = 0; //% of HEIGHT
+        mYMax = 100; //% of HEIGHT
         mMinSharpness = 800.0f;
         mMaxBrightness = 220.0f;
         mMinBrightness = 110.0f;

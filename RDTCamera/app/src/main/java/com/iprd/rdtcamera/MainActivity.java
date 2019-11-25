@@ -527,7 +527,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mRdtView.setImageBitmap(b);
                     mRdtView.setVisibility(View.VISIBLE);
-                    repositionRect(status);
+                    //repositionRect(status);
                 }
             });
             sem.release();
@@ -881,9 +881,9 @@ public class MainActivity extends AppCompatActivity {
         int width = mTextureView.getWidth();//displayMetrics.widthPixels;
         mRectView.bringToFront();
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
-        lp.width=(int)(width*3.0/5);
-        lp.height=(int)(height*7.0/9);
-        lp.setMargins((int)(width/5.0),(int)(height/9.0),0,0);
+        lp.width=(int)Math.floor(width*3.0/5);
+        lp.height=(int)Math.ceil(height*7.0/9)+1;
+        lp.setMargins((int)Math.floor(width/5.0)-1,(int)Math.floor(height/9.0)+1,0,0);
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
     }
