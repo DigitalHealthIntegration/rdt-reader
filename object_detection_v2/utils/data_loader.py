@@ -105,9 +105,9 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                 img = cv2.pyrDown(img)
                 # img = iaa.Fliplr(1.0)(images=img)
                 # print(img)
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                 # img = cv2.resize(img,resize_dim)
-                img = img[...,np.newaxis]
+                # img = img[...,np.newaxis]
                 # cnt = 1
                 try:
                     objects = all_annotations["frames"][element]
@@ -124,7 +124,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                             c[int(obj["tags"][0])]=1
                             # print(obj["box"])
                             # print(original_size,resize_dim)
-                            list_BBOX.append(BoundingBox(x1=obj["box"]["x1"], x2=obj["box"]["x2"], y1=obj["box"]["y1"], y2=obj["box"]["y2"]))
+                            list_BBOX.append(BoundingBox(y1=obj["box"]["x1"], y2=obj["box"]["x2"], x1=obj["box"]["y1"], x2=obj["box"]["y2"]))
                             y1 = obj["box"]["x1"]/original_size[0]*resize_dim[0]
                             x1 = obj["box"]["y1"]/original_size[1]*resize_dim[1]
                             y2 = obj["box"]["x2"]/original_size[0]*resize_dim[0]
@@ -169,7 +169,7 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
 
                     #     img = cv2.rectangle(img,(x1,y1),(x2,y2),(255,255,0),2)                
                     #ogimg = img
-                    img = img/255.0
+                    # img = img/255.0
                     X.append(img)
                     y.append(targets[0])
                     
@@ -179,13 +179,14 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                         for i in range(data_aug_upsample):
                             bbs = BoundingBoxesOnImage(list_BBOX, shape=ogimg.shape)
                             image_aug, bbs_aug = SeqAug(image=ogimg, bounding_boxes=bbs)
-                            img = cv2.pyrDown(image_aug)
-                            img = cv2.pyrDown(img)
+                            original_size=image_aug.shape
+                            image_aug = cv2.pyrDown(image_aug)
+                            image_aug = cv2.pyrDown(image_aug)
                             # img = iaa.Fliplr(1.0)(images=img)
                             # print(img)
-                            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                            # image_aug = cv2.cvtColor(image_aug, cv2.COLOR_BGR2GRAY)
                             newtars = []
-                            image_aug =img[...,np.newaxis]
+                            # image_aug =image_aug[...,np.newaxis]
                             for tar in bbs_aug.bounding_boxes:
                                 # print(tar)
 
@@ -197,55 +198,58 @@ def loadDataObjSSDFromYoloFormat(dataset_type):
                                 newtars.append([x1,y1,x2,y2])
                             # print("start")
                             targets,match_ids=convert2target(priorBBoxes,newtars,iou_thresh,classES,number_blocks,resize_dim,num_class,anchorAspect)
-                            image_aug=image_aug/255.0
-                            X.append(image_aug)
-                            y.append(targets[0])
-                            # targets = np.reshape(targets,(1,number_blocks[0],number_blocks[1],len(anchorAspect[0]),8))
+                            # image_aug=image_aug/255.0
+                            # X.append(image_aug)
+                            # y.append(targets[0])
+                            targets = np.reshape(targets,(1,number_blocks[0],number_blocks[1],len(anchorAspect[0]),num_class+4))
 
-                            # for tar in bbs_aug.bounding_boxes:
-                            #     # print(tar)
-                            #     x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
-                            #     for ii,match_id in enumerate( match_ids):
-                            #         # pred_x1=int(priorBBoxes[0,0,match_id[0],match_id[1],0]*resize_dim[0])
+                            for tar in bbs_aug.bounding_boxes:
+                                # print(tar)
+                                x1,y1,x2,y2=tar.x1,tar.y1,tar.x2,tar.y2
+                                for ii,match_id in enumerate( match_ids):
+                                    # pred_x1=int(priorBBoxes[0,0,match_id[0],match_id[1],0]*resize_dim[0])
 
-                            #         # pred_y1=int(priorBBoxes[0,0,match_id[0],match_id[1],1]*resize_dim[0])
-                            #         # pred_x2=int(priorBBoxes[0,0,match_id[0],match_id[1],2]*resize_dim[0])
-                            #         # pred_y2=int(priorBBoxes[0,0,match_id[0],match_id[1],3]*resize_dim[0])
-                            #         # print(priorBBoxes.shape)
-                            #         pcx,pcy,pw,ph =priorBBoxes[0,match_id[0],match_id[1],match_id[2],0],priorBBoxes[0,match_id[0],match_id[1],match_id[2],1],priorBBoxes[0,match_id[0],match_id[1],match_id[2],2],priorBBoxes[0,match_id[0],match_id[1],match_id[2],3] 
+                                    # pred_y1=int(priorBBoxes[0,0,match_id[0],match_id[1],1]*resize_dim[0])
+                                    # pred_x2=int(priorBBoxes[0,0,match_id[0],match_id[1],2]*resize_dim[0])
+                                    # pred_y2=int(priorBBoxes[0,0,match_id[0],match_id[1],3]*resize_dim[0])
+                                    # print(priorBBoxes.shape)
+                                    pcx,pcy,pw,ph =priorBBoxes[0,match_id[0],match_id[1],match_id[2],0],priorBBoxes[0,match_id[0],match_id[1],match_id[2],1],priorBBoxes[0,match_id[0],match_id[1],match_id[2],2],priorBBoxes[0,match_id[0],match_id[1],match_id[2],3] 
                                     
-                            #         pcx,pcy,pw,ph = xy2cxcy([pcx*resize_dim[1],pcy*resize_dim[0],pw*resize_dim[1],ph*resize_dim[0]])
+                                    pcx,pcy,pw,ph = xy2cxcy([pcx*resize_dim[1],pcy*resize_dim[0],pw*resize_dim[1],ph*resize_dim[0]])
                                     
-                            #         pcx,pcy = (pcx+targets[0,match_id[0],match_id[1],match_id[2],-4]*resize_dim[1]),pcy+targets[0,match_id[0],match_id[1],match_id[2],-3]*resize_dim[0]
-                            #         pw=pw*math.exp(targets[0,match_id[0],match_id[1],match_id[2],-2])
-                            #         ph=ph*math.exp(targets[0,match_id[0],match_id[1],match_id[2],-1])
-                            #         # pcx,pcy,pw,ph=int(pcx*resize_dim[0]),int(pcy*resize_dim[0]),int(pw*resize_dim[0]),int(ph*resize_dim[0])
-                            #         pred_x1,pred_y1,pred_x2,pred_y2 = cxcy2xy([pcx,pcy,pw,ph])
-                            #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
-                            #         # pred_x1,pred_y1,pred_x2,pred_y2 = 
-                            #         # print(pred_x1,pred_y1,pred_x2,pred_y2)
-                            #         # print(targets[0,])
-                            #         # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
-                            #         if max(targets[0,match_id[0],match_id[1],match_id[2],0:num_class])==1:
-                            #             # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
-                            #             image_aug = cv2.rectangle(image_aug,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),tuple(targets[0,match_id[0],match_id[1],match_id[2],0:num_class]*255),1)
+                                    pcx,pcy = (pcx+targets[0,match_id[0],match_id[1],match_id[2],-4]*resize_dim[1]),pcy+targets[0,match_id[0],match_id[1],match_id[2],-3]*resize_dim[0]
+                                    pw=pw*math.exp(targets[0,match_id[0],match_id[1],match_id[2],-2])
+                                    ph=ph*math.exp(targets[0,match_id[0],match_id[1],match_id[2],-1])
+                                    # pcx,pcy,pw,ph=int(pcx*resize_dim[0]),int(pcy*resize_dim[0]),int(pw*resize_dim[0]),int(ph*resize_dim[0])
+                                    pred_x1,pred_y1,pred_x2,pred_y2 = cxcy2xy([pcx,pcy,pw,ph])
+                                    featclass=int(np.argmax(targets[0,match_id[0],match_id[1],match_id[2],0:num_class])/10)
+                                    col = [0,0,0,0]
+                                    col[featclass]=255
+                                    # print(pred_x1,pred_y1,pred_x2,pred_y2)
+                                    # pred_x1,pred_y1,pred_x2,pred_y2 = 
+                                    # print(pred_x1,pred_y1,pred_x2,pred_y2)
+                                    # print(targets[0,])
+                                    # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
+                                    if max(targets[0,match_id[0],match_id[1],match_id[2],0:num_class])==1:
+                                        # print("Writing",match_id,targets[0,match_id[0],match_id[1],match_id[2],0:num_class])
+                                        image_aug = cv2.rectangle(image_aug,(int(pred_x1),int(pred_y1)),(int(pred_x2),int(pred_y2)),tuple(col),1)
 
-                            #     x1=int(x1)#*resize_dim[0])
+                                x1=int(x1)#*resize_dim[0])
 
-                            #     y1=int(y1)#*resize_dim[0])
-                            #     x2=int(x2)#*resize_dim[0])
-                            #     y2=int(y2)#*resize_dim[0])
+                                y1=int(y1)#*resize_dim[0])
+                                x2=int(x2)#*resize_dim[0])
+                                y2=int(y2)#*resize_dim[0])
                                 
-                            #     image_aug = cv2.rectangle(image_aug,(x1,y1),(x2,y2),(255,0,255),1)      
-                            # cv2.imwrite(rootPathForOutputCheckImages+element,image_aug)
+                                image_aug = cv2.rectangle(image_aug,(x1,y1),(x2,y2),(255,0,255),1)      
+                            cv2.imwrite(rootPathForOutputCheckImages+str(i)+obj["tags"][0]+element,image_aug)
 
-                    # name.append(element)
-                                    # croppedImg = cv2.resize(croppedImg,resize_dim)
-                                    # cv2.imwrite(rootPathForOutputCheckImages+ str(i)+obj["tags"][0]+element,croppedImg)
+                    name.append(element)
+                    #                 croppedImg = cv2.resize(croppedImg,resize_dim)
+                    #                 cv2.imwrite(rootPathForOutputCheckImages+ str(i)+obj["tags"][0]+element,croppedImg)
                                 # break
-                    if ind==10000 and dataset_type=="train":
+                    if ind==100 and dataset_type=="train":
                         break
-                    elif ind==10000 and dataset_type=="test":
+                    elif ind==100 and dataset_type=="test":
                         break
                 # break
                 except KeyError:
@@ -310,7 +314,7 @@ def convert2target(defaultbboxes,targs,thresh,targe_class,number_blocks,shape,nu
                             if max(c)==0:
                                 print("FUNC")
                                 #break
-                            if iou_score>0.2:
+                            if iou_score>0.1:
                                 cntpos+=1
                                 cg_x,cg_y,g_w,g_h=xy2cxcy(x1y1x2y2)
                                 cp_x,cp_y,p_w,p_h=xy2cxcy([anch_x1,anch_y1,anch_x2,anch_y2])
@@ -603,7 +607,7 @@ def returnAugmentationObj(percentageOfChance=0.9):
             sometimes(iaa.Affine(
                 translate_percent={"x": (-0.03, 0.03),"y": (-0.03, 0.03)}, # translate by -x to +x percent (per axis)
                 rotate=(-10, 10), # rotate by - to +x degrees
-                scale={"x": (0.5, 1.25), "y": (0.5, 1.25)},
+                scale=(0.5,1.25),
             )),
             # iaa.PerspectiveTransform(scale=(0.01, 0.016)) # Add perscpective transform
 
