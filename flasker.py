@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Flask server
 """
-from tf_model_api import YOLO,LineDetector
+from tf_model_api import YOLO,LineDetector,gaussBlur,adjust_gamma,enhanceImage
 import json
 import os, io
 import hashlib
@@ -231,9 +231,6 @@ def returnROI(img,centers):
             tranformedCenters[2*ind]=cents[0]
             tranformedCenters[2*ind+1]=cents[1]
 
-
-    
-   
         # cv2.rectangle(img,(startx,starty),(endx,endy), (0,0,255), 5)
 
     return roi,tranformedCenters
@@ -401,6 +398,7 @@ def detect2(a, c, i):
 
     #compute the MSE
     return (euclidianDistance(ref_A,np.array(a1))+euclidianDistance(ref_C,np.array(c1))+euclidianDistance(ref_I,np.array(i1)))/3
+
 
 def generateRDTcropV2(boxes,im0):
 
@@ -617,7 +615,7 @@ def runPipeline(img,serverObj):
     resp,roi = generateRDTcrop(boxes,img,[])
 
     rc = -4
-    if resp["message"]=="success": 
+    if resp["message"]=="success":
         cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
         outImage,virus_type,blue_detection = serverObj.callLineDetector(roi)
         print(virus_type,blue_detection)
@@ -684,12 +682,23 @@ def processRdtRequest(UUID,include_proof,img_str,serv):
 
     if resp["message"]=="success": 
             try:
+                # postprocessed=enhanceImage(roi[1000:1500,:,:])
+                postprocessed=gaussBlur(roi[1000:1500,:,:])
+                postprocessed= enhanceImage(postprocessed)
+                cv2.imwrite("roi_gausian_enhan.jpg", postprocessed)
+                postprocessed= enhanceImage(roi[1000:1500,:,:])
+                postprocessed=gaussBlur(postprocessed)
+                cv2.imwrite("roi_enhan_gausian.jpg", postprocessed)
+                postprocessed=gaussBlur(roi[1000:1500,:,:])
+                postprocessed= enhanceImage(postprocessed)
                 cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
+
                 print("Overwrite roi jpeg")
+
             except IOError:
                 print("Unable to open roi jpeg")
-            st=time.time()
-            outImage,virus_type,blue_detection = serv.callLineDetector(roi)
+            st=time.time()         
+            outImage,virus_type,blue_detection = serv.callLineDetector(roi)     
             et=time.time()
             t2=t1+et-st
             try:
