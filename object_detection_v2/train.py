@@ -4,7 +4,7 @@ import shutil
 import numpy as np
 import tensorflow as tf
 from utils import data_loader
-from core.model import ObjectDetection
+from core.model_new import ObjectDetection
 from core.config import cfg
 import utils.utils as utils
 import tensorflow.keras.backend as K
@@ -42,9 +42,9 @@ def custlossSSD(y_true,y_pred):
 
 
 
-    categoricalLoss = tf.keras.losses.categorical_crossentropy(y_true[:,:,:,0:4],y_pred[:,:,:,0:4])
+    categoricalLoss = tf.keras.losses.categorical_crossentropy(y_true[:,:,:,0:31],y_pred[:,:,:,0:31])
 
-    l1_smooth = tf.keras.losses.mean_squared_error(y_true[:,:,:,4:],y_pred[:,:,:,4:])
+    l1_smooth = tf.keras.losses.mean_squared_error(y_true[:,:,:,31:],y_pred[:,:,:,31:])
     total_loss = tf.reduce_mean(categoricalLoss,axis=[1,2])+tf.reduce_mean(l1_smooth,axis=[1,2])
     return total_loss
 
@@ -115,10 +115,10 @@ class Test(object):
         self.time                = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         self.moving_ave_decay    = cfg.TRAIN.MOVING_AVE_DECAY
         self.train_logdir        = "./dataset/log/train"
-        self.testset             = data_loader.loadDataObjSSD('test')
+        # self.testset             = data_loader.loadDataObjSSD('test')
         self.checkpoint_name     = cfg.TEST.EVAL_MODEL_PATH+"/eval.ckpt"
         self.model_path          = cfg.TEST.EVAL_MODEL_PATH+"/model/"
-        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/tflite.lite"
+        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_180x320_newarch.lite"
         self.initial_weight      = cfg.TEST.WEIGHT_FILE
         self.output_node_names   = ["define_loss/reshapedOutput"]
         self.learn_rate_init     = cfg.TRAIN.LEARN_RATE_INIT
@@ -127,8 +127,9 @@ class Test(object):
         self.second_stage_epochs = cfg.TRAIN.SECOND_STAGE_EPOCHS
         self.warmup_periods      = cfg.TRAIN.WARMUP_EPOCHS
         # self.trainset            = data_loader.loadData('train')
-        # self.testset             = data_loader.loadData('test')
-        
+        # self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
+        # self.trainset             = data_loader.loadDataObjSSDFromYoloFormat('train')
+
         # self.steps_per_period    = len(self.trainset)
         self.quant_delay         = cfg.TRAIN.QUANT_DELAY
         self.quantizedPb         = cfg.TEST.QUANTIZED_WEIGHT_FILE
@@ -143,10 +144,11 @@ class Test(object):
         
 
     def createTflite(self):
-
+        
+        print(self.model.summary())
         lite = tf.lite.TFLiteConverter.from_keras_model(self.model)
-        lite.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_LATENCY]
-        # lite.target_spec.supported_types = [tf.lite.constants.FLOAT16]
+        lite.optimizations = [tf.lite.Optimize.DEFAULT]
+        # lite.representative_dataset = self.representative_dataset_gen
         tflite_quant_model = lite.convert()
         open(self.eval_tflite, "wb").write(tflite_quant_model)
 
@@ -205,6 +207,15 @@ class Test(object):
         # return only the bounding boxes that were picked using the
         # integer data type
         return boxes[pick].astype("int")
+    
+    def representative_dataset_gen(self):
+        for _ in range(len(self.testset[0])):
+            inp,tr,na= self.testset
+            img = inp[_]
+            img = np.reshape(img,(1,self.resize_dim[0],self.resize_dim[1],1))
+
+            # print(img.shape)
+            yield [img]
 
     def runOntest(self):
         predictions=self.model.predict(self.testset[0])
@@ -262,8 +273,8 @@ class Test(object):
 if __name__ == '__main__':
     # mirrored_strategy = tf.distribute.MirroredStrategy()
     # with mirrored_strategy.scope():
-        Train().train()
-    # Test().createTflite()
+        # Train().train()
+    Test().createTflite()
     # Test().runOntest()
 
 

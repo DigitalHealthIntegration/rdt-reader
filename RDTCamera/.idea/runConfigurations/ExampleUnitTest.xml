@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ExampleUnitTest" type="AndroidJUnit" factoryName="Android JUnit" nameIsGenerated="true">
+    <module name="app" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.iprd.rdtcamera.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="PACKAGE_NAME" value="com.iprd.rdtcamera" />
+    <option name="MAIN_CLASS_NAME" value="com.iprd.rdtcamera.ExampleUnitTest" />
+    <option name="METHOD_NAME" value="predictionTest" />
+    <option name="TEST_OBJECT" value="class" />
+    <option name="VM_PARAMETERS" value="-ea -Djava.library.path=&quot;$ContentRoot$\src\main\jniLibs\x64-win&quot;" />
+    <option name="PARAMETERS" value="" />
+    <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+    <method v="2">
+      <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

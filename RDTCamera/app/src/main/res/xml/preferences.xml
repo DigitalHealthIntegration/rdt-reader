@@ -1,43 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" android:defaultValue="true">
+
+    <CheckBoxPreference android:title="Show Grid View"
+        android:defaultValue="true"
+        android:summary="This option if selected will display the grid on camera preview "
+        android:key="gridView" />
+
     <EditTextPreference android:title="Maximum Scale"
         android:key="mMaxScale"
-        android:defaultValue="1100"
+        android:defaultValue="75"
         android:summary="Please provide Maximum Scale"></EditTextPreference>
 
     <EditTextPreference android:title="Minimum Scale"
         android:key="mMinScale"
-        android:defaultValue="700"
+        android:defaultValue="5"
         android:summary="Please provide Minimum Scale"></EditTextPreference>
 
     <EditTextPreference android:title="X Minimum Scale"
         android:key="mXMin"
-        android:defaultValue="100"
+        android:defaultValue="15"
         android:summary="Please provide X Minimum Scale"></EditTextPreference>
 
     <EditTextPreference android:title="X Maximum Scale"
         android:key="mXMax"
-        android:defaultValue="500"
+        android:defaultValue="75"
         android:summary="Please provide X Maximum Scale"></EditTextPreference>
 
     <EditTextPreference android:title="Y Minimum Scale"
         android:key="mYMin"
-        android:defaultValue="50"
+        android:defaultValue="10"
         android:summary="Please provide Y Minimum Scale"></EditTextPreference>
 
     <EditTextPreference android:title="Y Maximum Scale"
         android:key="mYMax"
-        android:defaultValue="650"
+        android:defaultValue="75"
         android:summary="Please provide Y Maximum Scale"></EditTextPreference>
 
     <EditTextPreference android:title="Minimum  Sharpness"
         android:key="mMinSharpness"
-        android:defaultValue="500.0"
+        android:defaultValue="800.0"
         android:summary="Please provide Minimum  Sharpness"></EditTextPreference>
 
     <EditTextPreference android:title="Maximum  Brightness"
         android:key="mMaxBrightness"
-        android:defaultValue="210.0"
+        android:defaultValue="220.0"
         android:summary="Please provide Maximum Brightness"></EditTextPreference>
 
     <EditTextPreference android:title="Minimum Brightness"
@@ -50,10 +56,6 @@
         android:defaultValue="0.9"
         android:summary="Please provide Top Thresholdess"></EditTextPreference>
 
-    <EditTextPreference android:title="Bottom threshold"
-        android:key="mBotTh"
-        android:defaultValue="0.9"
-        android:summary="Please provide Bottom Threshold"></EditTextPreference>
     <EditTextPreference android:title="Show Image Data"
         android:key="mShowImageData"
         android:defaultValue="0"
@@ -66,8 +68,27 @@
 
     <EditTextPreference android:title="RDT Server URL"
         android:key="rdtCheckUrl"
-        android:defaultValue="http://10.102.10.106:9000/Quidel/QuickVue/"
+        android:defaultValue="http://3.82.14.134:9000/Quidel/QuickVue"
         android:summary="Please Provide RDT Server URL"></EditTextPreference>
-
+    <EditTextPreference android:title="RDT Max Allowed Translation X"
+        android:key="mMaxAllowedTranslationX"
+        android:defaultValue="5"
+        android:summary="Please Provide RDT MaxTranslationX"></EditTextPreference>
+    <EditTextPreference android:title="RDT Max Allowed Translation Y"
+        android:key="mMaxAllowedTranslationY"
+        android:defaultValue="5"
+        android:summary="Please Provide RDT MaxTranslationY"></EditTextPreference>
+    <EditTextPreference android:title="RDT Max Frame Translation Magnitude"
+        android:key="mMaxFrameTranslationalMagnitude"
+        android:defaultValue="100"
+        android:summary="Please Provide RDT Max FrameTranslational Magnitude"></EditTextPreference>
+    <EditTextPreference android:title="RDT Max 10 Frame Translation Magnitude"
+        android:key="mMax10FrameTranslationalMagnitude"
+        android:defaultValue="100"
+        android:summary="Please Provide RDT Max 10 Frame Translation Magnitude"></EditTextPreference>
+    <EditTextPreference android:title="Enable Tracking"
+        android:key="mTrackingEnable"
+        android:defaultValue="5"
+        android:summary="EnableTracking"></EditTextPreference>
 
 </PreferenceScreen>

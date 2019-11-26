@@ -14,23 +14,31 @@ public class Config{
     public float mMinBrightness;
     public byte[] mTfliteB;
     public MappedByteBuffer mMappedByteBuffer;
+    public short mMaxAllowedTranslationX;
+    public short mMaxAllowedTranslationY;
+    public short mMaxFrameTranslationalMagnitude;
+    public short mMax10FrameTranslationalMagnitude;
 
     public Config() {
         setDefaults();
     }
 
     public void setDefaults() {
-        mMaxScale = 1100;
-        mMinScale = 700;
-        mXMin = 100;
-        mXMax = 500;
-        mYMin = 50;
-        mYMax = 650;
-        mMinSharpness = 500.0f;
-        mMaxBrightness = 210.0f;
+        mMaxScale = 95; //% of width for bb width
+        mMinScale = 5;//% of width for bb width
+        mXMin = 15; //% of width
+        mXMax = 85; //% of width
+        mYMin = 0; //% of HEIGHT
+        mYMax = 100; //% of HEIGHT
+        mMinSharpness = 800.0f;
+        mMaxBrightness = 220.0f;
         mMinBrightness = 110.0f;
         mTfliteB=null;
         mMappedByteBuffer=null;
+        mMaxAllowedTranslationY = 6; //level 4
+        mMaxAllowedTranslationX = 6; //level 4
+        mMaxFrameTranslationalMagnitude = 100;
+        mMax10FrameTranslationalMagnitude = 200;
     }
     public void setmMappedByteBuffer(MappedByteBuffer mMappedByteBuffer) {
         this.mMappedByteBuffer = mMappedByteBuffer;
@@ -74,6 +82,21 @@ public class Config{
 
     public void setmMaxScale(short mMaxScale) {
         this.mMaxScale = mMaxScale;
+    }
+
+    public void setmMaxAllowedTranslationX(short mMaxAllowedTranslationX) {
+        this.mMaxAllowedTranslationX = mMaxAllowedTranslationX;
+    }
+    public void setmMaxAllowedTranslationY(short mMaxAllowedTranslationY) {
+        this.mMaxAllowedTranslationY = mMaxAllowedTranslationY;
+    }
+
+    public void setMaxFrameTranslationalMagnitude(short mMaxFrameTranslationalMagnitude) {
+        this.mMaxFrameTranslationalMagnitude = mMaxFrameTranslationalMagnitude;
+    }
+
+    public void setMax10FrameTranslationalMagnitude(short mMax10FrameTranslationalMagnitude) {
+        this.mMax10FrameTranslationalMagnitude = mMax10FrameTranslationalMagnitude;
     }
 
 }

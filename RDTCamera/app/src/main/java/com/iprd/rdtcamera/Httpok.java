@@ -39,6 +39,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     JSONObject mJsonResult=null;
     Button mGetResult = null;
 
+    static String mHttpURL="http://3.82.14.134:9000/Quidel/QuickVue";
     public void setCtx(Context mCtx) {
         this.mCtx = mCtx;
     }
@@ -50,10 +51,10 @@ public class Httpok extends AsyncTask<String, Void, String> {
     }
 
     Bitmap mResult=null;
-    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar, ImageView view, TextView txtView){
+    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view,TextView txtView){
         this.imgName = imgName;
         this.img = img;
-        this.urlString = urlString;//"http://10.102.10.106:9000/Quidel/QuickVue/";//"http://192.168.0.141:9000/Quidel/QuickVue/";//urlString;//"http://127.0.0.1:9000/Quidel/QuickVue/";//urlString;//http://10.102.10.97:9000/Quidel/QuickVue/
+        this.urlString = urlString;//"http://3.95.232.90:9000/Quidel/QuickVue/";//urlString;
         this.metaDataStr = metaDataStr;
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
@@ -61,7 +62,6 @@ public class Httpok extends AsyncTask<String, Void, String> {
         mJsonResult=null;
         mResultView=txtView;
     }
-
 
     @Override
     protected String doInBackground(String... strings) {
@@ -71,17 +71,38 @@ public class Httpok extends AsyncTask<String, Void, String> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+//         catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         return null;
     }
 
     @Override
     protected void onPostExecute(String result) {
+//        Log.i("HTTPOK","ONPOSTEXECUTE");
         if(null != mProgressBar){
             mProgressBar.setVisibility(View.INVISIBLE);
             if(mResult != null){
                 mImageView.setVisibility(View.VISIBLE);
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+mResult);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
+                //Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
+                if(mJsonResult!=null){
+                    String str="";
+                    try {
+                        str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    if(null != mResultView) {
+                        mResultView.setTextColor(Color.BLACK);
+                        mResultView.setText(str);
+                        mResultView.setVisibility(View.VISIBLE);
+                    }
+                    //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
+                }
+            }else{
                 if(mJsonResult!=null){
                     String str="";
                     try {
@@ -97,47 +118,29 @@ public class Httpok extends AsyncTask<String, Void, String> {
                     //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
                 }
             }
-        }else{
-            if(mJsonResult!=null){
-                String str="";
-                try {
-                    str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                if(null != mResultView) {
-                    mResultView.setTextColor(Color.BLACK);
-                    mResultView.setText(str);
-                    mResultView.setVisibility(View.VISIBLE);
-                }
-                //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
-            }
         }
     }
-
     @Override
     protected void onPreExecute() {
-        if(null != mProgressBar && mProgressBar.getVisibility() == View.INVISIBLE){
+//        Log.i("HTTPOK","ONPREEXECUTE");
+        if(null != mProgressBar  && mProgressBar.getVisibility() == View.INVISIBLE){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
-
         }
-
     }
 
     private void httpOkPostMultipartAndJson() throws IOException {
         OkHttpClient.Builder b = new OkHttpClient.Builder();
-        b.connectTimeout(5,TimeUnit.SECONDS);
+        b.connectTimeout(5, TimeUnit.SECONDS);
         b.readTimeout(30, TimeUnit.SECONDS);
         b.writeTimeout(30, TimeUnit.SECONDS);
         OkHttpClient client =  b.build();
 
-        //File imagefile = new File(folderPath+""+imgName);
         RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("metadata", metaDataStr)
                 .addFormDataPart("image", imgName, RequestBody.create(MediaType.parse("image/jpeg"), img))
                 .build();
-        System.out.println(".............."+urlString);
+
         Request request = new Request.Builder()
                 .url(urlString)
                 .post(requestBody)
@@ -145,13 +148,13 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
         Response response = client.newCall(request).execute();
         String res = response.body().string();
-       // System.out.println("~~~~~~~~~~~new~~`"+res);
+        //System.out.println(">>>>>>>>"+res);
         Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {
-                //if(mGetResult != null) {mGetResult.setVisibility(View.VISIBLE);}
                 String[] s = res.split("Content-Type:");
-                for (String a : s) { if(a.contains("image/jpeg\r\n\r\n")) {mProgressBar.setVisibility(View.INVISIBLE);
+                for (String a : s) {
+                    if(a.contains("image/jpeg\r\n\r\n")) {
                         String[] i=a.split("image/jpeg\r\n\r\n");
                         if(i.length >1){
                             String[] k=i[1].split("--");
@@ -179,4 +182,3 @@ public class Httpok extends AsyncTask<String, Void, String> {
         }
     }
   }
-

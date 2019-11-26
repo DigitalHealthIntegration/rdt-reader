@@ -100,6 +100,7 @@ public class Utils {
      */
     public static void bitmapToMat(Bitmap bmp, Mat mat) {
         bitmapToMat(bmp, mat, false);
+
     }
 
 

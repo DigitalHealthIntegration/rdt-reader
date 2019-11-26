@@ -10,6 +10,7 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -26,12 +27,13 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.CheckBoxPreference;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -40,10 +42,13 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Switch;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,7 +63,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -72,30 +76,37 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import okhttp3.Response;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Logger;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission_group.CAMERA;
+import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
+import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
+import static com.iprd.rdtcamera.Httpok.mHttpURL;
+import static com.iprd.rdtcamera.ModelInfo.mModelFileName;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.floodFill;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
-    private static final String mModelFileName="tflite.lite";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
+    private ImageView mRdtView,mTrackedView;
     private ImageView disRdtResultImage;
     Button mGetResult;
     Button startBtn;
-    TextView mResultView;
+    TextView mResultView,mMotionText,mStatusView;
     Boolean isPreviewOff = false;
     Boolean shouldOffTorch = false;
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     SharedPreferences prefs;
     ProgressBar mCyclicProgressBar;
+
+    private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
+    private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
     private static final SparseIntArray DEFAULT_ORIENTATIONS = new SparseIntArray();
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     public static Size CAMERA2_PREVIEW_SIZE = new Size(1280, 720);
@@ -134,13 +145,15 @@ public class MainActivity extends AppCompatActivity {
     public Switch mode;
     public Switch torch;
     public Switch saveData;
+    boolean isGridDispaly;
+    TableLayout gridTable;
+    byte[] mImageBytes=null;
 
     int idx;
     RdtAPI mRdtApi=null;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder=null;
 
     private boolean checkpermission(){
-        System.out.println("..>>"+ WRITE_EXTERNAL_STORAGE);
         int res  = ContextCompat.checkSelfPermission(getApplicationContext(), CAMERA);
         int res1 = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
         int res2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
@@ -157,21 +170,33 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
+
         mGetResult = findViewById(R.id.getResult);
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        Context c = getApplicationContext();
+        prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(c);
+        gridTable =  findViewById(R.id.gridTable);
+        gridTable.setVisibility(View.VISIBLE);
+
+        mRdtView = findViewById(R.id.RdtDetectImage);
+        mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
+        mMotionText = findViewById(R.id.MotionText);
+        mStatusView = findViewById(R.id.Status);
+        //mRectView.setImageDrawable(R.drawable.grid);
+
         disRdtResultImage = findViewById(R.id.disRdtResultImage);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
         mCyclicProgressBar = findViewById(R.id.loader);
 
         mResultView = findViewById(R.id.ResultView);
-       // mCyclicProgressBar.setVisibility(View.INVISIBLE);
+        // mCyclicProgressBar.setVisibility(View.INVISIBLE);
         startBtn = findViewById(R.id.startBtn);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
         // preferences
-
-
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -181,14 +206,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        byte[] mTfliteB=null;
         MappedByteBuffer mMappedByteBuffer=null;
-        mMappedByteBuffer = Utils.loadModelFile(getAssets(),mModelFileName);
-
+        try {
+            mTfliteB = ReadAssests();
+            mMappedByteBuffer = Utils.loadModelFile(getAssets(),mModelFileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         rdtAPIBuilder = new RdtAPI.RdtAPIBuilder();
         rdtAPIBuilder = rdtAPIBuilder.setModel(mMappedByteBuffer);
         mShowImageData = Utils.ApplySettings(this,rdtAPIBuilder,null);
         mRdtApi = rdtAPIBuilder.build();
-     //   mCyclicProgressBar.setVisibility(View.INVISIBLE);
+        mRdtApi.setmShowPip(true);
+
+//        mRdtApi.saveInput(true);
+//        mRdtApi.setSavePoints(true);
+
         //call the setter for saving functions
         Utils.ApplySettings(this,null,mRdtApi);
         /// Set Torch button
@@ -196,8 +230,7 @@ public class MainActivity extends AppCompatActivity {
         //torch.setVisibility(View.VISIBLE);
         torch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                try {
-                    System.out.println(">>>>>>>>>>>>>>>>>>>" + isChecked);
+                try{
                     if (shouldOffTorch == false){
                         if (isChecked) {
                             // The toggle is enabled
@@ -208,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                             mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
                             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
                         }
-                }else{
+                    }else{
                         shouldOffTorch =false;
                     }
                 }catch (CameraAccessException e){
@@ -223,9 +256,9 @@ public class MainActivity extends AppCompatActivity {
         saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    mRdtApi.setSaveImages(true);
+                    mRdtApi.setSavePoints(true);
                 } else {
-                    mRdtApi.setSaveImages(false);
+                    mRdtApi.setSavePoints(false);
                 }
             }
         });
@@ -235,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isPreviewOff){
-                   startPreview();
+                    startPreview();
                     if(mCyclicProgressBar.getVisibility() == View.VISIBLE) {
                         mCyclicProgressBar.setVisibility(View.INVISIBLE);
                         mResultView.setVisibility(View.INVISIBLE);
@@ -243,18 +276,19 @@ public class MainActivity extends AppCompatActivity {
                         startBtn.setVisibility(View.INVISIBLE);
                     }
 
+                }//?
+                if (isChecked) {
+                    mode.setChecked(false);
+                    mode.setChecked(false);
+                    torch.setChecked(false);
+
+                    Intent i = new Intent(MainActivity.this, ActivityVideo.class);
+                    i.putExtra("videoPath","aaaaaa");
+                    i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
+                    startActivity(i);
+                } else {
+                    Log.d(">>Mode Switch<<","OFF");
                 }
-            if (isChecked) {
-                mode.setChecked(false);
-                torch.setChecked(false);
-                saveData.setChecked(false);
-                Intent i = new Intent(MainActivity.this, ActivityVideo.class);
-                i.putExtra("videoPath","aaaaaa");
-                i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
-                startActivity(i);
-            } else {
-                Log.d(">>Mode Switch<<","OFF");
-            }
             }
         });
         mGetResult.setOnClickListener(new View.OnClickListener() {
@@ -265,6 +299,7 @@ public class MainActivity extends AppCompatActivity {
                     mCyclicProgressBar.bringToFront();
                 }*/
                 //progressbar(true);
+                mImageBytes=null;
                 getRDTResultData();
                 startBtn.setVisibility(View.VISIBLE);
                 mResultView.setVisibility(View.INVISIBLE);
@@ -293,6 +328,39 @@ public class MainActivity extends AppCompatActivity {
                 disRdtResultImage.setVisibility(View.INVISIBLE);
             }
         });
+//        final CheckBoxPreference checkboxPref = (CheckBoxPreference) getPreferenceManager().findPreference("checkboxPref");
+//
+//        checkboxPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                Log.d("MyApp", "Pref " + preference.getKey() + " changed to " + newValue.toString());
+//                return true;
+//            }
+//        });
+    }
+
+    private void setAndDisplayGrid() {
+        float cell_height = mTextureView.getWidth()>0 ? mTextureView.getWidth()/5 : 0;
+        float cell_width = mTextureView.getHeight() > 0 ? mTextureView.getHeight()/9 : 0;
+        TableLayout tableLayout = (TableLayout) findViewById(R.id.gridTable);
+
+        for(int j=0 ; j<9 ; j++) {
+            TableRow tableRowr = new TableRow(this);
+
+            tableRowr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
+            for (int i = 0; i < 5; i++) {
+                TextView b = new TextView(this);
+                b.setText("");
+
+                b.setHeight((int) Math.floor(cell_height)-2);
+                b.setWidth((int) Math.ceil(cell_width)+2);
+                b.setBackgroundResource(R.drawable.cell_shape);
+                b.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                tableRowr.addView(b);
+            }
+
+            tableLayout.addView(tableRowr, new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
+        }
     }
 
     void progressbar(boolean isVisible){
@@ -301,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 mCyclicProgressBar.setVisibility(isVisible?View.VISIBLE:View.INVISIBLE);
             }
-        });;
+        });
     }
 
     byte[] ReadAssests() throws IOException {
@@ -332,11 +400,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageReader.OnImageAvailableListener mImageAvailable = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            //Log.d("Madhav","Comes in imagehandler");
             Image image = null;
             try {
-                image = reader.acquireLatestImage();//acquireNextImage()
-
+                image = reader.acquireLatestImage();
             } catch(Exception e){
 
             } finally {
@@ -354,59 +420,118 @@ public class MainActivity extends AppCompatActivity {
                                               int width, int height) {
 
             openCamera(width, height);
-
         }
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture,
                                                 int width, int height) {
             configureTransform(width, height);
+            setAndDisplayGrid();
         }
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
             return true;
         }
-        int count = 0;
+        private Semaphore sem = new Semaphore(1);
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+            //Log.d(".... ","onSurfaceTextureUpdated");
             mode.setVisibility(View.VISIBLE);
             saveData.setVisibility(View.VISIBLE);
             torch.setVisibility(View.VISIBLE);
 
-            if(!mRdtApi.isInprogress()) {
-                Bitmap capFrame = mTextureView.getBitmap();
-                Process(capFrame);
+            if (!mRdtApi.isInprogress() && sem.tryAcquire(1) == true) {
+                try {
+                    //Log.d("~~~~~~~~~~~","Lock Acquired `[=>]");
+                    Bitmap capFrame = mTextureView.getBitmap();
+                    Process(capFrame);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         void Process(final Bitmap capFrame) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
                     ProcessBitmap(capFrame);
-                }
-            }).start();
+//                }
+//            }).start();
         }
 
+        public Bitmap RotateBitmap(Bitmap source, float angle)
+        {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(angle);
+            return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+        }
+
+        int countertomakedatadisppear=0;
         private void ProcessBitmap(Bitmap capFrame) {
+
+            //capFrame = RotateBitmap(capFrame,90);
+
             long st  = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
             if(mShowImageData != 0){
                 status.mSharpness = mRdtApi.getSharpness();
                 status.mBrightness = mRdtApi.getBrightness();
             }
+            Bitmap TrackedImage = status.mInfo.mTrackedImage;
             long et = System.currentTimeMillis()-st;
+            Log.i("BBF",status.mBoundingBoxX+"x"+status.mBoundingBoxY+"-"+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
 
-            Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
-            Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
-            Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
-            Log.i("Total Processing Time "," "+ et);
+//            Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
+//            Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
+//            Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
+ //           Log.i("Total Processing Time "," "+ et);
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    repositionRect(status);
+                    Bitmap b = mRdtApi.getPipMat();
+                    if(TrackedImage!=null){
+                        mTrackedView.setImageBitmap(TrackedImage);
+                        mTrackedView.setVisibility(View.VISIBLE);
+                    }else{
+                        mTrackedView.setVisibility(View.INVISIBLE);
+                    }
+                    if(status.mRDTFound){
+                        String t = "steady=" +status.mSteady;
+                        t+="\nsharp=" + status.mSharpness;
+                        t+="\nscale=" + status.mScale;
+                        t+="\nbright=" + status.mBrightness;
+                        t+="\nperspec=" + status.mPerspectiveDistortion;
+                        t+="\nS=" + status.mInfo.mSharpness;
+                        t+="\nB=" + status.mInfo.mBrightness;
+                        mStatusView.setText(t);
+                        if((status.mSharpness == 0)&&( status.mScale == 0)&&(status.mBrightness == 0)&&(status.mPerspectiveDistortion==0))
+                            mStatusView.setTextColor(Color.GREEN);
+                        else
+                            mStatusView.setTextColor(Color.RED);
+                        countertomakedatadisppear=0;
+                    }else{
+                        countertomakedatadisppear++;
+                        if(countertomakedatadisppear > 50) {
+                            mStatusView.setText("No RDT Found");
+                            mStatusView.setTextColor(Color.RED);
+                        }
+                    }
+                    //mStatusView.setVisibility(View.VISIBLE);
+                    if(status.mSteady ==GOOD){
+                        mMotionText.setText("");
+                    }else if(status.mSteady == TOO_HIGH){
+                        mMotionText.setText("Motion Too High");
+                        mMotionText.setTextColor(Color.RED);
+                    }
+                    mRdtView.setImageBitmap(b);
+                    mRdtView.setVisibility(View.VISIBLE);
+                    //repositionRect(status);
                 }
             });
+            sem.release();
+            ///Log.d("~~~~~~~~~~~","Lock Released []");
         }
     };
 
@@ -440,7 +565,7 @@ public class MainActivity extends AppCompatActivity {
     };
     private static Size chooseVideoSize(Size[] choices) {
         for (Size size : choices) {
-            Log.d("Madhav ",size.toString());
+            Log.d("Camera ",size.toString());
             if (size.getWidth() == size.getHeight() * 16 / 9 && size.getWidth() <= 1280) {
                 return size;
             }
@@ -450,6 +575,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean openCamera(int width, int height) {
+
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "is camera open");
         try {
@@ -496,7 +622,7 @@ public class MainActivity extends AppCompatActivity {
             Size videoSize =closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
-                    ImageFormat.YUV_420_888, 3);
+                    ImageFormat.YUV_420_888, 2);
             mImageReader.setOnImageAvailableListener(mImageAvailable,mBackgroundHandler);
 
             // Get all available size for the textureSurface preview window
@@ -525,9 +651,35 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public void rdtResults( byte[] bytes) {
+        OutputStream output = null;
+        try {
+            String urlString = prefs.getString("rdtCheckUrl",mHttpURL);
+            System.out.println(">>>>>>>>"+urlString);
+            String guid = String.valueOf(java.util.UUID.randomUUID());
+            String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+            try{
+                Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
+                mr.setCtx(getApplicationContext());
+                mr.execute();
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+        } finally {
+            if (null != output) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     private void getRDTResultData(){
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
+            Log.d("getRDTResultData() :1","...............................1");
             String cameraId = manager.getCameraIdList()[0];
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             Size[] jpegSizes = null;
@@ -538,8 +690,8 @@ public class MainActivity extends AppCompatActivity {
             int width = 600;
             int height = 400;
             if (jpegSizes != null && 0 < jpegSizes.length) {
-                width = jpegSizes[0].getWidth();
-                height = jpegSizes[0].getHeight();
+                width = jpegSizes[0].getWidth()-100;
+                height = jpegSizes[0].getHeight()-100;
             }
 
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
@@ -556,44 +708,30 @@ public class MainActivity extends AppCompatActivity {
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
+                    //Thread.yield();
                     Image image = null;
                     try {
-                        progressbar(true);
                         image = reader.acquireLatestImage();
                         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                        byte[] bytes = new byte[buffer.capacity()];
-                        buffer.get(bytes);
-
-                        rdtResults(bytes);
+                        mImageBytes = new byte[buffer.capacity()];
+                        buffer.get(mImageBytes);
+                        Log.d("Get Size ", String.valueOf(buffer.capacity()));
+                        if(mImageBytes != null && mImageBytes.length >0) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressbar(true);
+                                    rdtResults(mImageBytes);
+                                }
+                            });
+                        }
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
-
-                    } catch (FileNotFoundException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
+                    }
+                    finally {
                         if (image != null) {
                             image.close();
-                        }
-                    }
-                }
-
-                private void rdtResults(byte[] bytes) throws IOException {
-                    OutputStream output = null;
-                    try {
-                        String urlString = prefs.getString("rdtCheckUrl","http://10.102.10.106:9000/Quidel/QuickVue/");//http://3.82.11.139:9000/align
-                        String guid = String.valueOf(java.util.UUID.randomUUID());
-                        String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
-                        try{
-                            Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
-                            mr.setCtx(getApplicationContext());
-                            mr.execute();
-                        }catch(Exception ex){
-                            ex.printStackTrace();
-                        }
-                    } finally {
-                        if (null != output) {
-                            output.close();
                         }
                     }
                 }
@@ -605,12 +743,14 @@ public class MainActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     isPreviewOff = true;
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        System.out.println("################");
-                        e.printStackTrace();
-
+                    if(mImageBytes != null && mImageBytes.length >0) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                               progressbar(true);
+                              //  rdtResults(mImageBytes);
+                            }
+                        });
                     }
                 }
             };
@@ -627,7 +767,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
             }, mBackgroundHandler);
-
 
         }catch(Exception e){
             System.out.println(">>>>>>>>>>>"+e);
@@ -730,42 +869,23 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-
     }
 
     AcceptanceStatus prevStat;
     long prevTime=0;
+    static int counter =0;
     private void repositionRect(AcceptanceStatus status){
-
-        if(mRectView == null)return;
-        if(disRdtResultImage == null) return;
-        if(status.mRDTFound){
-            prevTime = System.currentTimeMillis();
-            prevStat = status;
-        }else {
-            long curr = System.currentTimeMillis();
-            mRectView.setVisibility(View.INVISIBLE);
-            if(rdtDataToBeDisplay != null) {
-                rdtDataToBeDisplay.setVisibility(View.INVISIBLE);
-            }
-            return;
-        }
-
+//        DisplayMetrics displayMetrics = new DisplayMetrics();
+//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = mTextureView.getHeight();//displayMetrics.heightPixels;
+        int width = mTextureView.getWidth();//displayMetrics.widthPixels;
         mRectView.bringToFront();
-        rdtDataToBeDisplay.bringToFront();
-        Point boundsRatio = new Point(prevStat.mBoundingBoxWidth*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxHeight*1.0/CAMERA2_PREVIEW_SIZE.getHeight()),
-                positionRatio = new Point(prevStat.mBoundingBoxX*1.0/CAMERA2_PREVIEW_SIZE.getWidth(),prevStat.mBoundingBoxY*1.0/CAMERA2_PREVIEW_SIZE.getHeight());
-
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
-        lp.width = prevStat.mBoundingBoxWidth;
-        lp.height=prevStat.mBoundingBoxHeight;
-        lp.setMargins(prevStat.mBoundingBoxX,status.mBoundingBoxY,0,0);
+        lp.width=(int)Math.floor(width*3.0/5);
+        lp.height=(int)Math.ceil(height*7.0/9)+1;
+        lp.setMargins((int)Math.floor(width/5.0)-1,(int)Math.floor(height/9.0)+1,0,0);
         mRectView.setLayoutParams(lp);
         mRectView.setVisibility(View.VISIBLE);
-        if(mShowImageData !=0) {
-            rdtDataToBeDisplay.setText("S[" + status.mSharpness+ "]\n"+"B[" + status.mBrightness+"]");
-            rdtDataToBeDisplay.setVisibility(View.VISIBLE);
-        }
     }
 
     @Override
@@ -783,6 +903,16 @@ public class MainActivity extends AppCompatActivity {
         startBackgroundThread();
         if (mTextureView.isAvailable()) {
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+            isGridDispaly = prefs.getBoolean("gridView",true);
+            Log.d("!!!!!!!!!!!!!!!!!!!!!",""+isGridDispaly);
+
+
+            if(isGridDispaly) {
+                gridTable.setVisibility(View.VISIBLE);
+            }
+            else {
+                gridTable.setVisibility(View.INVISIBLE);
+            }
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
@@ -819,9 +949,10 @@ public class MainActivity extends AppCompatActivity {
     public void onPause() {
         Log.d(TAG,"onPause called");
         mTextureView.setVisibility(View.GONE);
+        super.onPause();
+
         closeCamera();
         stopBackgroundThread();
-        super.onPause();
     }
 
     @Override

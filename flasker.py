@@ -180,7 +180,7 @@ def angle_with_yaxis(p1,p2,img,centers,featsPres):
     translation_matrix = np.float32([ [1,0,transxRight], [0,1,transyDown] ])
     img_translation = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
     if featsPres==0:
-        fy=1220.0/ydist # scale computed from reference image
+        fy=600.0/ydist # scale computed from reference image
     elif featsPres==1:
         fy=900.0/ydist
     elif featsPres==2:

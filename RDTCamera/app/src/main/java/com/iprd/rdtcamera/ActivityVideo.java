@@ -37,7 +37,6 @@ import org.jcodec.api.JCodecException;
 import org.jcodec.common.AndroidUtil;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.common.model.Picture;
-import org.jcodec.scale.BitmapUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -49,10 +48,11 @@ import java.nio.MappedByteBuffer;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission_group.CAMERA;
+import static com.iprd.rdtcamera.ModelInfo.mModelFileName;
 
 public class ActivityVideo extends AppCompatActivity {
     private static final int PICK_VIDEO_REQUEST = 1001;
-    private static final String mModelFileName="tflite.lite";
+
     static String TAG = ActivityVideo.class.getName();
     enum PlayPause {PLAY, PAUSE};
     Uri mVideoUri;
@@ -60,18 +60,17 @@ public class ActivityVideo extends AppCompatActivity {
     Button mSelectVideo;
     Button mPlayPause;
     Button mGetResult;
-    ImageView mShowImage,mRdtImage;
-    TextView mResultView;
+    ImageView mShowImage,mRdtImage,mTrackedView;
     Button preferenceSettingBtn;
     private RdtAPI.RdtAPIBuilder rdtAPIBuilder;
     private RdtAPI mRdtApi;
     Short mShowImageData;
     Bitmap mCapFrame;
     ProgressBar mCyclicProgressBar;
+    TextView mResultView;
     SharedPreferences prefs;
-
     PlayPause mState = PlayPause.PAUSE;
-    boolean mRunningloop = false;
+    volatile boolean mRunningloop = false;
 
     private boolean checkpermission() {
         System.out.println("..>>" + WRITE_EXTERNAL_STORAGE);
@@ -96,6 +95,8 @@ public class ActivityVideo extends AppCompatActivity {
         mRdtImage = findViewById(R.id.rdt);
         mGetResult = findViewById(R.id.getResult);
         mResultView = findViewById(R.id.ResultView);
+        mTrackedView = findViewById(R.id.RdtTrackedImage);
+
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,8 +105,7 @@ public class ActivityVideo extends AppCompatActivity {
                 startActivity(i);
             }
         });
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
+        prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         MappedByteBuffer mMappedByteBuffer = null;
         try {
             mMappedByteBuffer = Utils.loadModelFile(getAssets(), mModelFileName);
@@ -121,6 +121,11 @@ public class ActivityVideo extends AppCompatActivity {
         //call the setter for saving functions
         Utils.ApplySettings(this, null, mRdtApi);
         mRdtApi.setmPlaybackMode(true);
+        mRdtApi.setLinearflow(true);
+
+        //mRdtApi.saveInput(true);
+        //mRdtApi.setSavePoints(true);
+        //mRdtApi.setSaveImages(true);
 
         mShowImage = (ImageView) findViewById(R.id.ShowImage);
         mSelectVideo = (Button) findViewById(R.id.SelectFile);
@@ -150,10 +155,8 @@ public class ActivityVideo extends AppCompatActivity {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 mCapFrame.compress(Bitmap.CompressFormat.JPEG, 90, stream);
                 byte[] byteArray = stream.toByteArray();
-
-                String urlString = prefs.getString("rdtCheckUrl","http://3.82.11.139:9000/align");
-                String guid = String.valueOf(java.util.UUID.randomUUID());
-                String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+                String urlString = prefs.getString("rdtCheckUrl", Httpok.mHttpURL);//"http://3.82.11.139:9000/align";//"http://192.168.1.2:9000/align";
+                String metaDataStr = "{\"UUID\":\"a432f9681-a7ff-43f8-a1a6-f777e9362654\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
                 try{
                     Httpok mr = new Httpok("img.jpg",byteArray, urlString, metaDataStr,mCyclicProgressBar,mRdtImage,mResultView);
                     mr.setCtx(getApplicationContext());
@@ -176,8 +179,8 @@ public class ActivityVideo extends AppCompatActivity {
                 mState = PlayPause.PLAY;
                 setFilePickerVisibility(false);
                 mPlayPause.setText("");
-                mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
+                mResultView.setVisibility(View.INVISIBLE);
                 mRdtImage.setVisibility(View.INVISIBLE);
                 mCyclicProgressBar.setVisibility(View.INVISIBLE);
             }
@@ -241,6 +244,15 @@ public class ActivityVideo extends AppCompatActivity {
             }
         });
     }
+//mGetResult
+void setmGetResultVisibility(final boolean vis) {
+    runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+            mGetResult.setVisibility(vis ? View.VISIBLE : View.INVISIBLE);
+        }
+    });
+}
 
     private void playVideo(String videoFilename) {
         try {
@@ -268,36 +280,29 @@ public class ActivityVideo extends AppCompatActivity {
                     break;
                 } else {
                     System.out.println(picture.getWidth() + "x" + picture.getHeight() + " " + picture.getColor());
-                    long st = System.currentTimeMillis();
-
                     mCapFrame = AndroidUtil.toBitmap(picture);
-                    Log.i("IPRD", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
-                    long et = System.currentTimeMillis()- st;
-                    Log.i("Bitmap Conversion Time "," "+ et);
-
-                    st = System.currentTimeMillis();
+                    Log.i("Madhav", "frame" + count++ + "_" + mCapFrame.getWidth() + "x" + mCapFrame.getHeight());
                     final AcceptanceStatus status = mRdtApi.checkFrame(mCapFrame);
-                    et = System.currentTimeMillis()- st;
-
-                    Log.i("Pre Divide Time ",""+ mRdtApi.getDivideTime());
-                    Log.i("TfLite Time ",""+ mRdtApi.getTfliteTime());
-                    Log.i("ROI Finding Time ",""+ mRdtApi.getROIFindingTime());
-
-                    Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
-                    Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
-                    Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
-                    Log.i("Total Processing Time "," "+ et);
-                    String frNoSB = "F["+count + "]\nS[" + mRdtApi.getSharpness() + "]\n" + "B[" + mRdtApi.getBrightness() + "]";
+                    String frNoSB = "FR["+count +"]\n"+ "S[" + mRdtApi.getSharpness() + "]" +"\n"+ "B[" + mRdtApi.getBrightness() + "]";
                     mRdtApi.SetText(frNoSB, status);
                     final Bitmap ret = mRdtApi.getLocalcopyAsBitmap();
+                    Bitmap TrackedImage = status.mInfo.mTrackedImage;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             mShowImage.setImageBitmap(ret);
+                            if(TrackedImage!=null){
+                                mTrackedView.setImageBitmap(TrackedImage);
+                                mTrackedView.setVisibility(View.VISIBLE);
+                            }else{
+                                mTrackedView.setVisibility(View.INVISIBLE);
+                            }
                         }
                     });
                 }
             }
+
+
             Log.i("Madhav", "Done");
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -311,6 +316,8 @@ public class ActivityVideo extends AppCompatActivity {
             ex.printStackTrace();
         } finally {
             setFilePickerVisibility(true);
+           // mGetResult.setVisibility(View.VISIBLE);
+            //setmGetResultVisibility(true);
             mState = PlayPause.PAUSE;
             mRunningloop = false;
         }
