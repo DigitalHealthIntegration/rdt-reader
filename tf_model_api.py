@@ -29,6 +29,32 @@ from core.config import cfg
 #grpc imports
 import tensorflow as tf
 
+def adjust_gamma(image, gamma=1.0):
+	# build a lookup table mapping the pixel values [0, 255] to
+	# their adjusted gamma values
+	invGamma = 1.0 / gamma
+	table = np.array([((i / 255.0) ** invGamma) * 255
+		for i in np.arange(0, 256)]).astype("uint8")
+ 
+	# apply gamma correction using the lookup table
+	return cv.LUT(image, table)
+
+def enhanceImage(img):
+    img = np.uint8(img)
+    newimg = cv.cvtColor(img, cv.COLOR_RGB2HLS)
+    clahe = cv.createCLAHE(10, (5,5))
+    # newimg[1]=cv.normalize(newimg[1], 0, 255, cv.NORM_MINMAX)
+    lab_planes = cv.split(newimg)
+    lab_planes[1] = clahe.apply(lab_planes[1])
+    lab = cv.merge(lab_planes)
+    result=cv.cvtColor(lab, cv.COLOR_HLS2RGB)
+    result = adjust_gamma(result,0.5)
+    return result
+
+def gaussBlur(img):
+    img = cv.GaussianBlur(img,(1,11),0)
+    return img
+
 class YOLO:
     def __init__(self, input_size=512,weightsPath=FLU_AUDERE_PATH):
         """This function initializes the YOLO model and warms it up and returns predictor function handle
@@ -181,12 +207,23 @@ class LineDetector:
 #             print(img.shape)
         img_inp = img[1000:1500,:,:]
         img_no_sclae = np.copy(img_inp)
-        img_inp = img_inp/255.0
-        img_inp = np.array(img_inp,dtype=np.float32)
+
         if LINE_MODEL_VER==1:
+            img_inp = img_inp/255.0
+            img_inp = np.array(img_inp,dtype=np.float32)
             img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2RGB)
+        elif LINE_MODEL_VER==4:
+            img_inp = np.uint8(img_inp)
+            img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2RGB)
+            img_inp=gaussBlur(img_inp)
+            img_inp= enhanceImage(img_inp)
+            img_inp = img_inp/255.0
+            img_inp = np.array(img_inp,dtype=np.float32)
+
         else:
-            img_inp = cv.cvtColor(img_inp,cv.COLOR_BGR2YCrCb)
+            img_inp = img_inp/255.0
+            img_inp = np.array(img_inp,dtype=np.float32)
+            img_inp = cv.cvtColor(img_inp,cv.COLOR_RGB2YCrCb)
 
         for i in range(96):
             st = i*5
