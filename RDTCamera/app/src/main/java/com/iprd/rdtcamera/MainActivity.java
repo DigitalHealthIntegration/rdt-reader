@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
         torch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try{
-                    if (shouldOffTorch == false){
+                    if (shouldOffTorch == false && mPreviewSession != null){
                         if (isChecked) {
                             // The toggle is enabled
                             mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
