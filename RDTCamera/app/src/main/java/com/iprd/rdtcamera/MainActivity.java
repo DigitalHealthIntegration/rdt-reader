@@ -251,7 +251,9 @@ public class MainActivity extends AppCompatActivity {
                         }
                     } else {
                         shouldOffTorch = false;
-                    }
+                        if(torch.isChecked())
+                            torch.setChecked(false);
+                        }
                 } catch (CameraAccessException e) {
                     e.printStackTrace();
                 }
