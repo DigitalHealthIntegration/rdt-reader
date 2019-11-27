@@ -189,7 +189,6 @@ public class RegTest {
             init.width = (int) (rb.x-lt.x);
             init.height= (int) (rb.y-lt.y);
             assertTrue("Tx should be -ve ",warp.get(0,2)[0]< 0);
-
         }
     }
 

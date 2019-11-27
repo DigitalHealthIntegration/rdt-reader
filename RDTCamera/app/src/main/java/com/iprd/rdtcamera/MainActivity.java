@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
     private ImageView mRdtView,mTrackedView;
-    private ImageView disRdtResultImage;
+    private ImageView disRdtResultImage,mWarpedImage;
     Button mGetResult;
     Button startBtn;
     TextView mResultView,mMotionText,mStatusView;
@@ -185,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
         mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
         mMotionText = findViewById(R.id.MotionText);
+        mWarpedImage = findViewById(R.id.RdtWarpImage);
         mStatusView = findViewById(R.id.Status);
         //mRectView.setImageDrawable(R.drawable.grid);
 
@@ -469,9 +470,7 @@ public class MainActivity extends AppCompatActivity {
 
         int countertomakedatadisppear=0;
         private void ProcessBitmap(Bitmap capFrame) {
-
             //capFrame = RotateBitmap(capFrame,90);
-
             long st  = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
             if(mShowImageData != 0){
@@ -480,12 +479,6 @@ public class MainActivity extends AppCompatActivity {
             }
             Bitmap TrackedImage = status.mInfo.mTrackedImage;
             long et = System.currentTimeMillis()-st;
-            Log.i("BBF",status.mBoundingBoxX+"x"+status.mBoundingBoxY+"-"+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
-
-//            Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
-//            Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
-//            Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
- //           Log.i("Total Processing Time "," "+ et);
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -519,12 +512,18 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     //mStatusView.setVisibility(View.VISIBLE);
+                    if(status.mInfo.mWarpedImage != null) {
+                        mWarpedImage.setImageBitmap(status.mInfo.mWarpedImage);
+                        mWarpedImage.setVisibility(View.VISIBLE);
+                    }
                     if(status.mSteady ==GOOD){
-                        mMotionText.setText("");
+                        mMotionText.setText("GOOD");
+                        mMotionText.setTextColor(Color.GREEN);
                     }else if(status.mSteady == TOO_HIGH){
                         mMotionText.setText("Motion Too High");
                         mMotionText.setTextColor(Color.RED);
                     }
+                    mMotionText.setVisibility(View.VISIBLE);
                     mRdtView.setImageBitmap(b);
                     mRdtView.setVisibility(View.VISIBLE);
                     //repositionRect(status);

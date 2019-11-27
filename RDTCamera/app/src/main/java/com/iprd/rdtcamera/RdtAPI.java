@@ -2,6 +2,7 @@ package com.iprd.rdtcamera;
 
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.util.Pair;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -24,6 +25,7 @@ import static com.iprd.rdtcamera.CvUtils.mComputeVector_FinalPoint;
 import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.CvUtils.warpPoint;
 import static com.iprd.rdtcamera.ImageRegistration.ComputeMotion;
+import static com.iprd.rdtcamera.ImageRegistration.FindMotionRefIns;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static com.iprd.rdtcamera.Utils.getBitmapFromMat;
 import static com.iprd.rdtcamera.Utils.rotateRect;
@@ -42,6 +44,8 @@ import static org.opencv.imgproc.Imgproc.putText;
 import static org.opencv.imgproc.Imgproc.pyrDown;
 import static org.opencv.imgproc.Imgproc.rectangle;
 import static org.opencv.imgproc.Imgproc.resize;
+import static org.opencv.imgproc.Imgproc.warpAffine;
+import static org.opencv.imgproc.Imgproc.warpPerspective;
 
 public class RdtAPI {
     private Config mConfig;
@@ -55,7 +59,7 @@ public class RdtAPI {
     Mat mGreyMat;
     Mat mGreyMatResized;
     AcceptanceStatus mStatus=null;
-    Vector<Mat> mWarpList= new Vector<>();
+    Vector<Pair<Mat,Mat>> mWarpList= new Vector<>();
 
     private short mBrightness;
     private short mSharpness;
@@ -66,6 +70,7 @@ public class RdtAPI {
     long mPostProcessingTime;
     Mat mPipMat=null;
     Mat mMotionVectorMat=null;
+    Mat mWarpedMat=null;
     private final Object piplock = new Object();
 
     public void setmShowPip(boolean mShowPip) {
@@ -306,22 +311,35 @@ public class RdtAPI {
             cvtColor(matinput, greyMat, Imgproc.COLOR_RGBA2GRAY);
             Point lt = null,rb=null;
             Mat warp = null;
-            warp = ComputeMotion(greyMat);
-            mWarpList.add(warp.clone());
 
-            if(mWarpList.size() >11){
+            warp = ComputeMotion(greyMat);
+            Pair<Mat,Mat> item = new Pair<>(warp.clone(),greyMat.clone());
+            mWarpList.add(item);
+            Mat warp10 = FindMotionRefIns(greyMat,mWarpList.elementAt(0).second,true);
+            mWarpedMat = new Mat(greyMat.width(), greyMat.height(), greyMat.type());
+            warpAffine(greyMat,mWarpedMat,warp10,greyMat.size());
+            Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);
+            long stend  = System.currentTimeMillis()-st;
+            Log.d("MotionComp",stend+"");
+            if(mWarpList.size() >21){
+                mWarpList.elementAt(0).first.release();
+                mWarpList.elementAt(0).second.release();
                 mWarpList.remove(0);
             }
             //Lets Check Motion now.
             //Threshold1 and Threshold 2.
             Point p = new Point(0,0);
             for(int i=1;i<mWarpList.size();i++){
-                p.x +=mWarpList.elementAt(i).get(0,2)[0];
-                p.y +=mWarpList.elementAt(i).get(1,2)[0];
+                p.x +=mWarpList.elementAt(i).first.get(0,2)[0];
+                p.y +=mWarpList.elementAt(i).first.get(1,2)[0];
                 //Log.i(i+"", mWarpList.elementAt(i).get(0,2)[0] + "x" + mWarpList.elementAt(i).get(1,2)[0]);
             }
+            Log.i("10 frame", warp10.get(0,2)[0] + "x" + warp10.get(1,2)[0]);
             Log.i("10 frame", p.x + "x" + p.y);
             Log.i("1 frame", warp.get(0,2)[0] + "x" + warp.get(1,2)[0]);
+
+            Scalar srg = new Scalar(255,255,0,0);//RGBA
+            mMotionVectorMat = CvUtils.ComputeVector(new Point(warp10.get(0,2)[0],warp10.get(1,2)[0]),mMotionVectorMat,srg);
 
             Scalar sr = new Scalar(255,0,0,0);//RGBA
             mMotionVectorMat = CvUtils.ComputeVector(p,mMotionVectorMat,sr);
@@ -335,6 +353,7 @@ public class RdtAPI {
             if(mComputeVector_FinalMVector.x > mConfig.mMaxFrameTranslationalMagnitude){
                 ret.mSteady = TOO_HIGH;
             }
+
             //process frame
             if(matinput.width() < matinput.height()) {
                 mSetRotation = true;
@@ -413,6 +432,7 @@ public class RdtAPI {
             greyMatResized.release();
             greyMat.release();
             matinput.release();
+            ret.mInfo.mWarpedImage = getBitmapFromMat(mWarpedMat);
             if(mMotionVectorMat!= null){
                 ret.mInfo.mTrackedImage = getBitmapFromMat(mMotionVectorMat);
                 mMotionVectorMat.release();
@@ -472,10 +492,10 @@ public class RdtAPI {
                 }
                 if(mShowPip){
                     synchronized (piplock) {
-                        int w = 360,h = 640;
+                        int w = inputmat.width()>>2,h = inputmat.height()>>2;
                         if(!mSetRotation){
-                            w=640;
-                            h=360;
+                            w=inputmat.height()>>2;
+                            h=inputmat.width()>>2;
                         }
                         mPipMat = new Mat(w, h, inputmat.type());
                         resize(inputmat, mPipMat, new Size(w, h));

@@ -41,13 +41,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageView
+        android:id="@+id/RdtWarpImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
     <TextView
         android:id="@+id/MotionText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
         android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/RdtDetectImage"
+        app:layout_constraintTop_toBottomOf="@+id/RdtTrackedImage"
         app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn" />
 
     <TextView
