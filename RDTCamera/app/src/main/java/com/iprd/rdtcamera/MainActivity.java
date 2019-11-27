@@ -91,6 +91,7 @@ import static org.opencv.imgproc.Imgproc.floodFill;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "AndroidCameraApi";
+    public static final String MY_PREFS_NAME = "MyPrefsFile";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
     private ImageView mRdtView,mTrackedView;
@@ -109,8 +110,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
     private static final SparseIntArray DEFAULT_ORIENTATIONS = new SparseIntArray();
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
-    public static Size CAMERA2_PREVIEW_SIZE = new Size(1280, 720);
-    public static Size CAMERA2_IMAGE_SIZE = new Size(1280, 720);
+    public static Size CAMERA2_PREVIEW_SIZE = new Size(1080,1920);//1280, 720);
+    public static Size CAMERA2_IMAGE_SIZE = new Size(1080,1920);//1280, 720);
     private Button preferenceSettingBtn;
     private TextView rdtDataToBeDisplay;
     private List<Surface> mSurfaces;
@@ -141,33 +142,36 @@ public class MainActivity extends AppCompatActivity {
 
     private Integer mSensorOrientation;
 
-    private short mShowImageData=0;
+    private short mShowImageData = 0;
     public Switch mode;
     public Switch torch;
     public Switch saveData;
     boolean isGridDispaly;
     TableLayout gridTable;
-    byte[] mImageBytes=null;
+    byte[] mImageBytes = null;
 
     int idx;
-    RdtAPI mRdtApi=null;
-    private RdtAPI.RdtAPIBuilder rdtAPIBuilder=null;
+    RdtAPI mRdtApi = null;
+    private RdtAPI.RdtAPIBuilder rdtAPIBuilder = null;
 
-    private boolean checkpermission(){
-        int res  = ContextCompat.checkSelfPermission(getApplicationContext(), CAMERA);
+    private boolean checkpermission() {
+        int res = ContextCompat.checkSelfPermission(getApplicationContext(), CAMERA);
         int res1 = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
         int res2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
         return res1 == PackageManager.PERMISSION_GRANTED && res == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED;
     }
-    private void requestPermission(){
+
+    private void requestPermission() {
         ActivityCompat.requestPermissions(this, new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA, Manifest.permission.CAMERA}, 200);
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if(!checkpermission()){
+        if (!checkpermission()) {
             requestPermission();
         }
         super.onCreate(savedInstanceState);
+        mFile = new File(this.getExternalFilesDir(null), "pic.jpg");
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -178,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         mGetResult = findViewById(R.id.getResult);
         Context c = getApplicationContext();
         prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(c);
-        gridTable =  findViewById(R.id.gridTable);
+        gridTable = findViewById(R.id.gridTable);
         gridTable.setVisibility(View.VISIBLE);
 
         mRdtView = findViewById(R.id.RdtDetectImage);
@@ -206,8 +210,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        byte[] mTfliteB=null;
-        MappedByteBuffer mMappedByteBuffer=null;
+        byte[] mTfliteB = null;
+        MappedByteBuffer mMappedByteBuffer = null;
         try {
             mTfliteB = ReadAssests();
             mMappedByteBuffer = Utils.loadModelFile(getAssets(),mModelFileName);
@@ -241,10 +245,10 @@ public class MainActivity extends AppCompatActivity {
                             mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
                             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, null);
                         }
-                    }else{
-                        shouldOffTorch =false;
+                    } else {
+                        shouldOffTorch = false;
                     }
-                }catch (CameraAccessException e){
+                } catch (CameraAccessException e) {
                     e.printStackTrace();
                 }
             }
@@ -267,9 +271,9 @@ public class MainActivity extends AppCompatActivity {
         mode = (Switch) findViewById(R.id.mode);
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isPreviewOff){
+                if (isPreviewOff) {
                     startPreview();
-                    if(mCyclicProgressBar.getVisibility() == View.VISIBLE) {
+                    if (mCyclicProgressBar.getVisibility() == View.VISIBLE) {
                         mCyclicProgressBar.setVisibility(View.INVISIBLE);
                         mResultView.setVisibility(View.INVISIBLE);
                         mGetResult.setVisibility(View.VISIBLE);
@@ -283,23 +287,21 @@ public class MainActivity extends AppCompatActivity {
                     torch.setChecked(false);
 
                     Intent i = new Intent(MainActivity.this, ActivityVideo.class);
-                    i.putExtra("videoPath","aaaaaa");
+                    i.putExtra("videoPath", "aaaaaa");
                     i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
                     startActivity(i);
                 } else {
-                    Log.d(">>Mode Switch<<","OFF");
+                    Log.d(">>Mode Switch<<", "OFF");
                 }
             }
         });
         mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               /* if(mCyclicProgressBar.getVisibility() == View.INVISIBLE) {
-                    mCyclicProgressBar.setVisibility(View.VISIBLE);
-                    mCyclicProgressBar.bringToFront();
-                }*/
+
                 //progressbar(true);
-                mImageBytes=null;
+                mImageBytes = null;
+                handlerCall = true;
                 getRDTResultData();
                 startBtn.setVisibility(View.VISIBLE);
                 mResultView.setVisibility(View.INVISIBLE);
@@ -339,11 +341,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setAndDisplayGrid() {
-        float cell_height = mTextureView.getWidth()>0 ? mTextureView.getWidth()/5 : 0;
-        float cell_width = mTextureView.getHeight() > 0 ? mTextureView.getHeight()/9 : 0;
+        float cell_height = mTextureView.getWidth() > 0 ? mTextureView.getWidth() / 5 : 0;
+        float cell_width = mTextureView.getHeight() > 0 ? mTextureView.getHeight() / 9 : 0;
         TableLayout tableLayout = (TableLayout) findViewById(R.id.gridTable);
 
-        for(int j=0 ; j<9 ; j++) {
+        for (int j = 0; j < 9; j++) {
             TableRow tableRowr = new TableRow(this);
 
             tableRowr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -351,9 +353,8 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < 5; i++) {
                 TextView b = new TextView(this);
                 b.setText("");
-
-                b.setHeight((int) Math.floor(cell_height)-2);
-                b.setWidth((int) Math.ceil(cell_width)+2);
+                b.setHeight((int) Math.floor(cell_height) - 2);
+                b.setWidth((int) Math.ceil(cell_width) + 2);
                 b.setBackgroundResource(R.drawable.cell_shape);
                 b.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
                 tableRowr.addView(b);
@@ -363,47 +364,111 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void progressbar(boolean isVisible){
+    void progressbar(boolean isVisible) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mCyclicProgressBar.setVisibility(isVisible?View.VISIBLE:View.INVISIBLE);
+                mCyclicProgressBar.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
             }
         });
     }
 
     byte[] ReadAssests() throws IOException {
-        byte[] mtfliteBytes=null;
-        InputStream is=getAssets().open(mModelFileName);
-        mtfliteBytes=new byte[is.available()];
-        is.read( mtfliteBytes);
+        byte[] mtfliteBytes = null;
+        InputStream is = getAssets().open(mModelFileName);
+        mtfliteBytes = new byte[is.available()];
+        is.read(mtfliteBytes);
         is.close();
         return mtfliteBytes;
     }
 
-    private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV loaded successfully");
-                } break;
-                default:
-                {
+                }
+                break;
+                default: {
                     super.onManagerConnected(status);
-                } break;
+                }
+                break;
             }
         }
     };
 
+    private File mFile;
+    private boolean handlerCall = false;
+    public int i =0 ;
+
     private ImageReader.OnImageAvailableListener mImageAvailable = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Image image = null;
+                Image image = null;
             try {
                 image = reader.acquireLatestImage();
-            } catch(Exception e){
+                if(handlerCall) {
+                            if(image == null){
+                                handlerCall = true;
+                            }else {
+                                handlerCall = false;
+                                //
+                              /* mFile =  new File("/sdcard/aa/aa"+(++i)+".jpg");
+                                runOnUiThread(new Runnable() {
+                                                  @Override
+                                                  public void run() {
+                                                      Image image = null;
+                                                      image = reader.acquireLatestImage();
+                                                      if (image != null) {
+                                                          ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                                                          byte[] bytes = new byte[buffer.remaining()];
+                                                          Toast.makeText(MainActivity.this, bytes.length+" = image 1 :" + image.getWidth()+" X "+image.getHeight(), Toast.LENGTH_SHORT).show();
+
+                                                          buffer.get(bytes);
+                                                          FileOutputStream output = null;
+                                                          try {
+                                                              output = new FileOutputStream(mFile);
+                                                              output.write(bytes);
+                                                          } catch (IOException e) {
+                                                              e.printStackTrace();
+                                                          } finally {
+                                                              image.close();
+                                                              if (null != output) {
+                                                                  try {
+                                                                      output.close();
+                                                                  } catch (IOException e) {
+                                                                      e.printStackTrace();
+                                                                  }
+                                                              }
+                                                          }
+                                                      }else{
+                                                          Toast.makeText( MainActivity.this,"null image", Toast.LENGTH_SHORT).show();
+                                                      }
+                                                  }
+                                              });*/
+
+                                //
+
+                                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                                mImageBytes = new byte[buffer.capacity()];
+                                buffer.get(mImageBytes);
+                                Log.d("Get Size ", String.valueOf(buffer.capacity()));
+                                if (mImageBytes != null && mImageBytes.length > 0) {
+                                    closePreviewSession();
+                                    Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressbar(true);
+                                            rdtResults(mImageBytes);
+                                        }
+                                    });
+                                }
+                            }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
 
             } finally {
                 if (image != null) {
@@ -412,6 +477,31 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+
+     //reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
+    /*final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+        @Override
+        public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+            super.onCaptureCompleted(session, request, result);
+            isPreviewOff = true;
+            handlerCall = true;
+        }
+    };*/
+        /*CameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
+        @Override
+        public void onConfigured(CameraCaptureSession session) {
+            try {
+                session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public void onConfigureFailed(CameraCaptureSession session) {
+        }
+    }, mBackgroundHandler);*/
+
 
     private TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
@@ -433,7 +523,9 @@ public class MainActivity extends AppCompatActivity {
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
             return true;
         }
+
         private Semaphore sem = new Semaphore(1);
+
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
             //Log.d(".... ","onSurfaceTextureUpdated");
@@ -443,7 +535,6 @@ public class MainActivity extends AppCompatActivity {
 
             if (!mRdtApi.isInprogress() && sem.tryAcquire(1) == true) {
                 try {
-                    //Log.d("~~~~~~~~~~~","Lock Acquired `[=>]");
                     Bitmap capFrame = mTextureView.getBitmap();
                     Process(capFrame);
                 } catch (Exception e) {
@@ -451,83 +542,79 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
         void Process(final Bitmap capFrame) {
 //            new Thread(new Runnable() {
 //                @Override
 //                public void run() {
-                    ProcessBitmap(capFrame);
+            ProcessBitmap(capFrame);
 //                }
 //            }).start();
         }
 
-        public Bitmap RotateBitmap(Bitmap source, float angle)
-        {
+        public Bitmap RotateBitmap(Bitmap source, float angle) {
             Matrix matrix = new Matrix();
             matrix.postRotate(angle);
             return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
         }
 
-        int countertomakedatadisppear=0;
+        int countertomakedatadisppear = 0;
+
         private void ProcessBitmap(Bitmap capFrame) {
 
             //capFrame = RotateBitmap(capFrame,90);
 
-            long st  = System.currentTimeMillis();
+            long st = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
-            if(mShowImageData != 0){
+            if (mShowImageData != 0) {
                 status.mSharpness = mRdtApi.getSharpness();
                 status.mBrightness = mRdtApi.getBrightness();
             }
             Bitmap TrackedImage = status.mInfo.mTrackedImage;
-            long et = System.currentTimeMillis()-st;
-            Log.i("BBF",status.mBoundingBoxX+"x"+status.mBoundingBoxY+"-"+status.mBoundingBoxWidth+"x"+status.mBoundingBoxHeight);
-
-//            Log.i("Pre Processing Time ",""+mRdtApi.getPreProcessingTime());
-//            Log.i("TF Processing Time "," "+ mRdtApi.getTensorFlowProcessTime());
-//            Log.i("Post Processing Time "," "+ mRdtApi.getPostProcessingTime());
- //           Log.i("Total Processing Time "," "+ et);
+            long et = System.currentTimeMillis() - st;
+            Log.i("BBF", status.mBoundingBoxX + "x" + status.mBoundingBoxY + "-" + status.mBoundingBoxWidth + "x" + status.mBoundingBoxHeight);
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     Bitmap b = mRdtApi.getPipMat();
-                    if(TrackedImage!=null){
+                    if (TrackedImage != null) {
                         mTrackedView.setImageBitmap(TrackedImage);
                         mTrackedView.setVisibility(View.VISIBLE);
-                    }else{
+                    } else {
                         mTrackedView.setVisibility(View.INVISIBLE);
                     }
-                    if(status.mRDTFound){
-                        String t = "steady=" +status.mSteady;
-                        t+="\nsharp=" + status.mSharpness;
-                        t+="\nscale=" + status.mScale;
-                        t+="\nbright=" + status.mBrightness;
-                        t+="\nperspec=" + status.mPerspectiveDistortion;
-                        t+="\nS=" + status.mInfo.mSharpness;
-                        t+="\nB=" + status.mInfo.mBrightness;
+                    if (status.mRDTFound) {
+                        String t = "steady=" + status.mSteady;
+                        t += "\nsharp=" + status.mSharpness;
+                        t += "\nscale=" + status.mScale;
+                        t += "\nbright=" + status.mBrightness;
+                        t += "\nperspec=" + status.mPerspectiveDistortion;
+                        t += "\nS=" + status.mInfo.mSharpness;
+                        t += "\nB=" + status.mInfo.mBrightness;
                         mStatusView.setText(t);
-                        if((status.mSharpness == 0)&&( status.mScale == 0)&&(status.mBrightness == 0)&&(status.mPerspectiveDistortion==0))
+                        if ((status.mSharpness == 0) && (status.mScale == 0) && (status.mBrightness == 0) && (status.mPerspectiveDistortion == 0))
                             mStatusView.setTextColor(Color.GREEN);
                         else
                             mStatusView.setTextColor(Color.RED);
-                        countertomakedatadisppear=0;
-                    }else{
+                        countertomakedatadisppear = 0;
+                    } else {
                         countertomakedatadisppear++;
-                        if(countertomakedatadisppear > 50) {
+                        if (countertomakedatadisppear > 50) {
                             mStatusView.setText("No RDT Found");
                             mStatusView.setTextColor(Color.RED);
                         }
                     }
                     //mStatusView.setVisibility(View.VISIBLE);
-                    if(status.mSteady ==GOOD){
+                    if (status.mSteady == GOOD) {
                         mMotionText.setText("");
-                    }else if(status.mSteady == TOO_HIGH){
+                    } else if (status.mSteady == TOO_HIGH) {
                         mMotionText.setText("Motion Too High");
                         mMotionText.setTextColor(Color.RED);
                     }
                     mRdtView.setImageBitmap(b);
                     mRdtView.setVisibility(View.VISIBLE);
-                    //repositionRect(status);
+                   // repositionRect(status);
                 }
             });
             sem.release();
@@ -547,25 +634,28 @@ public class MainActivity extends AppCompatActivity {
         public void onOpened(@NonNull CameraDevice cameraDevice) {
             mCameraDevice = cameraDevice;
             startPreview();
-            //////mCameraOpenCloseLock.release();
+           /// mCameraOpenCloseLock.release();
             if (null != mTextureView) {
                 configureTransform(mTextureView.getWidth(), mTextureView.getHeight());
             }
         }
+
         @Override
         public void onDisconnected(@NonNull CameraDevice cameraDevice) {
             cameraDevice.close();
             mCameraDevice = null;
         }
+
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int error) {
             cameraDevice.close();
             mCameraDevice = null;
         }
     };
+
     private static Size chooseVideoSize(Size[] choices) {
         for (Size size : choices) {
-            Log.d("Camera ",size.toString());
+            Log.d("Camera ", size.toString());
             if (size.getWidth() == size.getHeight() * 16 / 9 && size.getWidth() <= 1280) {
                 return size;
             }
@@ -603,7 +693,7 @@ public class MainActivity extends AppCompatActivity {
             // choose optimal size
             Size closestPreviewSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
             Size closestImageSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
-            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888))) {
+            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.JPEG))) {
                 Log.d(TAG, "Available Sizes: " + size.toString());
                 if (size.getWidth() * 9 == size.getHeight() * 16) { //Preview surface ratio is 16:9
                     double currPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - closestPreviewSize.getHeight() * closestPreviewSize.getWidth();
@@ -619,16 +709,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             mVideoSize = closestPreviewSize;
-            Size videoSize =closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
+            Size videoSize = closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
-                    ImageFormat.YUV_420_888, 2);
-            mImageReader.setOnImageAvailableListener(mImageAvailable,mBackgroundHandler);
+                    ImageFormat.JPEG, 5);
+
+            /*mImageReader = ImageReader.newInstance(closestImageSize.getWidth(), closestImageSize.getHeight(),
+                    ImageFormat.JPEG, *//*maxImages*//*5);*/
+
+            mImageReader.setOnImageAvailableListener(mImageAvailable, mBackgroundHandler);
 
             // Get all available size for the textureSurface preview window
             sizes = map.getOutputSizes(SurfaceTexture.class);
             // Get the optimal size for a preview window
             mPreviewSize = closestPreviewSize;//chooseOptimalSize(sizes, width, height,mVideoSize);
+
 
             // We fit the aspect ratio of TextureView to the size of preview we picked.
             int orientation = getResources().getConfiguration().orientation;
@@ -651,18 +746,18 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void rdtResults( byte[] bytes) {
+    public void rdtResults(byte[] bytes) {
         OutputStream output = null;
         try {
-            String urlString = prefs.getString("rdtCheckUrl",mHttpURL);
-            System.out.println(">>>>>>>>"+urlString);
+            String urlString = prefs.getString("rdtCheckUrl", mHttpURL);
+            System.out.println(">>>>>>>>" + urlString);
             String guid = String.valueOf(java.util.UUID.randomUUID());
-            String metaDataStr = "{\"UUID\":" +"\"" + guid +"\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
-            try{
-                Httpok mr = new Httpok("img.jpg",bytes, urlString, metaDataStr,mCyclicProgressBar,disRdtResultImage,mResultView);
+            String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+            try {
+                Httpok mr = new Httpok("img.jpg", bytes, urlString, metaDataStr, mCyclicProgressBar, disRdtResultImage, mResultView);
                 mr.setCtx(getApplicationContext());
                 mr.execute();
-            }catch(Exception ex){
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         } finally {
@@ -677,9 +772,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getRDTResultData(){
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        //CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
-            Log.d("getRDTResultData() :1","...............................1");
+           // handlerCall = true;
+            /*Log.d("getRDTResultData() :1","...............................1");
             String cameraId = manager.getCameraIdList()[0];
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             Size[] jpegSizes = null;
@@ -705,7 +801,9 @@ public class MainActivity extends AppCompatActivity {
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-            ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
+            reader.setOnImageAvailableListener(mImageAvailable, mBackgroundHandler);*/
+
+            /*ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
                     //Thread.yield();
@@ -716,7 +814,7 @@ public class MainActivity extends AppCompatActivity {
                         mImageBytes = new byte[buffer.capacity()];
                         buffer.get(mImageBytes);
                         Log.d("Get Size ", String.valueOf(buffer.capacity()));
-                        if(mImageBytes != null && mImageBytes.length >0) {
+                        *//*if(mImageBytes != null && mImageBytes.length >0) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -724,7 +822,7 @@ public class MainActivity extends AppCompatActivity {
                                     rdtResults(mImageBytes);
                                 }
                             });
-                        }
+                        }*//*
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -743,11 +841,12 @@ public class MainActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     isPreviewOff = true;
+                    handlerCall = true;
                     if(mImageBytes != null && mImageBytes.length >0) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                               progressbar(true);
+                               //progressbar(true);
                               //  rdtResults(mImageBytes);
                             }
                         });
@@ -766,12 +865,13 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
-            }, mBackgroundHandler);
+            }, mBackgroundHandler);*/
 
         }catch(Exception e){
             System.out.println(">>>>>>>>>>>"+e);
         }
     }
+
     /**
      * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
      * This method should not to be called until the camera preview size is determined in
@@ -849,6 +949,16 @@ public class MainActivity extends AppCompatActivity {
                         public void onConfigureFailed(CameraCaptureSession cameraCaptureSession){
                             Log.w(TAG, "Create capture session failed");
                         }
+                        /*final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+                            @Override
+                            public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                                super.onCaptureCompleted(session, request, result);
+                                isPreviewOff = true;
+                                handlerCall = true;
+                                Log.d("00-","000000000000");
+                            }
+                        }*/;
+
                     }, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
