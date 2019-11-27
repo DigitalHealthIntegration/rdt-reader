@@ -321,7 +321,7 @@ public class RdtAPI {
             Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);
             long stend  = System.currentTimeMillis()-st;
             Log.d("MotionComp",stend+"");
-            if(mWarpList.size() >21){
+            if(mWarpList.size() >10){
                 mWarpList.elementAt(0).first.release();
                 mWarpList.elementAt(0).second.release();
                 mWarpList.remove(0);

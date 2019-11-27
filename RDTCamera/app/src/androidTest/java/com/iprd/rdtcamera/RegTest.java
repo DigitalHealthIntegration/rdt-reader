@@ -3,6 +3,7 @@ package com.iprd.rdtcamera;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +18,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
 
@@ -27,19 +29,23 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Vector;
 
 import static com.iprd.rdtcamera.CvUtils.ComputeVector;
 import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
 import static com.iprd.rdtcamera.CvUtils.mComputeVector_FinalPoint;
 import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.ImageRegistration.ComputeMotion;
+import static com.iprd.rdtcamera.ImageRegistration.FindMotionRefIns;
 import static com.iprd.rdtcamera.ObjectDetection.warpPoint;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static org.opencv.imgproc.Imgproc.INTER_CUBIC;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.imgproc.Imgproc.pyrDown;
+import static org.opencv.imgproc.Imgproc.warpAffine;
 import static org.opencv.video.Video.MOTION_EUCLIDEAN;
 import static org.opencv.video.Video.findTransformECC;
 /**
@@ -158,6 +164,34 @@ public class RegTest {
 //        Assert.assertThat("rx test",warpmat.get(0,0)[0], is(equalTo(0.0001)));
 //        Assert.assertThat("ry test",warpmat.get(1,1)[0], is(equalTo(0.0001)));
     }
+
+    @Test
+    public void TestMotion() {
+        long st  = System.currentTimeMillis();
+        String prefname = "/Tx/Image";
+        String postfname = "Input.jpg";
+        Vector<Pair<Mat,Mat>> mWarpList= new Vector<>();
+        for(int i=14;i<31;i++) {
+            String name = prefname + i + postfname;
+            Mat greyMat = getMap(name);
+            Mat warp = ComputeMotion(greyMat);
+            Pair<Mat,Mat> item = new Pair<>(warp.clone(),greyMat.clone());
+            mWarpList.add(item);
+            Mat  warp10 = FindMotionRefIns(greyMat,mWarpList.elementAt(0).second,true);
+            Mat mWarpedMat = new Mat(greyMat.width(), greyMat.height(), greyMat.type());
+            warpAffine(greyMat,mWarpedMat,warp10,greyMat.size());
+            Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);
+            long stend  = System.currentTimeMillis()-st;
+            Log.d("MotionComp",stend+"");
+            if(mWarpList.size() >10){
+                mWarpList.elementAt(0).first.release();
+                mWarpList.elementAt(0).second.release();
+                mWarpList.remove(0);
+            }
+            com.iprd.rdtcamera.Utils.SaveMatrix(mWarpedMat,"Test");
+        }
+    }
+
 
     @Test
     public void TestComputeMotion() {
