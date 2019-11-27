@@ -8,8 +8,8 @@ public class ModelInfo {
     //public static final String mModelFileName="OD_360x640.lite"; //3500 ms
     //public static final String mModelFileName="OD_180x320_5x9.lite"; //280 ms
     //public static final String mModelFileName="OD_180x320.lite"; //480 ms
-    public static final String mModelFileName="OD_360x640_Scale_25.lite"; //1500 ms
-    //public static final String mModelFileName="OD_180x320_newarch.lite";
+    //public static final String mModelFileName="OD_360x640_Scale_25.lite"; //1500 ms
+    public static final String mModelFileName= "OD_180x320_newarch.lite";
 
     public static float deviationThresh=0.01f;
 
@@ -23,7 +23,12 @@ public class ModelInfo {
         {
             inputSize = new int[]{180,320};
             aspectAnchors = new int[]{15, 35, 34,34, 22, 37, 14, 26};
-            numberBlocks = new int[]{5,9};
+            if(mModelFileName.contains("newarch")) {
+                numberBlocks = new int[]{7, 16};
+            }else{
+                numberBlocks = new int[]{5, 9};
+            }
+
             pyrlevelcnt =2;
         }
         else if(mModelFileName.contains("360x640"))

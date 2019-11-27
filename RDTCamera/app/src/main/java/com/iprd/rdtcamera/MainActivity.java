@@ -10,11 +10,14 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.graphics.YuvImage;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -63,6 +66,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -414,7 +418,7 @@ public class MainActivity extends AppCompatActivity {
                             }else {
                                 handlerCall = false;
                                 //
-                              /* mFile =  new File("/sdcard/aa/aa"+(++i)+".jpg");
+                             /*  mFile =  new File("/sdcard/aa/aa"+(++i)+".jpg");
                                 runOnUiThread(new Runnable() {
                                                   @Override
                                                   public void run() {
@@ -455,6 +459,33 @@ public class MainActivity extends AppCompatActivity {
                                 buffer.get(mImageBytes);
                                 Log.d("Get Size ", String.valueOf(buffer.capacity()));
                                 if (mImageBytes != null && mImageBytes.length > 0) {
+
+                                    //--------->>>>00000000000000
+                                   /* mFile =  new File("/sdcard/aa/b"+(++i)+".raw");
+                                    FileOutputStream output = null;
+                                    try {
+                                        output = new FileOutputStream(mFile);
+                                        output.write(mImageBytes);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }*/
+
+                                    //
+
+                                    /*byte[] compressed = out.toByteArray();
+
+                                    Bitmap newBmp = BitmapFactory.decodeByteArray(compressed, 0, compressed.length);
+                                    Matrix mat = new Matrix();
+                                    mat.postRotate(PrefsController.instance.getPrefs().getCameraPrefs(cameraId).angle);
+                                    newBmp = Bitmap.createBitmap(newBmp, 0, 0, newBmp.getWidth(), newBmp.getHeight(), mat, true);
+                                    ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+                                    if (quality) {
+                                        newBmp.compress(Bitmap.CompressFormat.PNG, 100, out2);
+                                    } else {
+                                        newBmp.compress(Bitmap.CompressFormat.JPEG, 80, out2);
+                                    }*/
+
+                                    //----------->
                                     closePreviewSession();
                                     Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
                                     runOnUiThread(new Runnable() {
@@ -693,7 +724,7 @@ public class MainActivity extends AppCompatActivity {
             // choose optimal size
             Size closestPreviewSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
             Size closestImageSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
-            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.JPEG))) {
+            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888))) {//YUV_420_888
                 Log.d(TAG, "Available Sizes: " + size.toString());
                 if (size.getWidth() * 9 == size.getHeight() * 16) { //Preview surface ratio is 16:9
                     double currPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - closestPreviewSize.getHeight() * closestPreviewSize.getWidth();
@@ -712,7 +743,7 @@ public class MainActivity extends AppCompatActivity {
             Size videoSize = closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
-                    ImageFormat.JPEG, 5);
+                    ImageFormat.YUV_420_888, 5);
 
             /*mImageReader = ImageReader.newInstance(closestImageSize.getWidth(), closestImageSize.getHeight(),
                     ImageFormat.JPEG, *//*maxImages*//*5);*/
