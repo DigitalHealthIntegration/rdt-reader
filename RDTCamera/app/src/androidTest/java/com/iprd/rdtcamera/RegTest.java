@@ -170,14 +170,15 @@ public class RegTest {
         long st  = System.currentTimeMillis();
         String prefname = "/Tx/Image";
         String postfname = "Input.jpg";
+        Mat  mWarpInfo = Mat.eye(2,3,CV_32F);
         Vector<Pair<Mat,Mat>> mWarpList= new Vector<>();
-        for(int i=14;i<31;i++) {
+        for(int i=13;i<31;i++) {
             String name = prefname + i + postfname;
             Mat greyMat = getMap(name);
             Mat warp = ComputeMotion(greyMat);
             Pair<Mat,Mat> item = new Pair<>(warp.clone(),greyMat.clone());
             mWarpList.add(item);
-            Mat  warp10 = FindMotionRefIns(greyMat,mWarpList.elementAt(0).second,true);
+            Mat  warp10 = FindMotionRefIns(mWarpList.elementAt(0).second,greyMat,mWarpInfo,false);
             Mat mWarpedMat = new Mat(greyMat.width(), greyMat.height(), greyMat.type());
             warpAffine(greyMat,mWarpedMat,warp10,greyMat.size());
             Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);

@@ -517,11 +517,11 @@ public class MainActivity extends AppCompatActivity {
                         mWarpedImage.setVisibility(View.VISIBLE);
                     }
                     if(status.mSteady ==GOOD){
-                        mMotionText.setText("GOOD");
                         mMotionText.setTextColor(Color.GREEN);
+                        mMotionText.setText("GOOD");
                     }else if(status.mSteady == TOO_HIGH){
-                        mMotionText.setText("Motion Too High");
                         mMotionText.setTextColor(Color.RED);
+                        mMotionText.setText("Motion Too High");
                     }
                     mMotionText.setVisibility(View.VISIBLE);
                     mRdtView.setImageBitmap(b);

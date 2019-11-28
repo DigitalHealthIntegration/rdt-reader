@@ -30,6 +30,7 @@ import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static com.iprd.rdtcamera.Utils.getBitmapFromMat;
 import static com.iprd.rdtcamera.Utils.rotateRect;
 import static org.opencv.core.Core.BORDER_REFLECT101;
+import static org.opencv.core.Core.FONT_HERSHEY_SIMPLEX;
 import static org.opencv.core.Core.LINE_AA;
 import static org.opencv.core.Core.mean;
 import static org.opencv.core.Core.meanStdDev;
@@ -60,7 +61,9 @@ public class RdtAPI {
     Mat mGreyMatResized;
     AcceptanceStatus mStatus=null;
     Vector<Pair<Mat,Mat>> mWarpList= new Vector<>();
-
+    Mat mRefImage=null;
+    int mRefCount=0;
+    long mPreviousTime=0;
     private short mBrightness;
     private short mSharpness;
     Mat mLocalcopy;
@@ -71,6 +74,7 @@ public class RdtAPI {
     Mat mPipMat=null;
     Mat mMotionVectorMat=null;
     Mat mWarpedMat=null;
+    Mat mWarpInfo=null;
     private final Object piplock = new Object();
 
     public void setmShowPip(boolean mShowPip) {
@@ -315,10 +319,7 @@ public class RdtAPI {
             warp = ComputeMotion(greyMat);
             Pair<Mat,Mat> item = new Pair<>(warp.clone(),greyMat.clone());
             mWarpList.add(item);
-            Mat warp10 = FindMotionRefIns(greyMat,mWarpList.elementAt(0).second,true);
-            mWarpedMat = new Mat(greyMat.width(), greyMat.height(), greyMat.type());
-            warpAffine(greyMat,mWarpedMat,warp10,greyMat.size());
-            Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);
+
             long stend  = System.currentTimeMillis()-st;
             Log.d("MotionComp",stend+"");
             if(mWarpList.size() >10){
@@ -327,15 +328,37 @@ public class RdtAPI {
                 mWarpList.remove(0);
             }
             //Lets Check Motion now.
-            //Threshold1 and Threshold 2.
+            if(mRefImage==null) {
+                mRefImage = greyMat.clone();
+                mWarpInfo = Mat.eye(2,3,CV_32F);
+            }
             Point p = new Point(0,0);
             for(int i=1;i<mWarpList.size();i++){
                 p.x +=mWarpList.elementAt(i).first.get(0,2)[0];
                 p.y +=mWarpList.elementAt(i).first.get(1,2)[0];
                 //Log.i(i+"", mWarpList.elementAt(i).get(0,2)[0] + "x" + mWarpList.elementAt(i).get(1,2)[0]);
             }
-            Log.i("10 frame", warp10.get(0,2)[0] + "x" + warp10.get(1,2)[0]);
-            Log.i("10 frame", p.x + "x" + p.y);
+            Mat warp10 = FindMotionRefIns(mRefImage,greyMat,mWarpInfo,false);
+            mWarpedMat = new Mat(greyMat.width(), greyMat.height(), greyMat.type());
+            warpAffine(greyMat,mWarpedMat,warp10,greyMat.size());
+            Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);
+//
+
+            long currtime  = System.currentTimeMillis();
+            if((currtime - mPreviousTime > 2*1000)||(Math.abs(warp10.get(0,2)[0]) >= (greyMat.width()>>2))||(Math.abs(warp10.get(1,2)[0]) >= (greyMat.height()>>2))){
+                Log.i("RDT Ref","Reset Ref ");
+                mRefCount = 0;
+                mPreviousTime=currtime;
+                mRefImage.release();
+                mWarpInfo.release();
+                mRefImage = greyMat.clone();
+                mWarpInfo = Mat.eye(2,3,CV_32F);
+                putText(mWarpedMat, "RDT REFERENCE IMAGE ", new Point(0, mWarpedMat.cols()>>1), FONT_HERSHEY_SIMPLEX, 2.0,new Scalar(255,0,0,0),5);
+            }
+
+            //Threshold1 and Threshold 2.
+            Log.i("10Comp frame", warp10.get(0,2)[0] + "x" + warp10.get(1,2)[0]);
+            Log.i("10Add frame", p.x + "x" + p.y);
             Log.i("1 frame", warp.get(0,2)[0] + "x" + warp.get(1,2)[0]);
 
             Scalar srg = new Scalar(255,255,0,0);//RGBA
@@ -353,7 +376,6 @@ public class RdtAPI {
             if(mComputeVector_FinalMVector.x > mConfig.mMaxFrameTranslationalMagnitude){
                 ret.mSteady = TOO_HIGH;
             }
-
             //process frame
             if(matinput.width() < matinput.height()) {
                 mSetRotation = true;
@@ -364,6 +386,7 @@ public class RdtAPI {
             org.opencv.core.Size sz = new org.opencv.core.Size(1280, 720);
             Imgproc.resize(mSetRotation ? rotatedmat:greyMat, greyMatResized, sz, 0.0, 0.0, INTER_CUBIC);
             mPreProcessingTime = System.currentTimeMillis() - st;
+            //mRDTProcessingResultAvailable=false;
             if( mRDTProcessingResultAvailable) {
                 if ((mStatus!= null) && mStatus.mRDTFound) {
                     //Find Transformation..
@@ -433,6 +456,8 @@ public class RdtAPI {
             greyMat.release();
             matinput.release();
             ret.mInfo.mWarpedImage = getBitmapFromMat(mWarpedMat);
+            ret.mInfo.mMinError = mTensorFlow.getMinError();
+            if(mWarpedMat != null) mWarpedMat.release();
             if(mMotionVectorMat!= null){
                 ret.mInfo.mTrackedImage = getBitmapFromMat(mMotionVectorMat);
                 mMotionVectorMat.release();

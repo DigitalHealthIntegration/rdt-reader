@@ -37,8 +37,8 @@ public class Config{
         mMappedByteBuffer=null;
         mMaxAllowedTranslationY = 6; //level 4
         mMaxAllowedTranslationX = 6; //level 4
-        mMaxFrameTranslationalMagnitude = 100;
-        mMax10FrameTranslationalMagnitude = 200;
+        mMaxFrameTranslationalMagnitude = 30;
+        mMax10FrameTranslationalMagnitude =200;
     }
     public void setmMappedByteBuffer(MappedByteBuffer mMappedByteBuffer) {
         this.mMappedByteBuffer = mMappedByteBuffer;

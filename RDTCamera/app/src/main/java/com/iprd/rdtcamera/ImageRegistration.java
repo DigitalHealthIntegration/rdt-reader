@@ -26,7 +26,7 @@ import static org.opencv.video.Video.findTransformECC;
 
 public class ImageRegistration {
 
-    static int REGISTRATION_LEVEL=3;
+    static int REGISTRATION_LEVEL=5;
     static Mat mRefPyr=null;
 
     public static Mat GetTransform(Mat refM, Mat insM) {
@@ -47,7 +47,7 @@ public class ImageRegistration {
         }
         Mat warpMatrix=null;
         if(mRefPyr!= null) {
-            warpMatrix = getTransformation(mRefPyr,ins);
+            warpMatrix = getTransformation(ins,mRefPyr);
         }
         if(saveref)mRefPyr = ins.clone();
 //        SaveMatrix(mRefPyr,"m1");
@@ -55,7 +55,7 @@ public class ImageRegistration {
         return warpMatrix;
     }
 
-    public static Mat FindMotionRefIns(Mat inp,Mat refe,boolean resize){
+    public static Mat FindMotionRefIns(Mat refe,Mat inp,Mat warpmat ,boolean resize){
         Mat ins = new Mat();
         Mat ref = new Mat();
         if(resize){
@@ -74,17 +74,19 @@ public class ImageRegistration {
                 pyrDown(ref, ref);
             }
         }
-        Mat warpmat=null,warp=null;
-        warpmat = getTransformation(ref, ins);
-        if (warpmat != null) {
+        Mat warp=null;
+//        SaveMatrix(ref,"ref");
+//        SaveMatrix(ins,"ins");
+        double ret  = updateTransformationMat(ins,ref,warpmat);
+        if (ret >0.0) {
             warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
             PrintAffineMat("warpRI", warp);
             //ComputeVector
             Log.i("Tx-Ty 10 Inp", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
         }else{
+
             warp = Mat.eye(2,3,CV_32F);
-            warp.put(0,0,1.0);
-            warp.put(1,1,1.0);
+            warpmat=warp.clone();
             warp.put(0,2,refe.width());
             warp.put(1,2,refe.height());
         }
@@ -110,13 +112,27 @@ public class ImageRegistration {
         }
         return warp;
     }
-
+    public static double updateTransformationMat(Mat ref, Mat ins,Mat warpMatrix) {
+        // Log.d("Transform",ref.cols()+"x"+ref.rows()+ " " +ins.cols()+"x"+ins.rows());
+        final int warp_mode = MOTION_TRANSLATION;
+        double ret = -1.0;
+        try {
+            int numIter = 50;
+            double terminationEps = 1e-3;
+            TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
+            ret = findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, new Mat());
+        }catch(Exception e){
+            Log.e("Exception","Exception in FindTransformECC");
+            return -1.0;
+        }
+        return ret;
+    }
     public static Mat getTransformation(Mat ref, Mat ins) {
        // Log.d("Transform",ref.cols()+"x"+ref.rows()+ " " +ins.cols()+"x"+ins.rows());
         final int warp_mode = MOTION_TRANSLATION;
         Mat warpMatrix = Mat.eye(2,3,CV_32F);
         try {
-            int numIter = 500;
+            int numIter = 50;
             double terminationEps = 1e-3;
             TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
             findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, new Mat());

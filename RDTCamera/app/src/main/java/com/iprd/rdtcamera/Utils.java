@@ -63,7 +63,7 @@ public class Utils {
     public static void SavecentersImage(Mat tmp) {
 
         SaveMatrix(tmp,"Grey_centers");
-        tmp.release();
+        //tmp.release();
     }
 
     public static void SaveMatrix(Mat tmp,String prefix) {
@@ -122,7 +122,7 @@ public class Utils {
         String imageName = imagePath.substring(imagePath.lastIndexOf('/')+1 ,imagePath.lastIndexOf(".jpg"));
 
         createDirectoryFromGivenPath(storageLocation+folderPath+"/");
-        File myImage = new File(storageLocation+folderPath+"/"+imageName+ ".jpg");
+        File myImage = new File(storageLocation+folderPath+"/"+imageName+suff+ ".jpg");
         Log.i("Saving File",myImage.getAbsolutePath());
         if (myImage.exists()) myImage.delete();
         FileOutputStream out = null;
