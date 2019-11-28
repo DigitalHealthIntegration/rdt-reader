@@ -487,6 +487,12 @@ public class MainActivity extends AppCompatActivity {
                                         newBmp.compress(Bitmap.CompressFormat.JPEG, 80, out2);
                                     }*/
 
+                                    /*mFile =  new File("/sdcard/aa/aa"+(++i)+".jpg");
+                                    byte[] jpegData = ImageUtil.imageToByteArray(image);
+                                    //write to file (for example ..some_path/frame.jpg)
+                                    FileManager.writeFrame(mFile.toString(), jpegData);
+                                    image.close();*/
+
                                     //----------->
                                     closePreviewSession();
                                     Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
