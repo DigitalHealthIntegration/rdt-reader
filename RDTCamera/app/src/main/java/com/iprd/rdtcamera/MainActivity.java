@@ -647,7 +647,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     //mStatusView.setVisibility(View.VISIBLE);
                     if (status.mSteady == GOOD) {
-                        mMotionText.setText("");
+                        mMotionText.setText("Steady");
+                        mMotionText.setTextColor(Color.GREEN);
                     } else if (status.mSteady == TOO_HIGH) {
                         mMotionText.setText("Motion Too High");
                         mMotionText.setTextColor(Color.RED);

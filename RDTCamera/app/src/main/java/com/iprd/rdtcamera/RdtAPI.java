@@ -2,6 +2,7 @@ package com.iprd.rdtcamera;
 
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.util.Pair;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -16,6 +17,7 @@ import java.nio.MappedByteBuffer;
 import java.util.Vector;
 
 import static com.iprd.rdtcamera.AcceptanceStatus.GOOD;
+import static com.iprd.rdtcamera.AcceptanceStatus.NOT_COMPUTED;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_HIGH;
 import static com.iprd.rdtcamera.AcceptanceStatus.TOO_LOW;
 import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
@@ -44,6 +46,7 @@ import static org.opencv.imgproc.Imgproc.rectangle;
 import static org.opencv.imgproc.Imgproc.resize;
 
 public class RdtAPI {
+    private static final String TAG = RdtAPI.class.getName();
     private Config mConfig;
     private AcceptanceStatus mAcceptanceStatus;//=new AcceptanceStatus();
     private ObjectDetection mTensorFlow;//=null;
@@ -55,7 +58,7 @@ public class RdtAPI {
     Mat mGreyMat;
     Mat mGreyMatResized;
     AcceptanceStatus mStatus=null;
-    Vector<Mat> mWarpList= new Vector<>();
+    Vector<Pair<Mat, Short>> mWarpList= new Vector<>();
 
     private short mBrightness;
     private short mSharpness;
@@ -311,18 +314,19 @@ public class RdtAPI {
             Point lt = null,rb=null;
             Mat warp = null;
             warp = ComputeMotion(greyMat);
-            mWarpList.add(warp.clone());
+            Pair<Mat, Short> item = new Pair<Mat, Short>(warp.clone(),NOT_COMPUTED);
+            mWarpList.add(item);
 
-            if(mWarpList.size() >11){
-                mWarpList.remove(0);
-            }
             //Lets Check Motion now.
             //Threshold1 and Threshold 2.
             Point p = new Point(0,0);
-            for(int i=1;i<mWarpList.size();i++){
-                p.x +=mWarpList.elementAt(i).get(0,2)[0];
-                p.y +=mWarpList.elementAt(i).get(1,2)[0];
-                //Log.i(i+"", mWarpList.elementAt(i).get(0,2)[0] + "x" + mWarpList.elementAt(i).get(1,2)[0]);
+            for(int i=0;i<10;i++){
+                int indx = mWarpList.size()-i-1;
+                if(indx<0) break;
+                Pair<Mat,Short> val = mWarpList.elementAt(indx);
+                p.x +=val.first.get(0,2)[0];
+                p.y +=val.first.get(1,2)[0];
+                Log.i(TAG,indx + " -> [" + val.second + "]"+ val.first.get(0,2)[0] + "x" + val.first.get(1,2)[0] );
             }
             Log.i("10 frame", p.x + "x" + p.y);
             Log.i("1 frame", warp.get(0,2)[0] + "x" + warp.get(1,2)[0]);
@@ -339,6 +343,29 @@ public class RdtAPI {
             if(mComputeVector_FinalMVector.x > mConfig.mMaxFrameTranslationalMagnitude){
                 ret.mSteady = TOO_HIGH;
             }
+
+            Pair<Mat,Short> val = mWarpList.elementAt(mWarpList.size()-1);
+            val = new Pair<>(val.first,ret.mSteady);
+            mWarpList.setElementAt(val,mWarpList.size()-1);
+
+            if(mWarpList.size() >11){
+                mWarpList.remove(0);
+            }
+
+            if(mWarpList.size() > mConfig.mMinSteadyFrames){
+                for(int i=0;i< mConfig.mMinSteadyFrames;i++){
+                    int indx = mWarpList.size()-i-1;
+                    if(indx<0) break;
+                    val = mWarpList.elementAt(indx);
+                    if(val.second != GOOD) {
+                        ret.mSteady = TOO_HIGH;
+                    }
+                    //Log.i(i+"", mWarpList.elementAt(i).get(0,2)[0] + "x" + mWarpList.elementAt(i).get(1,2)[0]);
+                }
+            }else{
+                ret.mSteady = NOT_COMPUTED;
+            }
+            Log.d(TAG, "Steady : " +String.valueOf(ret.mSteady));
             //process frame
             if(matinput.width() < matinput.height()) {
                 mSetRotation = true;
@@ -354,11 +381,12 @@ public class RdtAPI {
                     //Find Transformation..
                     ret.mRDTFound = true;
                     ret.mInfo.mMinRdtError = mStatus.mInfo.mMinRdtError;
-                    Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
+                    ret.mSteady = mStatus.mSteady;
                     ret.mBoundingBoxX = mStatus.mBoundingBoxX;
                     ret.mBoundingBoxY = mStatus.mBoundingBoxY;
                     ret.mBoundingBoxWidth = mStatus.mBoundingBoxWidth;
                     ret.mBoundingBoxHeight = mStatus.mBoundingBoxHeight;
+                    Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
                 }else{
                     ret.mRDTFound =false;
                 }
@@ -368,7 +396,7 @@ public class RdtAPI {
                 mRDTProcessingResultAvailable=false;
             }
             //We should thread from here
-            if (!mRDTProcessing) {
+            if ((!mRDTProcessing) && (ret.mSteady == GOOD)) {
                 mRDTProcessing = true;
                 mRDTProcessingResultAvailable = false;
                 if (mInputMat != null) mInputMat.release();
@@ -611,6 +639,10 @@ public class RdtAPI {
 
         public RdtAPIBuilder setMaxScale(short mMaxScale) {
             mConfig.setmMaxScale(mMaxScale);
+            return this;
+        }
+        public RdtAPIBuilder setmMinSteadyFrames(short fcnt){
+            mConfig.setmMinSteadyFrames(fcnt);
             return this;
         }
 

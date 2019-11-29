@@ -23,7 +23,8 @@ import static org.opencv.video.Video.MOTION_TRANSLATION;
 import static org.opencv.video.Video.findTransformECC;
 
 public class ImageRegistration {
-
+    static String TAG= InformationStatus.class.getName();
+    static int REGISTRATION_LEVEL=4;
     static Mat mRefPyr=null;
     public static Mat GetTransform(Mat refM, Mat insM) {
         Mat ref = new Mat();
@@ -34,19 +35,17 @@ public class ImageRegistration {
         return warpMatrix;
     }
 
-    public static Mat FindMotion(Mat inp,boolean saveref){
+    public static Mat FindMotion(Mat inp,boolean saveref) {
         Mat ins = new Mat();
         pyrDown(inp, ins);
-        pyrDown(ins, ins);
-        pyrDown(ins, ins);
-        pyrDown(ins, ins);
+        for (int i = 0; i < REGISTRATION_LEVEL - 1; i++){
+            pyrDown(ins, ins);
+        }
         Mat warpMatrix=null;
         if(mRefPyr!= null) {
             warpMatrix = getTransformation(mRefPyr,ins);
         }
         if(saveref)mRefPyr = ins.clone();
-//        SaveMatrix(mRefPyr,"m1");
-//        SaveMatrix(ins,"m2");
         return warpMatrix;
     }
 
@@ -74,11 +73,11 @@ public class ImageRegistration {
         Mat warp;
         Mat warpmat = ImageRegistration.FindMotion(greyMat, true);
         if (warpmat != null) {
-            int level = 4;
-            warp = scaleAffineMat(warpmat, level);
-            PrintAffineMat("warp", warp);
+
+            warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
+            PrintAffineMat("warp ", warp);
             //ComputeVector
-            Log.i("Tx-Ty Inp", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
+            Log.i(TAG, "Tx-Ty Inp "+ warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
         }else{
             warp = Mat.eye(2,3,CV_32F);
             warp.put(0,0,1.0);
@@ -97,9 +96,13 @@ public class ImageRegistration {
             int numIter = 50;
             double terminationEps = 1e-3;
             TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
-            findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, new Mat());
+            double r= findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, new Mat());
+            if(r == -1){
+                Log.e(TAG,"Rc== -1");
+                return null;
+            }
         }catch(Exception e){
-            Log.e("Exception","Exception in FindTransformECC");
+            Log.e(TAG,"Exception in FindTransformECC");
             return null;
         }
         return warpMatrix;
