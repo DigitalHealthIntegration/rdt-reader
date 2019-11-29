@@ -219,6 +219,10 @@ public class RdtAPI {
     }
 
     private boolean computeDistortion(Mat mat,AcceptanceStatus ret){
+        if(ret.mMinRdtError > mConfig.mMinRdtErrorThreshold){
+            ret.mPerspectiveDistortion= TOO_HIGH;
+            return false;
+        }
         if(mSetRotation) {
             if (ret.mBoundingBoxWidth * 100 > mConfig.mMaxScale * mat.cols()) {
                 ret.mScale = TOO_HIGH;
@@ -349,6 +353,7 @@ public class RdtAPI {
                 if ((mStatus!= null) && mStatus.mRDTFound) {
                     //Find Transformation..
                     ret.mRDTFound =true;
+                    ret.mMinRdtError = mStatus.mMinRdtError;
                     Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
                     ret.mBoundingBoxX = mStatus.mBoundingBoxX;
                     ret.mBoundingBoxY = mStatus.mBoundingBoxY;
@@ -452,6 +457,7 @@ public class RdtAPI {
             mTensorFlowProcessTime = System.currentTimeMillis() - updatetimest;
 
             retStatus.mRDTFound = rdtFound[0].booleanValue();
+            retStatus.mMinRdtError = mTensorFlow.getMinError();
             if (retStatus.mRDTFound) {
                 Rect roi = detectedRoi.clone();
                 if (mSetRotation) {
@@ -541,6 +547,12 @@ public class RdtAPI {
             mConfig.setmMinBrightness(mMinBrightness);
             return this;
         }
+
+        public RdtAPIBuilder setMinRdtErrorThreshold(float minThreshold) {
+            mConfig.setmMinRdtErrorThreshold(minThreshold);
+            return this;
+        }
+
 
         public RdtAPIBuilder setMaxBrightness(float mMaxBrightness) {
             mConfig.setmMaxBrightness(mMaxBrightness);

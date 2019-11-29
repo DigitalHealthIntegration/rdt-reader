@@ -18,7 +18,7 @@ public class Config{
     public short mMaxAllowedTranslationY;
     public short mMaxFrameTranslationalMagnitude;
     public short mMax10FrameTranslationalMagnitude;
-
+    public double mMinRdtErrorThreshold;
     public Config() {
         setDefaults();
     }
@@ -39,9 +39,14 @@ public class Config{
         mMaxAllowedTranslationX = 6; //level 4
         mMaxFrameTranslationalMagnitude = 100;
         mMax10FrameTranslationalMagnitude = 200;
+        mMinRdtErrorThreshold = 23.0;
     }
     public void setmMappedByteBuffer(MappedByteBuffer mMappedByteBuffer) {
         this.mMappedByteBuffer = mMappedByteBuffer;
+    }
+
+    public void setmMinRdtErrorThreshold(double mMinRdtErrorThreshold) {
+        this.mMinRdtErrorThreshold = mMinRdtErrorThreshold;
     }
 
     public void setmTfliteB(byte[] mTfliteB) {

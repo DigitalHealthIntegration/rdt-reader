@@ -631,6 +631,7 @@ public class MainActivity extends AppCompatActivity {
                         t += "\nperspec=" + status.mPerspectiveDistortion;
                         t += "\nS=" + status.mInfo.mSharpness;
                         t += "\nB=" + status.mInfo.mBrightness;
+                        t += "\nE=" + Math.ceil(status.mMinRdtError);
                         mStatusView.setText(t);
                         if ((status.mSharpness == 0) && (status.mScale == 0) && (status.mBrightness == 0) && (status.mPerspectiveDistortion == 0))
                             mStatusView.setTextColor(Color.GREEN);
