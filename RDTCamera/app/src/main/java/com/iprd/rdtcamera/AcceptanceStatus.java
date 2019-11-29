@@ -21,7 +21,6 @@ public class AcceptanceStatus {
     public short mBoundingBoxX, mBoundingBoxY;
     public short mBoundingBoxWidth, mBoundingBoxHeight;
     public short mSteady;
-    public double mMinRdtError;
 
     public InformationStatus mInfo;
     public String GetResult(){
@@ -43,7 +42,6 @@ public class AcceptanceStatus {
         mPerspectiveDistortion = NOT_COMPUTED;
         mBoundingBoxX = mBoundingBoxY= mBoundingBoxWidth=mBoundingBoxHeight=-1;
         mSteady = NOT_COMPUTED;
-        mMinRdtError=NOT_COMPUTED;
         mInfo=new InformationStatus();
     }
 };

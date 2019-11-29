@@ -7,7 +7,10 @@ public class InformationStatus{
     public InformationStatus(){
         mTrackedImage=null;
         mBrightness = mSharpness = 0;
+        mMinRdtError= 100.0;
     }
     public int mBrightness;
     public int mSharpness;
+    public double mMinRdtError;
+
 }
