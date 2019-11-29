@@ -47,6 +47,11 @@ public class ObjectDetection {
     private static double ref_A_C = (cannonicalCpattern[1]-cannonicalArrow[1]);
     private static double scale = 0.0;
     private static double angleDegree = 0.0;
+
+    public static double getMinError() {
+        return minError;
+    }
+
     private static double minError =100.0;
 
     public void setSavePoints(boolean SavePoints) {
