@@ -347,20 +347,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setAndDisplayGrid() {
-        float cell_height = mTextureView.getWidth() > 0 ? mTextureView.getWidth() / 5 : 0;
-        float cell_width = mTextureView.getHeight() > 0 ? mTextureView.getHeight() / 9 : 0;
+        float cell_width = mTextureView.getWidth() > 0 ? mTextureView.getWidth() / ModelInfo.numberBlocks[0] : 1; //5 //7
+        float cell_height = mTextureView.getHeight() > 0 ? mTextureView.getHeight() / ModelInfo.numberBlocks[1] : 1; //9 //16
         TableLayout tableLayout = (TableLayout) findViewById(R.id.gridTable);
 
-        for (int j = 0; j < 9; j++) {
+        for (int j = 0; j < ModelInfo.numberBlocks[1]; j++) {
             TableRow tableRowr = new TableRow(this);
 
             tableRowr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < ModelInfo.numberBlocks[0]; i++) {
                 TextView b = new TextView(this);
                 b.setText("");
-                b.setHeight((int) Math.floor(cell_height) - 2);
-                b.setWidth((int) Math.ceil(cell_width) + 2);
+                b.setHeight((int) Math.ceil(cell_height));
+                b.setWidth((int) Math.ceil(cell_width));
                 b.setBackgroundResource(R.drawable.cell_shape);
                 b.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
                 tableRowr.addView(b);
