@@ -219,7 +219,7 @@ public class RdtAPI {
     }
 
     private boolean computeDistortion(Mat mat,AcceptanceStatus ret){
-        if(ret.mMinRdtError > mConfig.mMinRdtErrorThreshold){
+        if(ret.mInfo.mMinRdtError > mConfig.mMinRdtErrorThreshold){
             ret.mPerspectiveDistortion= TOO_HIGH;
             return false;
         }
@@ -352,8 +352,8 @@ public class RdtAPI {
             if( mRDTProcessingResultAvailable) {
                 if ((mStatus!= null) && mStatus.mRDTFound) {
                     //Find Transformation..
-                    ret.mRDTFound =true;
-                    ret.mMinRdtError = mStatus.mMinRdtError;
+                    ret.mRDTFound = true;
+                    ret.mInfo.mMinRdtError = mStatus.mInfo.mMinRdtError;
                     Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
                     ret.mBoundingBoxX = mStatus.mBoundingBoxX;
                     ret.mBoundingBoxY = mStatus.mBoundingBoxY;
@@ -449,7 +449,6 @@ public class RdtAPI {
     private void ProcessRDT(AcceptanceStatus retStatus,Mat inputmat,Mat reszgreymat){
         Rect detectedRoi=null;
         final long updatetimest = System.currentTimeMillis();
-
         try {
             //Log.i("ProcessRDT","Coming in process RDT");
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
@@ -457,7 +456,7 @@ public class RdtAPI {
             mTensorFlowProcessTime = System.currentTimeMillis() - updatetimest;
 
             retStatus.mRDTFound = rdtFound[0].booleanValue();
-            retStatus.mMinRdtError = mTensorFlow.getMinError();
+            retStatus.mInfo.mMinRdtError = mTensorFlow.getMinError();
             if (retStatus.mRDTFound) {
                 Rect roi = detectedRoi.clone();
                 if (mSetRotation) {
@@ -478,10 +477,11 @@ public class RdtAPI {
                 }
                 if(mShowPip){
                     synchronized (piplock) {
-                        int w = 360,h = 640;
+                        int w = inputmat.width()>>2,h = inputmat.height()>>2;
                         if(!mSetRotation){
-                            w=640;
-                            h=360;
+                            int t = w;
+                            w=h;
+                            h=w;
                         }
                         mPipMat = new Mat(w, h, inputmat.type());
                         resize(inputmat, mPipMat, new Size(w, h));
