@@ -2,6 +2,7 @@ package com.iprd.rdtcamera;
 
 import android.util.Log;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.TermCriteria;
@@ -41,6 +42,7 @@ public class ImageRegistration {
         for (int i = 0; i < REGISTRATION_LEVEL - 1; i++){
             pyrDown(ins, ins);
         }
+        ins = DetectEdges(ins);
         Mat warpMatrix=null;
         if(mRefPyr!= null) {
             warpMatrix = getTransformation(mRefPyr,ins);
@@ -73,7 +75,6 @@ public class ImageRegistration {
         Mat warp;
         Mat warpmat = ImageRegistration.FindMotion(greyMat, true);
         if (warpmat != null) {
-
             warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
             PrintAffineMat("warp ", warp);
             //ComputeVector
@@ -107,4 +108,33 @@ public class ImageRegistration {
         }
         return warpMatrix;
     }
+    public static Mat DetectEdges(Mat grayMat){
+        //Matrices to store gradient and absolute gradient respectively
+        Mat grad_x = new Mat();
+        Mat abs_grad_x = new Mat();
+
+        Mat grad_y = new Mat();
+        Mat abs_grad_y = new Mat();
+        //Calculating gradient in horizontal direction
+        Imgproc.Sobel(grayMat, grad_x, CvType.CV_16S, 1, 0, 3, 1, 0);
+
+        //Calculating gradient in vertical direction
+        Imgproc.Sobel(grayMat, grad_y, CvType.CV_16S, 0, 1, 3, 1, 0);
+
+        //Calculating absolute value of gradients in both the direction
+        Core.convertScaleAbs(grad_x, abs_grad_x);
+        Core.convertScaleAbs(grad_y, abs_grad_y);
+
+        //Calculating the resultant gradient
+        Mat sobel = new Mat(); //Mat to store the final result
+        Core.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 1, sobel);
+
+        grad_x.release();
+        abs_grad_x.release();
+        grad_y.release();
+        abs_grad_y.release();
+
+        return sobel;
+    }
+
 }

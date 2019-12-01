@@ -611,7 +611,7 @@ public class MainActivity extends AppCompatActivity {
             }
             Bitmap TrackedImage = status.mInfo.mTrackedImage;
             long et = System.currentTimeMillis() - st;
-            Log.i("BBF", status.mBoundingBoxX + "x" + status.mBoundingBoxY + "-" + status.mBoundingBoxWidth + "x" + status.mBoundingBoxHeight);
+            //Log.i("BBF", status.mBoundingBoxX + "x" + status.mBoundingBoxY + "-" + status.mBoundingBoxWidth + "x" + status.mBoundingBoxHeight);
 
             runOnUiThread(new Runnable() {
                 @Override
