@@ -36,12 +36,16 @@ import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
 import static com.iprd.rdtcamera.CvUtils.mComputeVector_FinalPoint;
 import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.ImageRegistration.ComputeMotion;
+import static com.iprd.rdtcamera.ImageRegistration.DetectEdges;
+import static com.iprd.rdtcamera.ImageRegistration.FindMotionLaplacianRefIns;
 import static com.iprd.rdtcamera.ImageRegistration.FindMotionRefIns;
 import static com.iprd.rdtcamera.ObjectDetection.warpPoint;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.opencv.imgproc.Imgproc.INTER_CUBIC;
+import static org.opencv.imgproc.Imgproc.INTER_LINEAR;
+import static org.opencv.imgproc.Imgproc.WARP_INVERSE_MAP;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.imgproc.Imgproc.pyrDown;
@@ -180,15 +184,15 @@ public class RegTest {
             mWarpList.add(item);
             Mat  warp10 = FindMotionRefIns(mWarpList.elementAt(0).second,greyMat,mWarpInfo,false);
             Mat mWarpedMat = new Mat(greyMat.width(), greyMat.height(), greyMat.type());
-            warpAffine(greyMat,mWarpedMat,warp10,greyMat.size());
+            warpAffine(greyMat,mWarpedMat,warp10,greyMat.size()/*,WARP_INVERSE_MAP|INTER_LINEAR*/);
             Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);
             long stend  = System.currentTimeMillis()-st;
             Log.d("MotionComp",stend+"");
-            if(mWarpList.size() >10){
-                mWarpList.elementAt(0).first.release();
-                mWarpList.elementAt(0).second.release();
-                mWarpList.remove(0);
-            }
+//            if(mWarpList.size() >10){
+//                mWarpList.elementAt(0).first.release();
+//                mWarpList.elementAt(0).second.release();
+//                mWarpList.remove(0);
+//            }
             com.iprd.rdtcamera.Utils.SaveMatrix(mWarpedMat,"Test");
         }
     }

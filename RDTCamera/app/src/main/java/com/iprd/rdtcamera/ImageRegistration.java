@@ -1,9 +1,12 @@
 package com.iprd.rdtcamera;
 
+import android.nfc.Tag;
 import android.util.Log;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.TermCriteria;
 import org.opencv.imgproc.Imgproc;
@@ -11,11 +14,13 @@ import org.opencv.imgproc.Imgproc;
 import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
 import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
+import static org.opencv.core.CvType.CV_16S;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.imgproc.Imgproc.INTER_CUBIC;
 import static org.opencv.imgproc.Imgproc.INTER_LINEAR;
 import static org.opencv.imgproc.Imgproc.WARP_INVERSE_MAP;
 import static org.opencv.imgproc.Imgproc.pyrDown;
+import static org.opencv.imgproc.Imgproc.pyrUp;
 import static org.opencv.imgproc.Imgproc.warpAffine;
 import static org.opencv.imgproc.Imgproc.warpPerspective;
 import static org.opencv.video.Video.MOTION_AFFINE;
@@ -75,8 +80,98 @@ public class ImageRegistration {
             }
         }
         Mat warp=null;
-//        SaveMatrix(ref,"ref");
-//        SaveMatrix(ins,"ins");
+        double ret  = updateTransformationMat(DetectEdges(ins),DetectEdges(ref),warpmat);
+        if (ret >0.0) {
+            warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
+            PrintAffineMat("warpRI", warp);
+            //ComputeVector
+            Log.i("Tx-Ty 10 Inp", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
+        }else{
+            warp = Mat.eye(2,3,CV_32F);
+            warpmat=warp.clone();
+            warp.put(0,2,refe.width());
+            warp.put(1,2,refe.height());
+        }
+        ref.release();
+        ins.release();
+        return warp;
+    }
+
+
+    public static Mat DetectEdges(Mat grayMat){
+        //Matrices to store gradient and absolute gradient respectively
+        Mat grad_x = new Mat();
+        Mat abs_grad_x = new Mat();
+
+        Mat grad_y = new Mat();
+        Mat abs_grad_y = new Mat();
+        //Calculating gradient in horizontal direction
+        Imgproc.Sobel(grayMat, grad_x, CvType.CV_16S, 1, 0, 3, 1, 0);
+
+        //Calculating gradient in vertical direction
+        Imgproc.Sobel(grayMat, grad_y, CvType.CV_16S, 0, 1, 3, 1, 0);
+
+        //Calculating absolute value of gradients in both the direction
+        Core.convertScaleAbs(grad_x, abs_grad_x);
+        Core.convertScaleAbs(grad_y, abs_grad_y);
+
+        //Calculating the resultant gradient
+        Mat sobel = new Mat(); //Mat to store the final result
+        Core.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 1, sobel);
+
+        grad_x.release();
+        abs_grad_x.release();
+        grad_y.release();
+        abs_grad_y.release();
+
+        return sobel;
+    }
+
+    public static Mat FindMotionLaplacianRefIns(Mat refe,Mat inp,Mat warpmat ,boolean resize){
+        Mat ins = new Mat();
+        Mat ref = new Mat();
+        Mat ins1 = new Mat();
+
+        int w=0,h=0;
+        if(resize){
+            Size s = new Size(inp.width()>>REGISTRATION_LEVEL,inp.height()>>REGISTRATION_LEVEL);
+            ins = new Mat((int)s.width,(int)s.height,inp.type());
+            ref = new Mat((int)s.width,(int)s.height,inp.type());
+            Imgproc.resize(inp,ins,s, 0.0, 0.0, INTER_CUBIC);
+            Imgproc.resize(refe,ref,s, 0.0, 0.0, INTER_CUBIC);
+        }else {
+            pyrDown(inp, ins);
+            w = ins.rows();
+            h = ins.cols();
+            for (int i = 0; i < REGISTRATION_LEVEL-2 ; i++) {
+                w = ins.rows();
+                h = ins.cols();
+                pyrDown(ins, ins);
+            }
+            pyrDown(ins, ins1);
+            Mat up=new Mat(w,h,ins.type());
+            pyrUp(ins1,up);
+            //SaveMatrix(up,"insup");
+            Core.subtract(ins,up,ins);
+            //ins = ins - up;
+            pyrDown(refe, ref);
+            w = ref.rows();
+            h = ref.cols();
+            for (int i = 0; i < REGISTRATION_LEVEL-2 ; i++) {
+                w = ref.rows();
+                h = ref.cols();
+                pyrDown(ref, ref);
+            }
+            pyrDown(ref, ins1);
+            up=new Mat(w,h,ref.type());
+            pyrUp(ins1,up);
+            //SaveMatrix(up,"refup");
+            Core.subtract(ref,up,ref);
+//            Mat dst = new Mat();
+//            Core.convertScaleAbs(ins,dst,1,128);
+//            SaveMatrix(dst,"ref");
+        }
+        Mat warp=null;
         double ret  = updateTransformationMat(ins,ref,warpmat);
         if (ret >0.0) {
             warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
@@ -84,7 +179,6 @@ public class ImageRegistration {
             //ComputeVector
             Log.i("Tx-Ty 10 Inp", warpmat.get(0, 2)[0] + "x" + warpmat.get(1, 2)[0]);
         }else{
-
             warp = Mat.eye(2,3,CV_32F);
             warpmat=warp.clone();
             warp.put(0,2,refe.width());
@@ -113,14 +207,17 @@ public class ImageRegistration {
         return warp;
     }
     public static double updateTransformationMat(Mat ref, Mat ins,Mat warpMatrix) {
+        //SaveMatrix(ref,"ins");
+        //SaveMatrix(ins,"ref");
         // Log.d("Transform",ref.cols()+"x"+ref.rows()+ " " +ins.cols()+"x"+ins.rows());
         final int warp_mode = MOTION_TRANSLATION;
         double ret = -1.0;
         try {
-            int numIter = 50;
+            int numIter = 500;
             double terminationEps = 1e-3;
             TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
             ret = findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, new Mat());
+            Log.i("findTransformECC", " "+String.valueOf(ret));
         }catch(Exception e){
             Log.e("Exception","Exception in FindTransformECC");
             return -1.0;

@@ -25,6 +25,7 @@ import static com.iprd.rdtcamera.CvUtils.mComputeVector_FinalPoint;
 import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.CvUtils.warpPoint;
 import static com.iprd.rdtcamera.ImageRegistration.ComputeMotion;
+import static com.iprd.rdtcamera.ImageRegistration.FindMotionLaplacianRefIns;
 import static com.iprd.rdtcamera.ImageRegistration.FindMotionRefIns;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
 import static com.iprd.rdtcamera.Utils.getBitmapFromMat;
@@ -345,7 +346,7 @@ public class RdtAPI {
 //
 
             long currtime  = System.currentTimeMillis();
-            if((currtime - mPreviousTime > 2*1000)||(Math.abs(warp10.get(0,2)[0]) >= (greyMat.width()>>2))||(Math.abs(warp10.get(1,2)[0]) >= (greyMat.height()>>2))){
+            if((currtime - mPreviousTime > 2*1000)/*||(Math.abs(warp10.get(0,2)[0]) >= (greyMat.width()>>2))||(Math.abs(warp10.get(1,2)[0]) >= (greyMat.height()>>2))*/){
                 Log.i("RDT Ref","Reset Ref ");
                 mRefCount = 0;
                 mPreviousTime=currtime;
@@ -386,7 +387,7 @@ public class RdtAPI {
             org.opencv.core.Size sz = new org.opencv.core.Size(1280, 720);
             Imgproc.resize(mSetRotation ? rotatedmat:greyMat, greyMatResized, sz, 0.0, 0.0, INTER_CUBIC);
             mPreProcessingTime = System.currentTimeMillis() - st;
-            //mRDTProcessingResultAvailable=false;
+            mRDTProcessingResultAvailable=false;
             if( mRDTProcessingResultAvailable) {
                 if ((mStatus!= null) && mStatus.mRDTFound) {
                     //Find Transformation..
@@ -405,7 +406,7 @@ public class RdtAPI {
                 mRDTProcessingResultAvailable=false;
             }
             //We should thread from here
-            if (!mRDTProcessing) {
+            if (false){//!mRDTProcessing) {
                 mRDTProcessing = true;
                 mRDTProcessingResultAvailable = false;
                 if (mInputMat != null) mInputMat.release();
