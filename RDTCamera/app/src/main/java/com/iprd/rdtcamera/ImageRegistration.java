@@ -25,7 +25,7 @@ import static org.opencv.video.Video.findTransformECC;
 
 public class ImageRegistration {
     static String TAG= InformationStatus.class.getName();
-    static int REGISTRATION_LEVEL=4;
+    static int REGISTRATION_LEVEL=5;
     static Mat mRefPyr=null;
     public static Mat GetTransform(Mat refM, Mat insM) {
         Mat ref = new Mat();

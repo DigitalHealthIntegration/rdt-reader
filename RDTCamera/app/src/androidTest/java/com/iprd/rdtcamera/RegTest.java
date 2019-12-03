@@ -37,6 +37,7 @@ import static com.iprd.rdtcamera.ObjectDetection.warpPoint;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static org.opencv.core.CvType.CV_8U;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.imgproc.Imgproc.pyrDown;
@@ -67,7 +68,13 @@ public class RegTest {
         Mat out = new Mat();
         Mat grey = new Mat();
         Utils.bitmapToMat(inp, out);
-        cvtColor(out, grey, Imgproc.COLOR_RGBA2GRAY);
+        if(out.type()!=CV_8U){
+            cvtColor(out, grey, Imgproc.COLOR_RGBA2GRAY);
+        }else{
+            Mat BGRImage = new Mat (inp.getWidth(), inp.getHeight(), CV_8U);
+            Utils.bitmapToMat(inp, BGRImage);
+            grey = BGRImage.clone();
+        }
         return grey;
     }
 

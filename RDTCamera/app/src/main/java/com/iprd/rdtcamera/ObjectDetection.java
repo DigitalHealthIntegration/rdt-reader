@@ -63,7 +63,7 @@ public class ObjectDetection {
     private static int[] resizeFactor = {inputSize[0]/numberBlocks[0],inputSize[1]/numberBlocks[1]};
     private static float[] orientationAngles={0,22.5f,45,135,157.5f,180,202.5f,225,315,337.5f};
     protected ByteBuffer imgData =  ByteBuffer.allocateDirect(inputSize[0]*inputSize[1]*4);
-    Mat tmp_for_draw = null;
+    public Mat tmp_for_draw = null;
     Point C_arrow_predicted = new Point(0, 0);
     Point C_Cpattern_predicted = new Point(0, 0);
     Point C_Infl_predicted = new Point(0, 0);
@@ -219,12 +219,21 @@ public class ObjectDetection {
                             hMap.put(confidence, v);
                             if (typeOfFeat==2){
                                 vectorTableArrow.add(hMap);
+                                if(mSavePoints) {
+                                    Imgproc.circle(tmp_for_draw, new Point(cx,cy), 5, new Scalar(0, 0, 255), 2);
+                                }
                             }
                             else if (typeOfFeat==1){
                                 vectorTableCpattern.add(hMap);
+                                if(mSavePoints) {
+                                    Imgproc.circle(tmp_for_draw, new Point(cx,cy), 5, new Scalar(0, 255, 0), 2);
+                                }
                             }
                             else if (typeOfFeat==0){
                                 vectorTableInfluenza.add(hMap);
+                                if(mSavePoints) {
+                                    Imgproc.circle(tmp_for_draw, new Point(cx,cy), 5, new Scalar(255, 0, 0), 2);
+                                }
                             }
                         }
                     }
