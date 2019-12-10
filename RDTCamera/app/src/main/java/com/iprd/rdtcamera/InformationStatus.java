@@ -10,8 +10,12 @@ public class InformationStatus{
         mWarpedImage = null;
         mBrightness = mSharpness = 0;
         mMinError = -1;
+        mAngle=-1;
+        mScale=-1;
     }
     public int mBrightness;
     public int mSharpness;
     public double mMinError;
+    public double mAngle;
+    public double mScale;
 }

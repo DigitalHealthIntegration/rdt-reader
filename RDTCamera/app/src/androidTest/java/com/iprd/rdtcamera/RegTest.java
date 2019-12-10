@@ -43,6 +43,7 @@ import static com.iprd.rdtcamera.ObjectDetection.warpPoint;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static org.opencv.core.CvType.CV_8U;
 import static org.opencv.imgproc.Imgproc.INTER_CUBIC;
 import static org.opencv.imgproc.Imgproc.INTER_LINEAR;
 import static org.opencv.imgproc.Imgproc.WARP_INVERSE_MAP;
@@ -77,7 +78,13 @@ public class RegTest {
         Mat out = new Mat();
         Mat grey = new Mat();
         Utils.bitmapToMat(inp, out);
-        cvtColor(out, grey, Imgproc.COLOR_RGBA2GRAY);
+        if(out.type()!=CV_8U){
+            cvtColor(out, grey, Imgproc.COLOR_RGBA2GRAY);
+        }else{
+            Mat BGRImage = new Mat (inp.getWidth(), inp.getHeight(), CvType.CV_8U);
+            Utils.bitmapToMat(inp, BGRImage);
+            grey = BGRImage.clone();
+        }
         return grey;
     }
 
@@ -171,18 +178,19 @@ public class RegTest {
 
     @Test
     public void TestMotion() {
-        long st  = System.currentTimeMillis();
+
         String prefname = "/Tx/Image";
         String postfname = "Input.jpg";
         Mat  mWarpInfo = Mat.eye(2,3,CV_32F);
         Vector<Pair<Mat,Mat>> mWarpList= new Vector<>();
         for(int i=13;i<31;i++) {
+            long st  = System.currentTimeMillis();
             String name = prefname + i + postfname;
-            Mat greyMat = getMap(name);
+            Mat greyMat = getMap(name);//getMap("/Tx/G0.jpg");
             Mat warp = ComputeMotion(greyMat);
             Pair<Mat,Mat> item = new Pair<>(warp.clone(),greyMat.clone());
             mWarpList.add(item);
-            Mat  warp10 = FindMotionRefIns(mWarpList.elementAt(0).second,greyMat,mWarpInfo,false);
+            Mat  warp10 = FindMotionLaplacianRefIns(mWarpList.elementAt(0).second,greyMat,mWarpInfo,false);
             Mat mWarpedMat = new Mat(greyMat.width(), greyMat.height(), greyMat.type());
             warpAffine(greyMat,mWarpedMat,warp10,greyMat.size()/*,WARP_INVERSE_MAP|INTER_LINEAR*/);
             Imgproc.resize(mWarpedMat, mWarpedMat, new Size(mWarpedMat.width()>>2,mWarpedMat.height()>>2), 0.0, 0.0, INTER_CUBIC);

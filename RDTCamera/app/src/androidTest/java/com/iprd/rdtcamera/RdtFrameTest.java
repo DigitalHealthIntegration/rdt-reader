@@ -94,7 +94,7 @@ public class RdtFrameTest {
                 Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
                 Mat croppedImage = matinput.submat(r);
                 capFrame = getBitmapFromMat(croppedImage);
-                SaveMatrixWithGivenPath(croppedImage,"",list.get(i));
+//                SaveMatrixWithGivenPath(croppedImage,"",list.get(i));
                 AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
 
                 //Bitmap intermediate = getBitmapFromMat(mRdtApi.getTensorFlow().tmp_for_draw);
@@ -107,10 +107,10 @@ public class RdtFrameTest {
                         if(i == 0) {
                             fileWriter = new FileWriter(file);
                             bfWriter = new BufferedWriter(fileWriter);
-                            bfWriter.write("Image, mSharpness,mSharpValue, mScale, mBrightness,mBrightValue, mPerspectiveDistortion, mDisplacementX, mDisplacementY, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mSteady,mError\n");
+                            bfWriter.write("Image, mSharpValue, mScale,mAngle, mBrightValue, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mError\n");
                         }
-                        bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mInfo.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mInfo.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
-                                    +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mSteady+","+status.mInfo.mMinError+"\n");
+                        bfWriter.write(list.get(i)+","+ status.mInfo.mSharpness+","+ status.mInfo.mScale+","+status.mInfo.mAngle+","+ status.mInfo.mBrightness+","+ status.mRDTFound
+                                    +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mInfo.mMinError+"\n");
                         if(i == list.size()-1) {
                             bfWriter.close();
                         }
@@ -161,7 +161,6 @@ public class RdtFrameTest {
 
 
     byte[] ReadFile(String fname) {
-
         byte[] mtfliteBytes = null;
         Log.d("RDT UT","Reading file "+ fname);
         InputStream is = getClass().getResourceAsStream(fname);

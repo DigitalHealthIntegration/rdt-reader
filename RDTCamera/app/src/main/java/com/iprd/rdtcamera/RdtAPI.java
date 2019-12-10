@@ -200,10 +200,12 @@ public class RdtAPI {
         mSharpness = (short) sharpness;
         ret.mInfo.mSharpness = (int)sharpness;
 
-        //Log.d("Sharpness","mSharpness " + sharpness);
-        if (sharpness < mConfig.mMinSharpness){
-            ret.mSharpness = TOO_LOW;
-            return false;
+        if(false) {
+            //Log.d("Sharpness","mSharpness " + sharpness);
+            if (sharpness < mConfig.mMinSharpness) {
+                ret.mSharpness = TOO_LOW;
+                return false;
+            }
         }
         Log.d("Sharpness",""+sharpness);
         ret.mSharpness = AcceptanceStatus.GOOD;
@@ -215,83 +217,86 @@ public class RdtAPI {
         double brightness = tempVal.val[0];
         mBrightness = (short) brightness;
         ret.mInfo.mBrightness = mBrightness;
-        //Log.d("Brightness","mBrightness "+brightness);
-        if (brightness > mConfig.mMaxBrightness) {
-            ret.mBrightness = TOO_HIGH;
-            return false;
-        }else if (brightness < mConfig.mMinBrightness){
-            ret.mBrightness = TOO_LOW;
-            return false;
+        if(false) {
+           //Log.d("Brightness","mBrightness "+brightness);
+           if (brightness > mConfig.mMaxBrightness) {
+               ret.mBrightness = TOO_HIGH;
+               return false;
+           } else if (brightness < mConfig.mMinBrightness) {
+               ret.mBrightness = TOO_LOW;
+               return false;
+           }
         }
-        Log.d("Brightness",""+mBrightness);
+        Log.d("Brightness", "" + mBrightness);
         ret.mBrightness = AcceptanceStatus.GOOD;
         return true;
     }
 
     private boolean computeDistortion(Mat mat,AcceptanceStatus ret){
-        if(mSetRotation) {
-            if (ret.mBoundingBoxWidth * 100 > mConfig.mMaxScale * mat.cols()) {
-                ret.mScale = TOO_HIGH;
-                Log.d("DistMaxSc", "" + ret.mBoundingBoxWidth * 100 + ">" + mConfig.mMaxScale * mat.cols());
-                return false;
-            } else if (ret.mBoundingBoxWidth * 100 < mConfig.mMinScale * mat.cols()) {
-                ret.mScale = TOO_LOW;
-                Log.d("DistMinSc", "" + ret.mBoundingBoxWidth * 100 + "<" + mConfig.mMinScale * mat.cols());
-                return false;
-            } else ret.mScale = AcceptanceStatus.GOOD;
+        if(false) {
+            if (mSetRotation) {
+                if (ret.mBoundingBoxWidth * 100 > mConfig.mMaxScale * mat.cols()) {
+                    ret.mScale = TOO_HIGH;
+                    Log.d("DistMaxSc", "" + ret.mBoundingBoxWidth * 100 + ">" + mConfig.mMaxScale * mat.cols());
+                    return false;
+                } else if (ret.mBoundingBoxWidth * 100 < mConfig.mMinScale * mat.cols()) {
+                    ret.mScale = TOO_LOW;
+                    Log.d("DistMinSc", "" + ret.mBoundingBoxWidth * 100 + "<" + mConfig.mMinScale * mat.cols());
+                    return false;
+                } else ret.mScale = AcceptanceStatus.GOOD;
 
-            if (ret.mBoundingBoxX*100 > mConfig.mXMax*mat.cols()){
-                ret.mDisplacementX = TOO_HIGH;
-                Log.d("DistXMax",""+ret.mBoundingBoxX*100 +">"+ mConfig.mXMax*mat.cols());
-                return false;
-            }else if (ret.mBoundingBoxX*100 < mConfig.mXMin*mat.cols()){
-                ret.mDisplacementX = TOO_LOW;
-                Log.d("DistXMin",""+ret.mBoundingBoxX *100+"<"+ mConfig.mXMin*mat.cols());
-                return false;
-            }else ret.mDisplacementX = GOOD;
+                if (ret.mBoundingBoxX * 100 > mConfig.mXMax * mat.cols()) {
+                    ret.mDisplacementX = TOO_HIGH;
+                    Log.d("DistXMax", "" + ret.mBoundingBoxX * 100 + ">" + mConfig.mXMax * mat.cols());
+                    return false;
+                } else if (ret.mBoundingBoxX * 100 < mConfig.mXMin * mat.cols()) {
+                    ret.mDisplacementX = TOO_LOW;
+                    Log.d("DistXMin", "" + ret.mBoundingBoxX * 100 + "<" + mConfig.mXMin * mat.cols());
+                    return false;
+                } else ret.mDisplacementX = GOOD;
 
-            if (ret.mBoundingBoxY*100 > mConfig.mYMax*mat.rows()){
-                ret.mDisplacementY = TOO_HIGH;
-                Log.d("DistYMax",""+ret.mBoundingBoxY*100 +">"+ mConfig.mYMax*mat.rows());
-                return false;
-            }else if (ret.mBoundingBoxY*100 < mConfig.mYMin*mat.rows()){
-                ret.mDisplacementY = TOO_LOW;
-                Log.d("DistYMin",""+ret.mBoundingBoxY*100 +"<"+ mConfig.mYMin*mat.rows());
-                return false;
-            }else ret.mDisplacementY = GOOD;
+                if (ret.mBoundingBoxY * 100 > mConfig.mYMax * mat.rows()) {
+                    ret.mDisplacementY = TOO_HIGH;
+                    Log.d("DistYMax", "" + ret.mBoundingBoxY * 100 + ">" + mConfig.mYMax * mat.rows());
+                    return false;
+                } else if (ret.mBoundingBoxY * 100 < mConfig.mYMin * mat.rows()) {
+                    ret.mDisplacementY = TOO_LOW;
+                    Log.d("DistYMin", "" + ret.mBoundingBoxY * 100 + "<" + mConfig.mYMin * mat.rows());
+                    return false;
+                } else ret.mDisplacementY = GOOD;
 
-        }else{
-            if (ret.mBoundingBoxHeight * 100 > mConfig.mMaxScale * mat.rows()) {
-                ret.mScale = TOO_HIGH;
-                Log.d("DistMaxSc", "" + ret.mBoundingBoxHeight * 100 + ">" + mConfig.mMaxScale * mat.rows());
-                return false;
-            } else if (ret.mBoundingBoxHeight * 100 < mConfig.mMinScale * mat.rows()) {
-                ret.mScale = TOO_LOW;
-                Log.d("DistMinSc", "" + ret.mBoundingBoxHeight * 100 + "<" + mConfig.mMinScale * mat.rows());
-                return false;
-            } else ret.mScale = AcceptanceStatus.GOOD;
+            } else {
+                if (ret.mBoundingBoxHeight * 100 > mConfig.mMaxScale * mat.rows()) {
+                    ret.mScale = TOO_HIGH;
+                    Log.d("DistMaxSc", "" + ret.mBoundingBoxHeight * 100 + ">" + mConfig.mMaxScale * mat.rows());
+                    return false;
+                } else if (ret.mBoundingBoxHeight * 100 < mConfig.mMinScale * mat.rows()) {
+                    ret.mScale = TOO_LOW;
+                    Log.d("DistMinSc", "" + ret.mBoundingBoxHeight * 100 + "<" + mConfig.mMinScale * mat.rows());
+                    return false;
+                } else ret.mScale = AcceptanceStatus.GOOD;
 
-            if (ret.mBoundingBoxX*100 > mConfig.mXMax*mat.rows()){
-                ret.mDisplacementX = TOO_HIGH;
-                Log.d("DistXMax",""+ret.mBoundingBoxX*100 +">"+ mConfig.mXMax*mat.rows());
-                return false;
-            }else if (ret.mBoundingBoxX*100 < mConfig.mXMin*mat.rows()){
-                ret.mDisplacementX = TOO_LOW;
-                Log.d("DistXMin",""+ret.mBoundingBoxX *100+"<"+ mConfig.mXMin*mat.rows());
-                return false;
-            }else ret.mDisplacementX = GOOD;
+                if (ret.mBoundingBoxX * 100 > mConfig.mXMax * mat.rows()) {
+                    ret.mDisplacementX = TOO_HIGH;
+                    Log.d("DistXMax", "" + ret.mBoundingBoxX * 100 + ">" + mConfig.mXMax * mat.rows());
+                    return false;
+                } else if (ret.mBoundingBoxX * 100 < mConfig.mXMin * mat.rows()) {
+                    ret.mDisplacementX = TOO_LOW;
+                    Log.d("DistXMin", "" + ret.mBoundingBoxX * 100 + "<" + mConfig.mXMin * mat.rows());
+                    return false;
+                } else ret.mDisplacementX = GOOD;
 
-            if (ret.mBoundingBoxY*100 > mConfig.mYMax*mat.cols()){
-                ret.mDisplacementY = TOO_HIGH;
-                Log.d("DistYMax",""+ret.mBoundingBoxY*100 +">"+ mConfig.mYMax*mat.cols());
-                return false;
-            }else if (ret.mBoundingBoxY*100 < mConfig.mYMin*mat.cols()){
-                ret.mDisplacementY = TOO_LOW;
-                Log.d("DistYMin",""+ret.mBoundingBoxY*100 +"<"+ mConfig.mYMin*mat.cols());
-                return false;
-            }else ret.mDisplacementY = GOOD;
+                if (ret.mBoundingBoxY * 100 > mConfig.mYMax * mat.cols()) {
+                    ret.mDisplacementY = TOO_HIGH;
+                    Log.d("DistYMax", "" + ret.mBoundingBoxY * 100 + ">" + mConfig.mYMax * mat.cols());
+                    return false;
+                } else if (ret.mBoundingBoxY * 100 < mConfig.mYMin * mat.cols()) {
+                    ret.mDisplacementY = TOO_LOW;
+                    Log.d("DistYMin", "" + ret.mBoundingBoxY * 100 + "<" + mConfig.mYMin * mat.cols());
+                    return false;
+                } else ret.mDisplacementY = GOOD;
+            }
         }
-
         ret.mPerspectiveDistortion= GOOD;
         return true;
     }
@@ -389,7 +394,7 @@ public class RdtAPI {
             mPreProcessingTime = System.currentTimeMillis() - st;
             mRDTProcessingResultAvailable=false;
             if( mRDTProcessingResultAvailable) {
-                if ((mStatus!= null) && mStatus.mRDTFound) {
+                if ((mStatus!= null) /*&& mStatus.mRDTFound*/) {
                     //Find Transformation..
                     ret.mRDTFound =true;
                     Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
@@ -406,7 +411,7 @@ public class RdtAPI {
                 mRDTProcessingResultAvailable=false;
             }
             //We should thread from here
-            if (false){//!mRDTProcessing) {
+            if(true){//(!mRDTProcessing) {
                 mRDTProcessing = true;
                 mRDTProcessingResultAvailable = false;
                 if (mInputMat != null) mInputMat.release();
@@ -458,6 +463,9 @@ public class RdtAPI {
             matinput.release();
             ret.mInfo.mWarpedImage = getBitmapFromMat(mWarpedMat);
             ret.mInfo.mMinError = mTensorFlow.getMinError();
+            ret .mInfo.mAngle =  mTensorFlow.getMangleDegree();
+            ret .mInfo.mScale =  mTensorFlow.getMscale();
+
             if(mWarpedMat != null) mWarpedMat.release();
             if(mMotionVectorMat!= null){
                 ret.mInfo.mTrackedImage = getBitmapFromMat(mMotionVectorMat);
@@ -533,6 +541,8 @@ public class RdtAPI {
                 retStatus.mBoundingBoxY = (short) (roi.y * hfactor);
                 retStatus.mBoundingBoxWidth = (short) (roi.width * wfactor);
                 retStatus.mBoundingBoxHeight = (short) (roi.height * hfactor);
+                retStatus.mInfo.mAngle = mTensorFlow.getMangleDegree();
+                retStatus.mInfo.mScale = mTensorFlow.getMscale();
                 //Log.d("Bounding Box Computed ",retStatus.mBoundingBoxX+"x"+retStatus.mBoundingBoxY +"  "+retStatus.mBoundingBoxWidth+"x"+retStatus.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
             }
         }

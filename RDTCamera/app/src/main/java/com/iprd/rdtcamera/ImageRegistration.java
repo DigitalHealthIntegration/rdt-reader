@@ -14,10 +14,13 @@ import org.opencv.imgproc.Imgproc;
 import static com.iprd.rdtcamera.CvUtils.PrintAffineMat;
 import static com.iprd.rdtcamera.CvUtils.scaleAffineMat;
 import static com.iprd.rdtcamera.Utils.SaveMatrix;
+import static org.opencv.core.Core.BORDER_DEFAULT;
+import static org.opencv.core.Core.convertScaleAbs;
 import static org.opencv.core.CvType.CV_16S;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.imgproc.Imgproc.INTER_CUBIC;
 import static org.opencv.imgproc.Imgproc.INTER_LINEAR;
+import static org.opencv.imgproc.Imgproc.Laplacian;
 import static org.opencv.imgproc.Imgproc.WARP_INVERSE_MAP;
 import static org.opencv.imgproc.Imgproc.pyrDown;
 import static org.opencv.imgproc.Imgproc.pyrUp;
@@ -31,7 +34,7 @@ import static org.opencv.video.Video.findTransformECC;
 
 public class ImageRegistration {
 
-    static int REGISTRATION_LEVEL=5;
+    static int REGISTRATION_LEVEL=1;
     static Mat mRefPyr=null;
 
     public static Mat GetTransform(Mat refM, Mat insM) {
@@ -112,8 +115,8 @@ public class ImageRegistration {
         Imgproc.Sobel(grayMat, grad_y, CvType.CV_16S, 0, 1, 3, 1, 0);
 
         //Calculating absolute value of gradients in both the direction
-        Core.convertScaleAbs(grad_x, abs_grad_x);
-        Core.convertScaleAbs(grad_y, abs_grad_y);
+        convertScaleAbs(grad_x, abs_grad_x);
+        convertScaleAbs(grad_y, abs_grad_y);
 
         //Calculating the resultant gradient
         Mat sobel = new Mat(); //Mat to store the final result
@@ -127,6 +130,20 @@ public class ImageRegistration {
         return sobel;
     }
 
+    static Mat LaplacianCompute(Mat inp){
+        Mat ins1 = new Mat();
+        pyrDown(inp, ins1);
+        Mat up=new Mat(inp.width(),inp.height(),inp.type());
+        pyrUp(ins1,up);
+
+        Mat lap=new Mat(inp.width(),inp.height(),CvType.CV_16S);
+        //Core.addWeighted(inp,1.0,up,-1.0,255,lap,lap.type());
+        //convertScaleAbs(lap,up);
+        Core.subtract(inp,up,lap);
+        convertScaleAbs(lap, up);
+//        SaveMatrix(up,"insup");
+        return up;
+    }
     public static Mat FindMotionLaplacianRefIns(Mat refe,Mat inp,Mat warpmat ,boolean resize){
         Mat ins = new Mat();
         Mat ref = new Mat();
@@ -143,25 +160,42 @@ public class ImageRegistration {
             pyrDown(inp, ins);
             w = ins.rows();
             h = ins.cols();
-            for (int i = 0; i < REGISTRATION_LEVEL-2 ; i++) {
+            for (int i = 0; i < REGISTRATION_LEVEL-1 ; i++) {
                 w = ins.rows();
                 h = ins.cols();
                 pyrDown(ins, ins);
             }
+
+//            ins = LaplacianCompute(ins);
+//
+            int kernel_size = 3;
+            int scale = 1;
+            int delta = 0;
+            int ddepth = CV_16S;
+            Mat temp = new Mat();
+//            Laplacian( ins, temp, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+//            convertScaleAbs( temp, ins,1,0);
+
             pyrDown(ins, ins1);
             Mat up=new Mat(w,h,ins.type());
             pyrUp(ins1,up);
-            //SaveMatrix(up,"insup");
+//            //SaveMatrix(up,"insup");
             Core.subtract(ins,up,ins);
-            //ins = ins - up;
+//            //ins = ins - up;
+
             pyrDown(refe, ref);
             w = ref.rows();
             h = ref.cols();
-            for (int i = 0; i < REGISTRATION_LEVEL-2 ; i++) {
+            for (int i = 0; i < REGISTRATION_LEVEL-1 ; i++) {
                 w = ref.rows();
                 h = ref.cols();
                 pyrDown(ref, ref);
             }
+//            ref = LaplacianCompute(ref);
+
+//            Laplacian( ref, temp, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+//            convertScaleAbs( temp, ref,1,0);
+
             pyrDown(ref, ins1);
             up=new Mat(w,h,ref.type());
             pyrUp(ins1,up);
@@ -170,6 +204,7 @@ public class ImageRegistration {
 //            Mat dst = new Mat();
 //            Core.convertScaleAbs(ins,dst,1,128);
 //            SaveMatrix(dst,"ref");
+
         }
         Mat warp=null;
         double ret  = updateTransformationMat(ins,ref,warpmat);
@@ -213,7 +248,7 @@ public class ImageRegistration {
         final int warp_mode = MOTION_TRANSLATION;
         double ret = -1.0;
         try {
-            int numIter = 500;
+            int numIter = 50;
             double terminationEps = 1e-3;
             TermCriteria criteria = new TermCriteria(TermCriteria.COUNT + TermCriteria.EPS, numIter, terminationEps);
             ret = findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, new Mat());
