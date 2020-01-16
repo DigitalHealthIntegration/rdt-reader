@@ -21,7 +21,7 @@ const csvWriter = createCsvWriter({
 
 
 
-const folderPath = 'C:/Users/Kashyap/bkp/source/repos/audere/Rdtcrop/Rdtcrop';//'/home/developer/Documents/RDT Test Image';//RDT Test Image';//RDTLess
+const folderPath = 'C://Users//Kashyap//bkp//source//repos//audere//RDT_Test_Images//2020';//'/home/developer/Documents/RDT Test Image';//RDT Test Image';//RDTLess
 var arr1 = [];
 var flist = [];
 console.log("Please wait!! \n",folderPath);
@@ -198,8 +198,11 @@ function checkTheTest(responseBody,filePath, testData){
 		}else if(filePath.indexOf("FluA")>= 0){
 			toBeMatchWith = '{"UUID": "a432f9681-a7ff-43f8-a1a6-f777e9362654", "rc": "1", "msg": "Atype", "Include Proof": "True"}';
 		}else if(filePath.indexOf("Negative")>= 0){
-			toBeMatchWith = '{"UUID": "a432f9681-a7ff-43f8-a1a6-f777e9362654", "rc": "0", "msg": "No Flu", "Include Proof": "True"}';
-		}else {
+			toBeMatchWith = '{"UUID": "a432f9681-a7ff-43f8-a1a6-f777e9362654", "rc": "0", "msg": "Negative", "Include Proof": "True"}';
+		}else if(filePath.indexOf("No_control_line")>= 0){
+			toBeMatchWith = '{"UUID": "a432f9681-a7ff-43f8-a1a6-f777e9362654", "rc": "0", "msg": "No_control_line", "Include Proof": "True"}';
+		}
+		else {
 			console.log("=> ",testName);
 		}
 

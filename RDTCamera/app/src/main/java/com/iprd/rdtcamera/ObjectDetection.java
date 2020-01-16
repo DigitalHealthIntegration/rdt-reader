@@ -2,9 +2,11 @@ package com.iprd.rdtcamera;
 
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.widget.CompoundButton;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Point3;
 import org.opencv.core.Rect;
@@ -22,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -53,6 +56,7 @@ public class ObjectDetection {
     }
 
     private static double minError =100.0;
+    private static double AvgConfbest =0.0;
 
     public void setSavePoints(boolean SavePoints) {
         this.mSavePoints = SavePoints;
@@ -476,6 +480,11 @@ public class ObjectDetection {
         Rect roi = new Rect(-1, -1, -1, -1);
         boolean exit = false;
         found = false;
+        Point3 minConf=new Point3(100.0,100.0,100.0);
+        Point3 maxConf=new Point3(0,0,0);
+
+
+
         int cnt_arr = 0;
         int cnt_c=0;
         int cnt_i=0;
@@ -503,6 +512,7 @@ public class ObjectDetection {
                             while(cnt_i<Infl.size()) {
                                 for (Map.Entry iElement : Infl.get(cnt_i).entrySet()) {
                                     float infConf = (float) iElement.getKey();
+                                    float AvgConf = (arrowconf+Cconf+infConf)/3;
                                     cxcywha = (Vector) iElement.getValue();
                                     float[] C_Inlf = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
                                     C_arrow_predicted.x = C_arrow[0];
@@ -519,15 +529,27 @@ public class ObjectDetection {
                                         Imgproc.circle(tmp_for_draw, C_Infl_predicted, 5, new Scalar(255, 0, 0), 5);
                                     }
                                     double tmperror = detect2(C_arrow, C_Cpattern, C_Inlf,scale_rot);
-                                    //Log.d("Least mean square", String.valueOf(tmperror));
+                                    minConf.x = Math.min(minConf.x,arrowconf);
+                                    minConf.y = Math.min(minConf.y,Cconf);
+                                    minConf.z = Math.min(minConf.z,infConf);
+                                    maxConf.x = Math.max(maxConf.x,arrowconf);
+                                    maxConf.y = Math.max(maxConf.y,Cconf);
+                                    maxConf.z = Math.max(maxConf.z,infConf);
                                     if (tmperror<minError) {
-                                        minError=tmperror;
-                                        found = true;
-                                        //Log.d("Entered", "New min");
-                                        C_arrow_best = C_arrow;
-                                        C_Cpattern_best = C_Cpattern;
-                                        C_infl_best = C_Inlf;
-                                        best_scale_rot=scale_rot.clone();
+                                        if(Math.abs(minError-tmperror)>(Math.abs(AvgConf-AvgConfbest)+2)){
+                                            minError=tmperror;
+                                            found = true;
+                                            //Log.d("Entered", "New min");
+                                            C_arrow_best = C_arrow;
+                                            C_Cpattern_best = C_Cpattern;
+                                            C_infl_best = C_Inlf;
+                                            best_scale_rot=scale_rot.clone();
+                                            AvgConfbest=AvgConf;
+
+
+                                        }
+
+
                                         //roi = new Rect((int)C_arrow[0],(int)C_arrow[1],50,50);
                                     }
                                 }
@@ -543,6 +565,10 @@ public class ObjectDetection {
             }
             cnt_arr++;
         }
+        List<MatOfPoint> matOfPoints = new ArrayList<>(3);
+        matOfPoints.add(new MatOfPoint(new Point(C_arrow_best[0],C_arrow_best[1]),new Point(C_Cpattern_best[0],C_Cpattern_best[1]),new Point(C_infl_best[0],C_infl_best[1])));
+        Imgproc.polylines(tmp_for_draw,matOfPoints,false,new Scalar(255,255,0,255),5);
+        Log.i("COnfidence min max",minConf.toString()+"  "+maxConf.toString());
         //double scale=best_scale_rot.x;
         double angleRads=best_scale_rot.y;
         if(angleRads>Math.PI)

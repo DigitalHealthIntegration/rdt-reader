@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import sys
-RDT_GIT_ROOT = "/home/rdtreader/rdt-reader" 
+RDT_GIT_ROOT = "C:/Users/Kashyap/bkp/source/repos/rdt-reader" 
 import tensorflow as tf
 sys.path.append(RDT_GIT_ROOT)
 import flasker

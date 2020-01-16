@@ -95,25 +95,20 @@ def euclidianDistance(p1,p2):
     """
     return np.linalg.norm(p2-p1)
 
-
 def angle_with_yaxis(p1,p2,img,centers,featsPres):
     """Compute angle by which image should be rotated,scale factor and returns a translated image
         
         Args:
-
             p1 (numpy.array) : X,Y of top pattern 1
             p2 (numpy.array) : X,Y of bottom arrow 2
             img (numpy.ndarray) : Image with channels last format
             centers (list) : Centers of red and blue line (Used for debugging only)
         Returns:
             3-element list containing
-
                     - **angle** (*numpy.float*): Angle to rotate Clock wise 
                     
                     - **image** (*numpy.ndarray*): Translated image 
-
                     - **centers** (*list*): List of transformed centers (Used for debugging only)
-
     """
     cent=[p1[0]+(p2[0]-p1[0])/2,p1[1]+(p2[1]-p1[1])/2]
 
@@ -180,12 +175,170 @@ def angle_with_yaxis(p1,p2,img,centers,featsPres):
     translation_matrix = np.float32([ [1,0,transxRight], [0,1,transyDown] ])
     img_translation = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
     if featsPres==0:
-        fy=600.0/ydist # scale computed from reference image
+        fy=1220.0/ydist # scale computed from reference image
     elif featsPres==1:
         fy=900.0/ydist
     elif featsPres==2:
         fy=311.0/ydist
     return angleToRotateCW,img_translation,fy,quad,tranformedCenters
+
+def angle_with_yaxis2(cp1,ap2,ip3,img,centers,featsPres):
+    """Compute angle by which image should be rotated,scale factor and returns a translated image
+        
+        Args:
+
+            p1 (numpy.array) : X,Y of top pattern 1
+            p2 (numpy.array) : X,Y of bottom arrow 2
+            img (numpy.ndarray) : Image with channels last format
+            centers (list) : Centers of red and blue line (Used for debugging only)
+        Returns:
+            3-element list containing
+
+                    - **angle** (*numpy.float*): Angle to rotate Clock wise 
+                    
+                    - **image** (*numpy.ndarray*): Translated image 
+
+                    - **centers** (*list*): List of transformed centers (Used for debugging only)
+
+    """
+    ac_can_full = 1250
+    ai_can_full = 1500
+    cent=[cp1[0]+(ap2[0]-cp1[0])/2,cp1[1]+(ap2[1]-cp1[1])/2]
+
+    quad=1
+    angleToRotateCW=0
+    # if(p2[0]==p1[0]):
+    #     slope=0
+    # elif(p2[1]==p1[1]):
+    #     p2[1]+=1
+    #     slope = float(p2[1]-p1[1])/float(p2[0]-p1[0])
+    # else:
+    #     slope = float(p2[1]-p1[1])/float(p2[0]-p1[0])
+    th1=angleOfLine(ap2,cp1)
+    th2=angleOfLine(ap2,ip3)
+    theta=(th1+th2)/2
+    theta=th1
+    if(theta<0): theta+=2*math.pi
+    #avoid feature orientations which are very different from theta
+    theta_deg=math.degrees(theta)
+    ang=theta_deg
+    ydist=euclidianDistance(cp1,ap2)
+    # Find qaudrant - Quadrant starts from the 2nd Geometrical quadrants and count increases clock wise The arrow must lie in that quadrant
+    if (cp1[0]-ap2[0])>0 and (cp1[1]-ap2[1])>0:
+        quad=1
+    elif (cp1[0]-ap2[0])<0 and (cp1[1]-ap2[1])>0:
+        quad=2
+    elif (cp1[0]-ap2[0])<0 and (cp1[1]-ap2[1])<0:
+        quad=3
+    elif (cp1[0]-ap2[0])>0 and (cp1[1]-ap2[1])<0:
+        quad=4
+    # Compute angle to rotate
+    print("theta degree",theta_deg,"quad",quad,"points Arrow",ap2,"points C",cp1)
+    if(quad==1):
+        x1 = math.cos(theta)
+        x2 = math.sin(theta)
+        x3 = -math.cos(theta)
+        x4 = -math.sin(theta)
+        x5 = -math.cos(theta)
+        x6 =  -math.sin(theta)
+        angleToRotateCW=270-ang
+    elif(quad==3):
+        theta =math.radians(ang-180) 
+        x1 = -math.cos(theta)
+        x2 = -math.sin(theta)
+        x3 = math.cos(theta)
+        x4 = math.sin(theta)
+        x5 = math.cos(theta)
+        x6 = math.sin(theta)
+        angleToRotateCW=90-(ang-180)
+    elif(quad==2):
+        theta =math.radians(180-ang) 
+        x1 = -math.cos(theta)
+        x2 = math.sin(theta)
+        x3 = math.cos(theta)
+        x4 = -math.sin(theta)
+        x5 = math.cos(theta)
+        x6 = -math.sin(theta)
+        angleToRotateCW=90+(180-ang)
+    elif(quad==4):
+        theta =math.radians(360-ang) 
+        x1 = math.cos(theta)
+        x2 = -math.sin(theta)
+        x3 = -math.cos(theta)
+        x4 = math.sin(theta)
+        x5 = -math.cos(theta)
+        x6 = math.sin(theta)
+        angleToRotateCW=270+(360-ang)
+    elif ang==0:
+        x1 = 1
+        x2 = 0
+        x3 = -1
+        x4 = 0
+        x5 = -1
+        x6 = 0
+        angleToRotateCW=270
+    elif ang==90:
+        x1 = 0
+        x2 = 1
+        x3 = 0
+        x4 = -1
+        x5 = 0
+        x6 = -1
+        angleToRotateCW=180
+    elif ang==180:
+        x1 = 1
+        x2 = 0
+        x3 = -1
+        x4 = 0
+        x5 = -1
+        x6 = 0
+        angleToRotateCW=270
+    elif ang==270:
+        x1 = 0
+        x2 = -1
+        x3 = 0
+        x4 = 1
+        x5 = 0
+        x6 = 1
+        angleToRotateCW=0
+    
+    print(quad)
+    print("Angle in degrees",angleToRotateCW)
+    # angleradian = math.radians(angleToRotateCW)
+    ac=euclidianDistance(ap2,cp1)
+    ai=euclidianDistance(ap2,ip3)
+
+    s1=ac_can_full/ac
+    s2=ai_can_full/ai
+    # scale=math.sqrt(s1*s2)
+    # scale = (s1+s2)/2
+    scale = s1
+    A_offset_centre = 700/scale
+    C_offset_centre = 556/scale
+    I_offset_centre = 805/scale
+    
+
+    cent_proj_a = [ap2[0]+x1*A_offset_centre,ap2[1]+x2*A_offset_centre]
+    cent_proj_c = [cp1[0]+x3*C_offset_centre,cp1[1]+x4*C_offset_centre]
+    cent_proj_i = [ip3[0]+x5*I_offset_centre,ip3[1]+x6*I_offset_centre]
+
+    cent = [(cent_proj_a[0]+cent_proj_c[0])/2,(cent_proj_a[1]+cent_proj_c[1])/2]
+    print("Center A",cent_proj_a,"Center C",cent_proj_c,"Center I",cent_proj_i,"Center ",cent)
+    centimg=[img.shape[1]/2,img.shape[0]/2]
+    transxRight=int(centimg[0]-cent[0])
+    transyDown=int(centimg[1]-cent[1])
+    tranformedCenters=[0,0,0,0,0,0]
+    for ind,cents in enumerate(centers):
+#         print(ind)
+        cents[0] = cents[0]+transxRight
+        cents[1] = cents[1]+transyDown
+        tranformedCenters[2*ind]=cents[0]
+        tranformedCenters[2*ind+1]=cents[1]
+    num_rows, num_cols = img.shape[:2]
+    translation_matrix = np.float32([ [1,0,transxRight], [0,1,transyDown] ])
+    img_translation = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
+
+    return angleToRotateCW,img_translation,scale,quad,tranformedCenters
 #     print(ang,quad)
 
 def returnROI(img,centers):
@@ -345,6 +498,7 @@ def angle_constraint(orientation,theta_deg):
     if(d>180): d=360-d
     if(d>T): return True
     return False
+
 def warpPoint(point, R):
     result=[0,0]
     result[0] = point[0] * R[0,0] + point[1] *  R[0,1]+  R[0,2]
@@ -454,7 +608,7 @@ def generateRDTcropV2(boxes,im0):
                         C_best=C_Cpattern_predicted
                         I_best=C_Infl_predicted
         
-        angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis(np.array(C_best),np.array(A_best),im0,[[0,0],[0,0],[0,0]],0)
+        angleToRotate,im0,scale_percent,quad,[cx_A,cy_A,cx_B,cy_B,cx_C,cy_C]=angle_with_yaxis2(np.array(C_best),np.array(A_best),np.array(I_best),im0,[[0,0],[0,0],[0,0]],0)
         cv2.imwrite("translated.jpg",im0)
         # Resize image
         print("scale",scale_percent)
@@ -623,7 +777,7 @@ def runPipeline(img,serverObj):
             if blue_detection>0 and virus_type==0:
                 rc=0
             elif blue_detection ==0:
-                message="No control line found"
+                message="No_control_line"
                 rc=-1
             elif virus_type==1:
                 rc = 1
@@ -649,7 +803,7 @@ def processRdtRequest(UUID,include_proof,img_str,serv):
         This function is called from the rest API code which extracts the required data from the request and calls this function.
     '''
     print("Calling fn to process rdt in flasker")
-    message1="No Flu"
+    message1="Negative"
     rc=0
     try:
         nparr = np.fromstring(img_str, np.uint8)
@@ -672,26 +826,46 @@ def processRdtRequest(UUID,include_proof,img_str,serv):
     boxes = serv.callyolo(img_np)
     et = time.time()
     t1=et-st
+    _img_ = np.copy(im0)
+    # colCorr=(0.011307082205892827, -0.014425887586575259, 0.3093816717263326)
+    # img_ = img_/255.0
+    # img_ = np.array(img_,dtype=np.float32)
+    # imgYUV=cv2.cvtColor(img_,cv2.COLOR_BGR2YUV)
+
+    
+    # imgYUV[:,:,0]=imgYUV[:,:,0]-(colCorr[2]/2)
+    # imgYUV[:,:,1]=imgYUV[:,:,1]-(colCorr[0]*2)
+    # imgYUV[:,:,2]=imgYUV[:,:,2]-(colCorr[1]*2)
+    # imgGainLow = cv2.cvtColor(imgYUV,cv2.COLOR_YUV2BGR)
+
+    # cv2.imwrite( "boostedV.jpg" ,imgGainLow*255)
+    # _img_ =cv2.imread("boostedV.jpg")    
     try:
         im0 = utils.draw_bbox(im0, boxes, show_label=True)
         print("Util processing img")
     except IOError:
         print("Image reading error")
-    # resp,roi = generateRDTcrop(boxes,img_np,[])
-    resp,roi =generateRDTcropV2(boxes,img_np)
+    if file_path_sets.YOLO_MODEL_VER==1:
+        resp,roi = generateRDTcrop(boxes,_img_,[])
+    else:
+        resp,roi =generateRDTcropV2(boxes,_img_)
 
     if resp["message"]=="success": 
             try:
                 # postprocessed=enhanceImage(roi[1000:1500,:,:])
                 postprocessed=gaussBlur(roi[1000:1500,:,:])
-                postprocessed= enhanceImage(postprocessed)
-                cv2.imwrite("roi_gausian_enhan.jpg", postprocessed)
+                # postprocessed= enhanceImage(postprocessed)
+                cv2.imwrite("roi_gausian.jpg", postprocessed)
+                postprocessed=postprocessed*1.2
+                cv2.imwrite("roi_gausian_amp1pnt2.jpg", postprocessed)
+                
                 postprocessed= enhanceImage(roi[1000:1500,:,:])
                 postprocessed=gaussBlur(postprocessed)
                 cv2.imwrite("roi_enhan_gausian.jpg", postprocessed)
-                postprocessed=gaussBlur(roi[1000:1500,:,:])
-                postprocessed= enhanceImage(postprocessed)
+                # postprocessed=gaussBlur(roi[1000:1500,:,:])
+                # postprocessed= enhanceImage(postprocessed)
                 cv2.imwrite("roi.jpg", roi[1000:1500,:,:])
+            
 
                 print("Overwrite roi jpeg")
 
@@ -705,7 +879,7 @@ def processRdtRequest(UUID,include_proof,img_str,serv):
                 if blue_detection>0 and virus_type==0:
                     rc=0
                 elif blue_detection ==0:
-                    message1="No control line found"
+                    message1="No_control_line"
                     rc=-1
                 elif virus_type==1:
                     rc = 1
