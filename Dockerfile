@@ -40,9 +40,11 @@ WORKDIR ${HOME}/rdt-reader
 RUN conda env create --file "${HOME}/rdt-reader/rdtEnv.yml" python=3.6
 ENTRYPOINT bash /home/rdtreader/rdt-reader/initShell.sh && \
     conda activate rdt-reader && \
-    python3 /home/rdtreader/rdt-reader/django_server/manage.py makemigrations && \
-    python3 /home/rdtreader/rdt-reader/django_server/manage.py migrate && \
-    python3 /home/rdtreader/rdt-reader/django_server/manage.py runserver 0.0.0.0:9000
+    conda uninstall opencv && \
+    pip install opencv-python && \
+    python /home/rdtreader/rdt-reader/django_server/manage.py makemigrations && \
+    python /home/rdtreader/rdt-reader/django_server/manage.py migrate && \
+    python /home/rdtreader/rdt-reader/django_server/manage.py runserver 0.0.0.0:9000
 
 
 
