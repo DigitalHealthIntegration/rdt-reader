@@ -34,7 +34,7 @@ import static org.opencv.video.Video.findTransformECC;
 
 public class ImageRegistration {
 
-    static int REGISTRATION_LEVEL=1;
+    static int REGISTRATION_LEVEL=5;
     static Mat mRefPyr=null;
 
     public static Mat GetTransform(Mat refM, Mat insM) {

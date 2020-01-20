@@ -392,7 +392,7 @@ public class RdtAPI {
             org.opencv.core.Size sz = new org.opencv.core.Size(1280, 720);
             Imgproc.resize(mSetRotation ? rotatedmat:greyMat, greyMatResized, sz, 0.0, 0.0, INTER_CUBIC);
             mPreProcessingTime = System.currentTimeMillis() - st;
-            mRDTProcessingResultAvailable=false;
+            //if linear flow  mRDTProcessingResultAvailable=false;
             if( mRDTProcessingResultAvailable) {
                 if ((mStatus!= null) /*&& mStatus.mRDTFound*/) {
                     //Find Transformation..
@@ -411,7 +411,7 @@ public class RdtAPI {
                 mRDTProcessingResultAvailable=false;
             }
             //We should thread from here
-            if(true){//(!mRDTProcessing) {
+            if(!mRDTProcessing) {
                 mRDTProcessing = true;
                 mRDTProcessingResultAvailable = false;
                 if (mInputMat != null) mInputMat.release();
@@ -498,7 +498,6 @@ public class RdtAPI {
     private void ProcessRDT(AcceptanceStatus retStatus,Mat inputmat,Mat reszgreymat){
         Rect detectedRoi=null;
         final long updatetimest = System.currentTimeMillis();
-
         try {
             //Log.i("ProcessRDT","Coming in process RDT");
             Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
