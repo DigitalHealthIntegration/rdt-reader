@@ -86,7 +86,6 @@ dependencies:
   - numpy=1.17.2=py36haad9e8e_0
   - numpy-base=1.17.2=py36hde5b4d6_0
   - olefile=0.46=py36_0
-  - opencv=4.1.1=py36h0cc45ee_2
   - openh264=1.8.0=hdbcaa40_1000
   - openssl=1.1.1=h7b6447c_0
   - pcre=8.41=hf484d3e_1003
