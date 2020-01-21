@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private ImageView mRectView;
     private ImageView mRdtView,mTrackedView;
-    private ImageView disRdtResultImage;
+    private ImageView disRdtResultImage,mWarpedImage;
     Button mGetResult;
     Button startBtn;
     TextView mResultView,mMotionText,mStatusView;
@@ -193,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
         mMotionText = findViewById(R.id.MotionText);
+        mWarpedImage = findViewById(R.id.RdtWarpImage);
         mStatusView = findViewById(R.id.Status);
         //mRectView.setImageDrawable(R.drawable.grid);
 
@@ -600,9 +601,7 @@ public class MainActivity extends AppCompatActivity {
         int countertomakedatadisppear = 0;
 
         private void ProcessBitmap(Bitmap capFrame) {
-
             //capFrame = RotateBitmap(capFrame,90);
-
             long st = System.currentTimeMillis();
             final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
             if (mShowImageData != 0) {
@@ -631,7 +630,7 @@ public class MainActivity extends AppCompatActivity {
                         t += "\nperspec=" + status.mPerspectiveDistortion;
                         t += "\nS=" + status.mInfo.mSharpness;
                         t += "\nB=" + status.mInfo.mBrightness;
-                        t += "\nE=" + Math.ceil(status.mInfo.mMinRdtError);
+                       // t += "\nE=" + Math.ceil(status.mInfo.mMinRdtError);
                         mStatusView.setText(t);
                         if ((status.mSharpness == 0) && (status.mScale == 0) && (status.mBrightness == 0) && (status.mPerspectiveDistortion == 0))
                             mStatusView.setTextColor(Color.GREEN);
@@ -646,13 +645,18 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     //mStatusView.setVisibility(View.VISIBLE);
-                    if (status.mSteady == GOOD) {
-                        mMotionText.setText("Steady");
-                        mMotionText.setTextColor(Color.GREEN);
-                    } else if (status.mSteady == TOO_HIGH) {
-                        mMotionText.setText("Motion Too High");
-                        mMotionText.setTextColor(Color.RED);
+                    if(status.mInfo.mWarpedImage != null) {
+                        mWarpedImage.setImageBitmap(status.mInfo.mWarpedImage);
+                        mWarpedImage.setVisibility(View.VISIBLE);
                     }
+                    if(status.mSteady ==GOOD){
+                        mMotionText.setTextColor(Color.GREEN);
+                        mMotionText.setText("GOOD");
+                    }else if(status.mSteady == TOO_HIGH){
+                        mMotionText.setTextColor(Color.RED);
+                        mMotionText.setText("Motion Too High");
+                    }
+                    mMotionText.setVisibility(View.VISIBLE);
                     mRdtView.setImageBitmap(b);
                     mRdtView.setVisibility(View.VISIBLE);
                    // repositionRect(status);
@@ -734,7 +738,7 @@ public class MainActivity extends AppCompatActivity {
             // choose optimal size
             Size closestPreviewSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
             Size closestImageSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
-            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888))) {//YUV_420_888
+            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.JPEG))) {//YUV_420_888//YUV_420_888
                 Log.d(TAG, "Available Sizes: " + size.toString());
                 if (size.getWidth() * 9 == size.getHeight() * 16) { //Preview surface ratio is 16:9
                     double currPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - closestPreviewSize.getHeight() * closestPreviewSize.getWidth();
@@ -753,7 +757,7 @@ public class MainActivity extends AppCompatActivity {
             Size videoSize = closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
-                    ImageFormat.YUV_420_888, 5);
+                    ImageFormat.JPEG, 5);//YUV_420_888
 
             /*mImageReader = ImageReader.newInstance(closestImageSize.getWidth(), closestImageSize.getHeight(),
                     ImageFormat.JPEG, *//*maxImages*//*5);*/

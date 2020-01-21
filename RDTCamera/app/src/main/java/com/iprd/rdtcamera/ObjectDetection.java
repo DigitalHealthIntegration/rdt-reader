@@ -32,7 +32,12 @@ import static com.iprd.rdtcamera.ModelInfo.aspectAnchors;
 import static com.iprd.rdtcamera.ModelInfo.inputSize;
 import static com.iprd.rdtcamera.ModelInfo.numberBlocks;
 import static com.iprd.rdtcamera.ModelInfo.pyrlevelcnt;
+import static org.opencv.core.Core.FONT_HERSHEY_SIMPLEX;
+import static org.opencv.core.CvType.CV_32FC1;
+import static org.opencv.core.CvType.CV_8U;
 import static org.opencv.imgproc.Imgproc.cvtColor;
+import static org.opencv.imgproc.Imgproc.getRotationMatrix2D;
+import static org.opencv.imgproc.Imgproc.putText;
 
 public class ObjectDetection {
     private static float [] cannonicalArrow={121.0f,152.0f,182.0f};
@@ -48,15 +53,26 @@ public class ObjectDetection {
     private static Point  ref_I= new Point(cannonicalInfl[1]-cannonicalA_C_Mid.x,0.0f);
 
     private static double ref_A_C = (cannonicalCpattern[1]-cannonicalArrow[1]);
-    private static double scale = 0.0;
-    private static double angleDegree = 0.0;
 
+    public static double getMscale() {
+        return mscale;
+    }
+
+    public static double mscale = 0.0;
+
+    public static double getMangleDegree() {
+        return mangleDegree;
+    }
+
+    public static double mangleDegree = 0.0;
+    private static Point midptPoint;
     public static double getMinError() {
         return minError;
     }
 
+
     private static double minError =100.0;
-    private static double AvgConfbest =0.0;
+    //private static double AvgConfbest =0.0;
 
     public void setSavePoints(boolean SavePoints) {
         this.mSavePoints = SavePoints;
@@ -257,7 +273,6 @@ public class ObjectDetection {
             }
             if (vectorTableArrow.size() > 0 & vectorTableCpattern.size() > 0&vectorTableInfluenza.size() > 0) {
                 ret = locateRdt(vectorTableArrow, vectorTableCpattern,vectorTableInfluenza);
-
                 rdt[0] = found;
             }
             if(found ){
@@ -283,6 +298,8 @@ public class ObjectDetection {
                 if(mSavePoints) {
                     Imgproc.rectangle(tmp_for_draw, new Point(ret.x, ret.y), new Point(ret.x + ret.width, ret.y + ret.height), new Scalar(255, 0, 255), 1);
                 }
+//                Mat rotated = rotateImage(inputmat,midptPoint,angleDegree);
+//                Utils.SaveMatrix(rotated,"Rotated");
             }
             if(mSavePoints) Utils.SavecentersImage(tmp_for_draw);
 
@@ -398,13 +415,13 @@ public class ObjectDetection {
         out_scale_rot.x=scale;
         out_scale_rot.y=theta;
 
+        midptPoint = ac1_mid;
         //compute the MSE
         return (lengthOfLine(ref_A,a1)+lengthOfLine(ref_C,c1)+lengthOfLine(ref_I,i1))/3;
     }
 
     private static boolean angle_constraint(double orientation, double theta_deg) {
         double T=30;
-
         double d=Math.abs(orientation-theta_deg);
         if(d>180) d=360-d;
         if(d>T) return true;
@@ -414,19 +431,16 @@ public class ObjectDetection {
     public static double detect(float[] C_arrow, float[] C_Cpattern, float[] C_Infl){
         boolean found = false;
         /////
-
-
-        //scale
+       //scale
 
         double A_C = euclidianDistance(C_arrow,C_Cpattern);
         double scale = ref_A_C/A_C;
         double y = C_Cpattern[1]-C_arrow[1];
         double x =C_Cpattern[0]-C_arrow[0];
 
-
         //rotate
         double angleRadian = Math.atan2(y,x) ;
-        angleDegree = Math.toDegrees(angleRadian);
+        double angleDegree = Math.toDegrees(angleRadian);
 
         if (angleDegree<0){
             angleDegree+=360;
@@ -480,11 +494,8 @@ public class ObjectDetection {
         Rect roi = new Rect(-1, -1, -1, -1);
         boolean exit = false;
         found = false;
-        Point3 minConf=new Point3(100.0,100.0,100.0);
-        Point3 maxConf=new Point3(0,0,0);
-
-
-
+        mscale = -1.0;
+        mangleDegree = 0;
         int cnt_arr = 0;
         int cnt_c=0;
         int cnt_i=0;
@@ -512,7 +523,7 @@ public class ObjectDetection {
                             while(cnt_i<Infl.size()) {
                                 for (Map.Entry iElement : Infl.get(cnt_i).entrySet()) {
                                     float infConf = (float) iElement.getKey();
-                                    float AvgConf = (arrowconf+Cconf+infConf)/3;
+                                    //float AvgConf = (arrowconf+Cconf+infConf)/3;
                                     cxcywha = (Vector) iElement.getValue();
                                     float[] C_Inlf = {(float) cxcywha.get(0), (float) cxcywha.get(1), (float) cxcywha.get(4)};
                                     C_arrow_predicted.x = C_arrow[0];
@@ -529,14 +540,10 @@ public class ObjectDetection {
                                         Imgproc.circle(tmp_for_draw, C_Infl_predicted, 5, new Scalar(255, 0, 0), 5);
                                     }
                                     double tmperror = detect2(C_arrow, C_Cpattern, C_Inlf,scale_rot);
-                                    minConf.x = Math.min(minConf.x,arrowconf);
-                                    minConf.y = Math.min(minConf.y,Cconf);
-                                    minConf.z = Math.min(minConf.z,infConf);
-                                    maxConf.x = Math.max(maxConf.x,arrowconf);
-                                    maxConf.y = Math.max(maxConf.y,Cconf);
-                                    maxConf.z = Math.max(maxConf.z,infConf);
+
                                     if (tmperror<minError) {
-                                        if(Math.abs(minError-tmperror)>(Math.abs(AvgConf-AvgConfbest)+2)){
+                                        //if(Math.abs(minError-tmperror)>(Math.abs(AvgConf-AvgConfbest)+2))
+                                         {
                                             minError=tmperror;
                                             found = true;
                                             //Log.d("Entered", "New min");
@@ -544,7 +551,7 @@ public class ObjectDetection {
                                             C_Cpattern_best = C_Cpattern;
                                             C_infl_best = C_Inlf;
                                             best_scale_rot=scale_rot.clone();
-                                            AvgConfbest=AvgConf;
+                                           // AvgConfbest=AvgConf;
 
 
                                         }
@@ -565,17 +572,15 @@ public class ObjectDetection {
             }
             cnt_arr++;
         }
-        List<MatOfPoint> matOfPoints = new ArrayList<>(3);
-        matOfPoints.add(new MatOfPoint(new Point(C_arrow_best[0],C_arrow_best[1]),new Point(C_Cpattern_best[0],C_Cpattern_best[1]),new Point(C_infl_best[0],C_infl_best[1])));
-        Imgproc.polylines(tmp_for_draw,matOfPoints,false,new Scalar(255,255,0,255),5);
-        Log.i("COnfidence min max",minConf.toString()+"  "+maxConf.toString());
-        //double scale=best_scale_rot.x;
+        mscale=best_scale_rot.x;
         double angleRads=best_scale_rot.y;
         if(angleRads>Math.PI)
             angleRads-=Math.PI*2;
         double calculatedAngleRotation= Math.toDegrees(angleRads);
+        mangleDegree = calculatedAngleRotation;
 
         Point rdt_c = new Point(C_arrow_best[0] + (C_Cpattern_best[0] - C_arrow_best[0]) / 2, C_arrow_best[1] + (C_Cpattern_best[1] - C_arrow_best[1]) / 2);
+        midptPoint = rdt_c;
 
         Size sz = new Size();
         sz.width = ac_can * A_C_to_L *best_scale_rot.x;
@@ -588,9 +593,38 @@ public class ObjectDetection {
 
         RotatedRect rotatedRect = new RotatedRect(rdt_c, sz, calculatedAngleRotation);
         roi = rotatedRect.boundingRect();
+        Log.i("minError", String.valueOf(minError));
+        //if(tmp_for_draw != null) putText(tmp_for_draw, "MinError = " + String.valueOf(minError), new Point(0, tmp_for_draw.cols()>>1), FONT_HERSHEY_SIMPLEX, 1.5,new Scalar(255,0,0,0),2);
         //Log.d("ROI:", "X : " + roi.x + "Y : " + roi.y + "W : " + roi.width + "H : " + roi.height);
-
         return roi;
+    }
+
+    public static Mat rotateImage(Mat image,Point center, double angle) {
+        //Calculate size of new matrix
+        double radians = Math.toRadians(angle);
+        double sin = Math.abs(Math.sin(radians));
+        double cos = Math.abs(Math.cos(radians));
+
+        int newWidth = (int) (image.width() * cos + image.height() * sin);
+        int newHeight = (int) (image.width() * sin + image.height() * cos);
+
+        // rotating image
+        Mat rotMatrix = Imgproc.getRotationMatrix2D(center, angle, 1.0); //1.0 means 100 % scale
+        int k=0;
+        for(int i=0;i<rotMatrix.rows();i++){
+            for(int j=0;j<rotMatrix.cols();j++){
+                Log.d(String.valueOf(k++), "["+i+","+j+"]" + String.valueOf(rotMatrix.get(i,j)[0]));
+            }
+        }
+        double tx = rotMatrix.get(0,2)[0]+360;
+        double ty = rotMatrix.get(1,2)[0]+50;
+        rotMatrix.put(0,2,tx);
+        rotMatrix.put(1,2,ty);
+
+        Size sz = new Size(1280, 100);
+        Mat rotated = new Mat((int)sz.width,(int)sz.height,image.type());
+        Imgproc.warpAffine(image, rotated, rotMatrix, sz);
+        return rotated;
     }
 }
 

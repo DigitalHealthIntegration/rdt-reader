@@ -63,7 +63,7 @@ public class Utils {
     public static void SavecentersImage(Mat tmp) {
 
         SaveMatrix(tmp,"Grey_centers");
-        tmp.release();
+        //tmp.release();
     }
 
     public static void SaveMatrix(Mat tmp,String prefix) {
@@ -98,7 +98,8 @@ public class Utils {
 
     public static void saveImage(Bitmap m,String suff) {
         CreateDirectory();
-        File myImage = new File(dirpath+"Image" + mImageCount+suff + ".jpg");
+        String s = String.format("%06d", mImageCount);
+        File myImage = new File(dirpath+"Image" +suff +s+ ".jpg");
         Log.i("Saving File",myImage.getAbsolutePath());
         mImageCount++;
         if (myImage.exists()) myImage.delete();
@@ -122,7 +123,7 @@ public class Utils {
         String imageName = imagePath.substring(imagePath.lastIndexOf('/')+1 ,imagePath.lastIndexOf(".jpg"));
 
         createDirectoryFromGivenPath(storageLocation+folderPath+"/");
-        File myImage = new File(storageLocation+folderPath+"/"+imageName+ ".jpg");
+        File myImage = new File(storageLocation+folderPath+"/"+imageName+suff+ ".jpg");
         Log.i("Saving File",myImage.getAbsolutePath());
         if (myImage.exists()) myImage.delete();
         FileOutputStream out = null;
@@ -140,7 +141,8 @@ public class Utils {
     }
     public static void saveImageInfolder(Bitmap m,String suff) {
         CreateDirectory();
-        File myImage = new File(dirpath+"Image" + mImageCount+suff + ".jpg");
+        String s = String.format("%06d", mImageCount);
+        File myImage = new File(dirpath+"Image" + suff +s+ ".jpg");
         Log.i("Saving File",myImage.getAbsolutePath());
         mImageCount++;
         if (myImage.exists()) myImage.delete();
@@ -149,7 +151,6 @@ public class Utils {
             out = new FileOutputStream(myImage);
             m.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.flush();
-
             out.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -241,7 +242,7 @@ public class Utils {
             builder.setmMaxAllowedTranslationY(config.mMaxAllowedTranslationY);
         }
         if(rdt !=null){
-            rdt.getTensorFlow().setTopThreshold(mTopTh);
+            //rdt.getTensorFlow().setTopThreshold(mTopTh);
             rdt.setSaveNegativeData(mSaveNegativeData);
         }
         return mShowImageData;

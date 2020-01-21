@@ -88,7 +88,7 @@ public class RdtFrameTest {
                 int height = matinput.height();
                 int wfactor = width/16;
                 int hfactor = height/9;
-                int factor  = wfactor;//wfactor>hfactor?hfactor:wfactor;
+                int factor  = wfactor>hfactor?hfactor:wfactor;
                 int newWidth = factor*16;
                 int newHeight = factor*9;
                 Rect r = new Rect((width - newWidth)/2,(height-newHeight)/2,newWidth,newHeight);
@@ -107,10 +107,14 @@ public class RdtFrameTest {
                         if(i == 0) {
                             fileWriter = new FileWriter(file);
                             bfWriter = new BufferedWriter(fileWriter);
-                            bfWriter.write("Image, mSharpness,mSharpValue, mScale, mBrightness,mBrightValue, mPerspectiveDistortion, mDisplacementX, mDisplacementY, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mSteady,mMinRdtError\n");
+//                            bfWriter.write("Image, mSharpValue, mScale,mAngle, mBrightValue, mRDTFound, mBoundingBoxX, mBoundingBoxY, mBoundingBoxWidth,mBoundingBoxHeight,mError\n");
+                            bfWriter.write("Image, mSharpValue, mScale,mAngle, mBrightValue, mRDTFound, mError\n");
                         }
-                        bfWriter.write(list.get(i)+","+ status.mSharpness+","+ status.mInfo.mSharpness+","+ status.mScale+","+ status.mBrightness+","+ status.mInfo.mBrightness+","+ status.mPerspectiveDistortion+","+ status.mDisplacementX+","+ status.mDisplacementY+","+ status.mRDTFound
-                                    +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mSteady+","+status.mInfo.mMinRdtError+"\n");
+//                        bfWriter.write(list.get(i)+","+ status.mInfo.mSharpness+","+ status.mInfo.mScale+","+status.mInfo.mAngle+","+ status.mInfo.mBrightness+","+ status.mRDTFound
+//                                    +","+ status.mBoundingBoxX+","+ status.mBoundingBoxY+","+ status.mBoundingBoxWidth+","+status.mBoundingBoxHeight+","+status.mInfo.mMinError+"\n");
+                        bfWriter.write(list.get(i)+","+ status.mInfo.mSharpness+","+ status.mInfo.mScale+","+status.mInfo.mAngle+","+ status.mInfo.mBrightness+","+ status.mRDTFound
+                                +","+status.mInfo.mMinError+"\n");
+
                         if(i == list.size()-1) {
                             bfWriter.close();
                         }
@@ -161,7 +165,6 @@ public class RdtFrameTest {
 
 
     byte[] ReadFile(String fname) {
-
         byte[] mtfliteBytes = null;
         Log.d("RDT UT","Reading file "+ fname);
         InputStream is = getClass().getResourceAsStream(fname);
@@ -178,7 +181,7 @@ public class RdtFrameTest {
 
     byte[] mtfliteBytes = null;
     byte[] ReadAssests() throws IOException {
-        InputStream is=this.getClass().getClassLoader().getResourceAsStream(ModelInfo.mModelFileName);//OD_180x320.lite");//"OD_360x640_10x19_slow.lite");
+        InputStream is=this.getClass().getClassLoader().getResourceAsStream("OD_180x320_newarch.lite");//OD_180x320.lite");//"OD_360x640_10x19_slow.lite");
         mtfliteBytes=new byte[is.available()];
         is.read( mtfliteBytes);
         is.close();
