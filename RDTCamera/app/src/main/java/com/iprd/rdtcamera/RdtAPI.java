@@ -448,7 +448,10 @@ public class RdtAPI {
                 mLocalcopy = matinput.clone();
             }
             if (!ret.mRDTFound) return ret;
-
+            if(ret.mBoundingBoxX == -1 &&ret.mBoundingBoxY==-1&&ret.mBoundingBoxWidth==-1&&ret.mBoundingBoxHeight==-1){
+                ret.mRDTFound=false;
+                return ret;
+            }
             //Log.d("Bounding Box Used ",ret.mBoundingBoxX+"x"+ret.mBoundingBoxY +"  "+ret.mBoundingBoxWidth+"x"+ret.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
             if(!computeDistortion(greyMat,ret)){
                 return ret;

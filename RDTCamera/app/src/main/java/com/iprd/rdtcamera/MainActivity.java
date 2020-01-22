@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
     private CameraDevice mCameraDevice;
     private CameraCaptureSession mPreviewSession;
 
-    ImageReader mImageReader;
+    private ImageReader mImageReader;
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
     //   private Semaphore mCameraOpenCloseLock = new Semaphore(1);
@@ -415,86 +415,16 @@ public class MainActivity extends AppCompatActivity {
                 Image image = null;
             try {
                 image = reader.acquireLatestImage();
-                if(handlerCall) {
+                /*if(handlerCall) {
                             if(image == null){
                                 handlerCall = true;
                             }else {
                                 handlerCall = false;
-                                //
-                             /*  mFile =  new File("/sdcard/aa/aa"+(++i)+".jpg");
-                                runOnUiThread(new Runnable() {
-                                                  @Override
-                                                  public void run() {
-                                                      Image image = null;
-                                                      image = reader.acquireLatestImage();
-                                                      if (image != null) {
-                                                          ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                                                          byte[] bytes = new byte[buffer.remaining()];
-                                                          Toast.makeText(MainActivity.this, bytes.length+" = image 1 :" + image.getWidth()+" X "+image.getHeight(), Toast.LENGTH_SHORT).show();
-
-                                                          buffer.get(bytes);
-                                                          FileOutputStream output = null;
-                                                          try {
-                                                              output = new FileOutputStream(mFile);
-                                                              output.write(bytes);
-                                                          } catch (IOException e) {
-                                                              e.printStackTrace();
-                                                          } finally {
-                                                              image.close();
-                                                              if (null != output) {
-                                                                  try {
-                                                                      output.close();
-                                                                  } catch (IOException e) {
-                                                                      e.printStackTrace();
-                                                                  }
-                                                              }
-                                                          }
-                                                      }else{
-                                                          Toast.makeText( MainActivity.this,"null image", Toast.LENGTH_SHORT).show();
-                                                      }
-                                                  }
-                                              });*/
-
-                                //
-
                                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                                 mImageBytes = new byte[buffer.capacity()];
                                 buffer.get(mImageBytes);
                                 Log.d("Get Size ", String.valueOf(buffer.capacity()));
                                 if (mImageBytes != null && mImageBytes.length > 0) {
-
-                                    //--------->>>>00000000000000
-                                   /* mFile =  new File("/sdcard/aa/b"+(++i)+".raw");
-                                    FileOutputStream output = null;
-                                    try {
-                                        output = new FileOutputStream(mFile);
-                                        output.write(mImageBytes);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }*/
-
-                                    //
-
-                                    /*byte[] compressed = out.toByteArray();
-
-                                    Bitmap newBmp = BitmapFactory.decodeByteArray(compressed, 0, compressed.length);
-                                    Matrix mat = new Matrix();
-                                    mat.postRotate(PrefsController.instance.getPrefs().getCameraPrefs(cameraId).angle);
-                                    newBmp = Bitmap.createBitmap(newBmp, 0, 0, newBmp.getWidth(), newBmp.getHeight(), mat, true);
-                                    ByteArrayOutputStream out2 = new ByteArrayOutputStream();
-                                    if (quality) {
-                                        newBmp.compress(Bitmap.CompressFormat.PNG, 100, out2);
-                                    } else {
-                                        newBmp.compress(Bitmap.CompressFormat.JPEG, 80, out2);
-                                    }*/
-
-                                    /*mFile =  new File("/sdcard/aa/aa"+(++i)+".jpg");
-                                    byte[] jpegData = ImageUtil.imageToByteArray(image);
-                                    //write to file (for example ..some_path/frame.jpg)
-                                    FileManager.writeFrame(mFile.toString(), jpegData);
-                                    image.close();*/
-
-                                    //----------->
                                     closePreviewSession();
                                     Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
                                     runOnUiThread(new Runnable() {
@@ -506,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
                                     });
                                 }
                             }
-                }
+                }*/
             } catch (Exception e) {
                 e.printStackTrace();
 
@@ -517,31 +447,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
-
-
-     //reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
-    /*final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
-        @Override
-        public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-            super.onCaptureCompleted(session, request, result);
-            isPreviewOff = true;
-            handlerCall = true;
-        }
-    };*/
-        /*CameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
-        @Override
-        public void onConfigured(CameraCaptureSession session) {
-            try {
-                session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        @Override
-        public void onConfigureFailed(CameraCaptureSession session) {
-        }
-    }, mBackgroundHandler);*/
-
 
     private TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
@@ -738,7 +643,7 @@ public class MainActivity extends AppCompatActivity {
             // choose optimal size
             Size closestPreviewSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
             Size closestImageSize = new Size(Integer.MAX_VALUE, (int) (Integer.MAX_VALUE * (9.0 / 16.0)));
-            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.JPEG))) {//YUV_420_888//YUV_420_888
+            for (Size size : Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888))) {//YUV_420_888//YUV_420_888
                 Log.d(TAG, "Available Sizes: " + size.toString());
                 if (size.getWidth() * 9 == size.getHeight() * 16) { //Preview surface ratio is 16:9
                     double currPreviewDiff = (CAMERA2_PREVIEW_SIZE.getHeight() * CAMERA2_PREVIEW_SIZE.getWidth()) - closestPreviewSize.getHeight() * closestPreviewSize.getWidth();
@@ -757,7 +662,7 @@ public class MainActivity extends AppCompatActivity {
             Size videoSize = closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
             mImageReader = ImageReader.newInstance(videoSize.getWidth(),
                     videoSize.getHeight(),
-                    ImageFormat.JPEG, 5);//YUV_420_888
+                    ImageFormat.YUV_420_888, 5);//YUV_420_888
 
             /*mImageReader = ImageReader.newInstance(closestImageSize.getWidth(), closestImageSize.getHeight(),
                     ImageFormat.JPEG, *//*maxImages*//*5);*/
@@ -816,11 +721,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private ImageReader reader1 = null;
     private void getRDTResultData(){
-        //CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
            // handlerCall = true;
-            /*Log.d("getRDTResultData() :1","...............................1");
+            Log.d("getRDTResultData() :1","...............................1");
             String cameraId = manager.getCameraIdList()[0];
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             Size[] jpegSizes = null;
@@ -835,23 +741,24 @@ public class MainActivity extends AppCompatActivity {
                 height = jpegSizes[0].getHeight()-100;
             }
 
-            ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+            reader1 = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
             List<Surface> outputSurfaces = new ArrayList<Surface>(2);
-            outputSurfaces.add(reader.getSurface());
+            outputSurfaces.add(reader1.getSurface());
             outputSurfaces.add(new Surface(mTextureView.getSurfaceTexture()));
             final CaptureRequest.Builder captureBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 90);
-            captureBuilder.addTarget(reader.getSurface());
+            captureBuilder.addTarget(reader1.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-            reader.setOnImageAvailableListener(mImageAvailable, mBackgroundHandler);*/
+            reader1.setOnImageAvailableListener(mImageAvailable, mBackgroundHandler);
 
-            /*ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
+            ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
-                    //Thread.yield();
+                    Thread.yield();
+                    Log.d("getRDTResultData() :2","...............................2..");
                     Image image = null;
                     try {
                         image = reader.acquireLatestImage();
@@ -859,7 +766,7 @@ public class MainActivity extends AppCompatActivity {
                         mImageBytes = new byte[buffer.capacity()];
                         buffer.get(mImageBytes);
                         Log.d("Get Size ", String.valueOf(buffer.capacity()));
-                        *//*if(mImageBytes != null && mImageBytes.length >0) {
+                        if(mImageBytes != null && mImageBytes.length >0) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -867,7 +774,7 @@ public class MainActivity extends AppCompatActivity {
                                     rdtResults(mImageBytes);
                                 }
                             });
-                        }*//*
+                        }
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -879,8 +786,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             };
-
-            reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
+            reader1.setOnImageAvailableListener(readerListener, mBackgroundHandler);
             final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
@@ -910,10 +816,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
-            }, mBackgroundHandler);*/
+            }, mBackgroundHandler);
 
         }catch(Exception e){
             System.out.println(">>>>>>>>>>>"+e);
+            e.printStackTrace();
         }
     }
 
