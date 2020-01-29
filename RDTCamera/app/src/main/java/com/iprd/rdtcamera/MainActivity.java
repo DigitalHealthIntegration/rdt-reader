@@ -27,6 +27,7 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -62,6 +63,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Point;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
@@ -243,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
                     if (shouldOffTorch == false && mPreviewSession != null ){
                         if (isChecked) {
                             // The toggle is enabled
+
                             mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
                             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
                         } else {
@@ -256,9 +259,10 @@ public class MainActivity extends AppCompatActivity {
                             torch.setChecked(false);
                         isFlashRequired = false;
                         }
-                } catch (CameraAccessException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
+
 
             }
         });
@@ -273,12 +277,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     mRdtApi.setSavePoints(false);
                 }
-                /*try {//1111111111111111111111
-                    mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
-                    mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
-                }*/
             }
         });
 
@@ -326,8 +324,6 @@ public class MainActivity extends AppCompatActivity {
 
                 if(torch.isChecked())
                     torch.setChecked(false);
-
-
             }
         });
         startBtn.setOnClickListener(new View.OnClickListener() {
@@ -542,8 +538,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private CameraCaptureSession.CaptureCallback mCaptureCallback
-            = new CameraCaptureSession.CaptureCallback() {
+    private CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
 
         private void process(CaptureResult result) {
         }
@@ -694,6 +689,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageReader reader1 = null;
     private CaptureRequest.Builder captureBuilder = null;
+    private CameraCaptureSession mSession;
+    private Boolean isInnerFlashOn = false;
     private void getRDTResultData(){
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
@@ -722,23 +719,24 @@ public class MainActivity extends AppCompatActivity {
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
 
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
-            //captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);//
-            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
+            captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);//
+            //captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
 
             if(isFlashRequired) {
-                captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+                isInnerFlashOn = true;
+                captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);//mSession
             }else{
+                isInnerFlashOn = false;
                 captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
             }
 
-            //1111111111111111111110
             reader1.setOnImageAvailableListener(mImageAvailable, mBackgroundHandler);
 
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
                     //Thread.yield();
-                    captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+                    //captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
 
                     Image image = null;
                     try {
@@ -759,6 +757,12 @@ public class MainActivity extends AppCompatActivity {
                                     rdtResults(mImageBytes);
                                 }
                             });
+                        }
+                        if(isInnerFlashOn) {
+                            captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+                            // mSession.abortCaptures();
+                            mSession.setRepeatingRequest(captureBuilder.build(), null, null);//mBackgroundHandler
+                            mSession.close();
                         }
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
@@ -785,6 +789,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
                     try {
+                        mSession = session;
                         session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
                         //session
                     } catch (CameraAccessException e) {
@@ -852,16 +857,16 @@ public class MainActivity extends AppCompatActivity {
         mTextureView.setTransform(matrix);
     }
 
-    private void closeCamera() {
+    public void closeCamera() {
       //  closePreviewSession();
-       /* if (null != mCameraDevice) {
+        if (null != mCameraDevice) {
             mCameraDevice.close();
             mCameraDevice = null;
         }
         if (null != mImageReader) {
             mImageReader.close();
             mImageReader = null;
-        }*/
+        }
     }
     private void startPreview() {
         if (mCameraDevice == null ||!mTextureView.isAvailable() ||mPreviewSize == null || mImageReader == null) {
@@ -931,8 +936,6 @@ public class MainActivity extends AppCompatActivity {
     long prevTime=0;
     static int counter =0;
     private void repositionRect(AcceptanceStatus status){
-//        DisplayMetrics displayMetrics = new DisplayMetrics();
-//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int height = mTextureView.getHeight();//displayMetrics.heightPixels;
         int width = mTextureView.getWidth();//displayMetrics.widthPixels;
         mRectView.bringToFront();
