@@ -331,6 +331,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 startPreview();
+                /*mWarpedImage = null;
+                mWarpedImage = findViewById(R.id.RdtWarpImage);*/
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.INVISIBLE);
@@ -534,7 +536,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             sem.release();
-            ///Log.d("~~~~~~~~~~~","Lock Released []");
         }
     };
 
@@ -754,6 +755,13 @@ public class MainActivity extends AppCompatActivity {
                                     Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
 
                                     mWarpedImage.setImageBitmap(bitmap);
+                                    mWarpedImage.setMaxHeight(430);
+                                    mWarpedImage.setMaxWidth(430);
+                                    mWarpedImage.setAdjustViewBounds(true);
+
+                                    mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
+                                    mWarpedImage.requestLayout();
+
                                     rdtResults(mImageBytes);
                                 }
                             });
