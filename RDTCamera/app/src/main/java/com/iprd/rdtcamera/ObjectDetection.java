@@ -204,13 +204,13 @@ public class ObjectDetection {
             //Initialize output buffer
             float[][][][] output = new float[1][numberBlocks[0]*numberBlocks[1]][numberAnchors][numberClasses+4];
             //Image to draw roi in
-            long startTime = System.currentTimeMillis();
             int[] dim = {1,inputSize[0],inputSize[1],1};
             mTflite.resizeInput(0,dim);
+            long startTime = System.currentTimeMillis();
             mTflite.run(imgData, output);
             long MethodDuration = System.currentTimeMillis()-startTime;
 
-            //Log.i("mTfliteTime", String.valueOf(MethodeDuration));
+            Log.i("mTfliteTime", String.valueOf(MethodDuration));
             ArrayList<HashMap<Float, Vector<Float>>> vectorTableArrow = new ArrayList<HashMap<Float, Vector<Float>>>();
             ArrayList<HashMap<Float, Vector<Float>>> vectorTableCpattern = new ArrayList<HashMap<Float, Vector<Float>>>();
             ArrayList<HashMap<Float, Vector<Float>>> vectorTableInfluenza = new ArrayList<HashMap<Float, Vector<Float>>>();

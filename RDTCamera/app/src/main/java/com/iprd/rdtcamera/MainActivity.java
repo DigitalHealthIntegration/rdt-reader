@@ -511,6 +511,8 @@ public class MainActivity extends AppCompatActivity {
                         else
                             mStatusView.setTextColor(Color.RED);
                         countertomakedatadisppear = 0;
+
+                       // mGetResult.performClick();
                     } else {
                         countertomakedatadisppear++;
                         if (countertomakedatadisppear > 50) {
@@ -625,9 +627,7 @@ public class MainActivity extends AppCompatActivity {
             }
             mVideoSize = closestPreviewSize;
             Size videoSize = closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
-            mImageReader = ImageReader.newInstance(videoSize.getWidth(),
-                    videoSize.getHeight(),
-                    ImageFormat.YUV_420_888, 5);//YUV_420_888
+            mImageReader = ImageReader.newInstance(videoSize.getWidth(), videoSize.getHeight(), ImageFormat.YUV_420_888, 5);//YUV_420_888
 
             /*mImageReader = ImageReader.newInstance(closestImageSize.getWidth(), closestImageSize.getHeight(),
                     ImageFormat.JPEG, */
