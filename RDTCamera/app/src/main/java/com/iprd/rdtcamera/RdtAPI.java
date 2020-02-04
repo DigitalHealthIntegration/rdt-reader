@@ -384,7 +384,7 @@ public class RdtAPI {
             if(mComputeVector_FinalMVector.x > mConfig.mMaxFrameTranslationalMagnitude){
                 ret.mSteady = TOO_HIGH;
             }
-
+            short studycopy= ret.mSteady;
 
             //process frame
             if(matinput.width() < matinput.height()) {
@@ -397,13 +397,15 @@ public class RdtAPI {
             Imgproc.resize(mSetRotation ? rotatedmat:greyMat, greyMatResized, sz, 0.0, 0.0, INTER_CUBIC);
             mPreProcessingTime = System.currentTimeMillis() - st;
             //if linear flow  mRDTProcessingResultAvailable=false;
+
             if( mRDTProcessingResultAvailable) {
+                mRDTProcessingResultAvailable = false;
                 if ((mStatus!= null) /*&& mStatus.mRDTFound*/) {
                     //Find Transformation..
                     ret.mRDTFound =true;
                     Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
-
                     ret.mSteady = mStatus.mSteady;
+
                     ret.mBoundingBoxX = mStatus.mBoundingBoxX;
                     ret.mBoundingBoxY = mStatus.mBoundingBoxY;
                     ret.mBoundingBoxWidth = mStatus.mBoundingBoxWidth;
@@ -415,12 +417,13 @@ public class RdtAPI {
                 if(mInputMat != null ) mInputMat.release();
                 if(mGreyMat != null) mGreyMat.release();
                 if(mGreyMatResized != null) mGreyMatResized.release();
-                mRDTProcessingResultAvailable=false;
+                mRDTProcessing=false;
+
             }
             //We should thread from here
             if(!mRDTProcessing) {
                 mRDTProcessing = true;
-                mRDTProcessingResultAvailable = false;
+//                mRDTProcessingResultAvailable = false;
                 if (mInputMat != null) mInputMat.release();
                 if (mGreyMat != null) mGreyMat.release();
                 if (mGreyMatResized != null) mGreyMatResized.release();
@@ -428,7 +431,7 @@ public class RdtAPI {
                 mGreyMat = greyMat.clone();
                 mGreyMatResized = greyMatResized.clone();
                 mStatus = new AcceptanceStatus();
-                mStatus.mSteady = ret.mSteady;
+                mStatus.mSteady = studycopy;
                 if (mLinearflow) {
                     ProcessRDT(mStatus, mInputMat, mGreyMatResized);
                     ret = mStatus;
@@ -475,7 +478,6 @@ public class RdtAPI {
             ret.mInfo.mMinError = mTensorFlow.getMinError();
             ret .mInfo.mAngle =  mTensorFlow.getMangleDegree();
             ret .mInfo.mScale =  mTensorFlow.getMscale();
-
             if(mWarpedMat != null) mWarpedMat.release();
             if(mMotionVectorMat!= null){
                 ret.mInfo.mTrackedImage = getBitmapFromMat(mMotionVectorMat);
@@ -552,6 +554,7 @@ public class RdtAPI {
                 retStatus.mBoundingBoxHeight = (short) (roi.height * hfactor);
                 retStatus.mInfo.mAngle = mTensorFlow.getMangleDegree();
                 retStatus.mInfo.mScale = mTensorFlow.getMscale();
+
                 //Log.d("Bounding Box Computed ",retStatus.mBoundingBoxX+"x"+retStatus.mBoundingBoxY +"  "+retStatus.mBoundingBoxWidth+"x"+retStatus.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
             }
         }
@@ -559,8 +562,8 @@ public class RdtAPI {
             ex.printStackTrace();
         }
         finally {
+            //mRDTProcessing = false;
             mRDTProcessingResultAvailable=true;
-            mRDTProcessing = false;
             //Log.i("ProcessRDT","Exiting in process RDT");
             Log.i("Process RDT Time ", ""+(System.currentTimeMillis()-updatetimest));
         }
