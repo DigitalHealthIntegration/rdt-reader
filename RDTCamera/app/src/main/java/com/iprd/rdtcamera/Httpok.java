@@ -40,7 +40,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     Button mGetResult = null;
 
 
-    static String mHttpURL="http://3.81.211.149:9000/Quidel/QuickVue";
+    static String mHttpURL="http://100.24.50.45:9000/Quidel/QuickVue";
     public void setCtx(Context mCtx) {
         this.mCtx = mCtx;
     }

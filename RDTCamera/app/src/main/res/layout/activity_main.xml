@@ -25,11 +25,11 @@
 
     <ImageView
         android:id="@+id/disRdtResultImage"
-        android:layout_width="61dp"
-        android:layout_height="140dp"
+        android:layout_width="53dp"
+        android:layout_height="129dp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/ResultView"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintBottom_toTopOf="@+id/ResultView"
+        app:layout_constraintEnd_toEndOf="@+id/texture" />
 
 
     <ImageView
@@ -47,6 +47,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:visibility="invisible"
+        android:scaleType="centerInside"
+        android:adjustViewBounds="true"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -179,14 +182,11 @@
         android:id="@+id/ResultView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="628dp"
         android:background="@color/colorGrey"
         android:text="TextView"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/saveData"
-        app:layout_constraintEnd_toStartOf="@+id/disRdtResultImage"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintBottom_toTopOf="@+id/RdtWarpImage"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/startBtn"
@@ -210,8 +210,8 @@
         app:layout_constraintDimensionRatio="H,9:16"
 
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="-8dp"
+        tools:layout_editor_absoluteY="-159dp"
         tools:visibility="invisible">
 
 
