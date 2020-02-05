@@ -313,10 +313,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 //progressbar(true);
+               // mStatusView.setText("Waiting...");
                 mImageBytes = null;
                 handlerCall = true;
+                mResultView.setText("");
                 getRDTResultData();
                 startBtn.setVisibility(View.VISIBLE);
+                mResultView.setTextColor(Color.BLACK);
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
 
@@ -333,6 +336,8 @@ public class MainActivity extends AppCompatActivity {
                 startPreview();
                 /*mWarpedImage = null;
                 mWarpedImage = findViewById(R.id.RdtWarpImage);*/
+                mResultView.setText("");
+                mResultView.setTextColor(Color.BLACK);
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.VISIBLE);
                 startBtn.setVisibility(View.INVISIBLE);

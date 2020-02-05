@@ -117,7 +117,10 @@ public class Httpok extends AsyncTask<String, Void, String> {
                         mResultView.setVisibility(View.VISIBLE);
                     }
                     //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
-                }
+                }/*else{
+                    mResultView.setVisibility(View.INVISIBLE);
+                    //mResultView.setText("waiting...");
+                }*/
             }
         }
     }
