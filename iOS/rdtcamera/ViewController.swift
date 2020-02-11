@@ -181,32 +181,38 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
 //        print("Image Size \(image.size.width)x\(image.size.height)")
 //        print(previewLayer.frame.width,previewLayer.frame.height);
         let curr_time = NSDate().timeIntervalSince1970
-        
-        var tmp = ObjectDetection.update(imageFrame: image, RDT: &rdtRes)
-//        print("Time taken for full process",NSDate().timeIntervalSince1970-curr_time)
+        var motion = OpenCVWrapper.checkSteadyStatus(image);
+        print("OMG it detects motion",motion);
+        if (motion==0){
+            
+               var tmp = ObjectDetection.update(imageFrame: image, RDT: &rdtRes)
+            //        print("Time taken for full process",NSDate().timeIntervalSince1970-curr_time)
 
-//        tmp.origin.x = tmp.origin.x/720*414
-        tmp.origin.x = tmp.origin.x+70
-        tmp.size.width = tmp.size.width-140
-//        tmp.size.height = tmp.size.height-160
-        
-        if curr_time > start_time {
-            start_time = curr_time
-            DispatchQueue.main.async {
-                var position = CGPoint(x:tmp.origin.y,y:tmp.origin.x);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
-                var resolution = CGSize(width: tmp.size.height, height: tmp.size.width	);// CG
-                if rdtRes[0]==false{
-                     position = CGPoint(x:0,y:0);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
-                     resolution = CGSize(width: 0, height: 0);// CG
-                }
-//                Size(width: tmp.size.width, height: tmp.size.height);
-                self.rdtBox.frame.origin = position
-                self.rdtBox.frame.size = resolution
-            }
+            //        tmp.origin.x = tmp.origin.x/720*414
+                    tmp.origin.x = tmp.origin.x+70
+                    tmp.size.width = tmp.size.width-140
+            //        tmp.size.height = tmp.size.height-160
+                    
+                    if curr_time > start_time {
+                        start_time = curr_time
+                        DispatchQueue.main.async {
+                            var position = CGPoint(x:tmp.origin.y,y:tmp.origin.x);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
+                            var resolution = CGSize(width: tmp.size.height, height: tmp.size.width    );// CG
+                            if rdtRes[0]==false{
+                                 position = CGPoint(x:0,y:0);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
+                                 resolution = CGSize(width: 0, height: 0);// CG
+                            }
+            //                Size(width: tmp.size.width, height: tmp.size.height);
+                            self.rdtBox.frame.origin = position
+                            self.rdtBox.frame.size = resolution
+                        }
+                    }
+            
         }
+     
 
 
-	    }
+        }
     
     // clean up AVCapture
     func stopCamera(){

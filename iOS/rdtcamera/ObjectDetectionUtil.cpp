@@ -8,13 +8,15 @@
 
 #include "ObjectDetectionUtil.hpp"
 #include <math.h>
-static double angleOfLine(CvPoint2D32f p1, CvPoint2D32f p2)
+
+
+double ObjectDetectionUtil::angleOfLine(CvPoint2D32f p1, CvPoint2D32f p2)
 {
     
     return atan2((p2.y-p1.y),(p2.x-p1.x));
 }
 
-CvPoint2D32f warpPoint(CvPoint2D32f point,cv::Mat R)
+CvPoint2D32f ObjectDetectionUtil::warpPoint(CvPoint2D32f point,cv::Mat R)
 {
     cv::Point result;
 
@@ -23,24 +25,24 @@ CvPoint2D32f warpPoint(CvPoint2D32f point,cv::Mat R)
     return result;
 }
 
-CvPoint2D32f translate(CvPoint2D32f inp, CvPoint2D32f t)
+CvPoint2D32f ObjectDetectionUtil::translate(CvPoint2D32f inp, CvPoint2D32f t)
 {   CvPoint2D32f res;
     res.x=inp.x+t.x;
     res.y=inp.y+t.y;
     return res;
 }
-static double lengthOfLine(CvPoint2D32f p1, CvPoint2D32f p2){
+double ObjectDetectionUtil::lengthOfLine(CvPoint2D32f p1, CvPoint2D32f p2){
      return sqrt((p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y));
  }
-CvPoint2D32f swap(CvPoint2D32f xy)
+CvPoint2D32f ObjectDetectionUtil::swap(CvPoint2D32f xy)
 {
     return CvPoint2D32f(xy.y,xy.x);
 }
-CvPoint2D32f scale(CvPoint2D32f xy, float s)
+CvPoint2D32f ObjectDetectionUtil::scale(CvPoint2D32f xy, float s)
 {
     return CvPoint2D32f(xy.x *s,xy.y *s);
 }
-static bool angle_constraint(double orientation, double theta_deg) {
+bool ObjectDetectionUtil::angle_constraint(double orientation, double theta_deg) {
        double T=30.0;
        double d=abs(orientation-theta_deg);
        if(d>180) d=360.0-d;
@@ -48,7 +50,7 @@ static bool angle_constraint(double orientation, double theta_deg) {
        return false;
    }
 
-cv::Mat makeRMat(double scale, double theta, CvPoint2D32f tr)
+cv::Mat ObjectDetectionUtil::makeRMat(double scale, double theta, CvPoint2D32f tr)
    {
        double cos_th=cos(theta);
        double sin_th=sin(theta);
@@ -60,7 +62,7 @@ cv::Mat makeRMat(double scale, double theta, CvPoint2D32f tr)
        return R;
    }
 
-double detect2(CvPoint2D32f a, CvPoint2D32f c, CvPoint2D32f i, CvPoint3D32f orientations, CvPoint2D32f *out_scale_rot)
+double ObjectDetectionUtil::detect2(CvPoint2D32f a, CvPoint2D32f c, CvPoint2D32f i, CvPoint3D32f orientations, CvPoint2D32f *out_scale_rot)
 {
     //rotation
     double th1=angleOfLine(a,c);
@@ -117,4 +119,357 @@ double detect2(CvPoint2D32f a, CvPoint2D32f c, CvPoint2D32f i, CvPoint3D32f orie
     
     //compute the MSE
     return (lengthOfLine(ref_A,a1)+lengthOfLine(ref_C,c1)+lengthOfLine(ref_I,i1))/3;
+}
+cv::Mat ObjectDetectionUtil::scaleAffineMat(cv::Mat warpmat, int level) {
+    cv::Mat warp= warpmat.clone();
+    int factor = 1<<level;
+    warp.at<float>(0,2) = warp.at<float>(0,2)*factor;
+    warp.at<float>(1,2) = warp.at<float>(1,2)*factor;
+    return warp;
+   }
+cv::Mat ObjectDetectionUtil::ComputeVector(cv::Point translation,cv::Mat m,cv::Scalar s) {
+        double y = translation.y;//warp.get(1, 2)[0];
+        double x = translation.x;//warp.get(0, 2)[0];
+        double r = sqrt(x * x + y * y);
+
+        double angleRadian = atan2(y, x);
+        if(angleRadian < 0){
+            angleRadian += M_PI * 2;;
+        }
+//        Log.d("ComputedAngle", r+"["+Math.toDegrees(angleRadian) +"]");
+//        if (x < 0.0) { //2  and 3 quad
+//            angleRadian = angleRadian + Math.PI;
+//        } else if (x >= 0.0 && y < 0.0) {
+//            angleRadian = angleRadian + Math.PI * 2;
+//        }
+        double x1 = abs(r * cos(angleRadian));
+        double y1 = abs(r * sin(angleRadian));
+        double angle = RADIANS_TO_DEGREES(angleRadian);
+        if( angle>=0 && angle <=90){
+            x1 = 100+x1;
+            y1 = 100-y1;
+        }else if (angle > 90 && angle <= 180){
+            x1 = 100-x1;
+            y1 = 100-y1;
+        }else if (angle > 180 && angle <= 270) {
+            x1 = 100-x1;
+            y1 = 100+y1;
+        }else if(angle >270 && angle <=360){
+            x1 = 100+x1;
+            y1 = 100+y1;
+        }
+        cv::Point p;
+//        Log.d("Points", "[100,100] -> ["+x1+","+y1+"]");
+        if(sizeof m != 0) {
+            m = cv::Mat(200, 200, CV_8UC4);
+            m.setTo(cv::Scalar(0));
+        }
+        cv::line(m, cv::Point(100,100), cv::Point(x1,y1),s,5);
+        mComputeVector_FinalPoint=p;
+        mComputeVector_FinalMVector = cv::Point(r,RADIANS_TO_DEGREES(angleRadian));
+        return m;
+    }
+    cv::Mat ObjectDetectionUtil::GetTransform(cv::Mat refM, cv::Mat insM) {
+        cv::Mat ref ;
+        pyrDown(refM, ref);
+        cv::Mat ins ;
+        pyrDown(insM, ins);
+        cv::Mat warpMatrix = getTransformation(ref, ins);
+        return warpMatrix;
+    }
+//
+    cv::Mat ObjectDetectionUtil::FindMotion(cv::Mat inp,bool saveref) {
+        cv::Mat ins;
+        pyrDown(inp, ins);
+
+        for(int i=0;i<REGISTRATION_LEVEL-1;i++){
+            pyrDown(ins, ins);
+        }
+        cv::Mat warpMatrix;
+        if(mRefPyr.data!= nullptr) {
+            warpMatrix = getTransformation(ins,mRefPyr);
+        }
+        if(saveref)mRefPyr = ins.clone();
+        return warpMatrix;
+    }
+//
+cv::Mat ObjectDetectionUtil::FindMotionRefIns(cv::Mat refe,cv::Mat inp,cv::Mat warpmat ,bool resize){
+        cv::Mat ins;
+        cv::Mat ref;
+        if(resize){
+            cv::Size s(inp.cols>>REGISTRATION_LEVEL,inp.rows>>REGISTRATION_LEVEL);
+            ins = cv::Mat((int)s.width,(int)s.height,inp.type());
+            ref = cv::Mat((int)s.width,(int)s.height,inp.type());
+            cv::resize(inp,ins,s, 0.0, 0.0, cv::INTER_CUBIC);
+            cv::resize(refe,ref,s, 0.0, 0.0, cv::INTER_CUBIC);
+        }else {
+            pyrDown(inp, ins);
+            for (int i = 0; i < REGISTRATION_LEVEL - 1; i++) {
+                pyrDown(ins, ins);
+            }
+            pyrDown(refe, ref);
+            for (int i = 0; i < REGISTRATION_LEVEL - 1; i++) {
+                pyrDown(ref, ref);
+            }
+        }
+        cv::Mat warp;
+        double ret  = updateTransformationMat(DetectEdges(ins),DetectEdges(ref),warpmat);
+        if (ret >0.0) {
+            warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
+            //ComputeVector
+        }else{
+            warp = cv::Mat::eye(2,3,CV_32F);
+            warpmat=warp.clone();
+            warp.at<float>(0,2) = refe.cols;
+            warp.at<float>(1,2) = refe.rows;
+        }
+        ref.release();
+        ins.release();
+        return warp;
+    }
+//
+//
+//
+//
+cv::Mat ObjectDetectionUtil::LaplacianCompute(cv::Mat inp){
+    cv::Mat ins1;
+    pyrDown(inp, ins1);
+    cv::Mat up(inp.cols,inp.rows,inp.type());
+    pyrUp(ins1,up);
+    cv::Mat lap(inp.cols,inp.rows,CV_16S);
+    //Core.addWeighted(inp,1.0,up,-1.0,255,lap,lap.type());
+    //convertScaleAbs(lap,up);
+    cv::subtract(inp,up,lap);
+    convertScaleAbs(lap, up);
+//        SaveMatrix(up,"insup");
+    return up;
+    }
+cv::Mat ObjectDetectionUtil::FindMotionLaplacianRefIns(cv::Mat refe,cv::Mat inp,cv::Mat warpmat ,bool resize){
+        cv::Mat ins;
+        cv::Mat ref;
+        cv::Mat ins1;
+
+        int w=0,h=0;
+        if(resize){
+            cv::Size s(inp.cols>>REGISTRATION_LEVEL,inp.rows>>REGISTRATION_LEVEL);
+            ins = cv::Mat((int)s.width,(int)s.height,inp.type());
+            ref = cv::Mat((int)s.width,(int)s.height,inp.type());
+            cv::resize(inp,ins,s, 0.0, 0.0, cv::INTER_CUBIC);
+            cv::resize(refe,ref,s, 0.0, 0.0, cv::INTER_CUBIC);
+        }else {
+            pyrDown(inp, ins);
+            w = ins.rows;
+            h = ins.cols;
+            for (int i = 0; i < REGISTRATION_LEVEL-1 ; i++) {
+                w = ins.rows;
+                h = ins.cols;
+                pyrDown(ins, ins);
+            }
+
+//            ins = LaplacianCompute(ins);
+//
+            int kernel_size = 3;
+            int scale = 1;
+            int delta = 0;
+            int ddepth = CV_16S;
+            cv::Mat temp;
+//            Laplacian( ins, temp, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+//            convertScaleAbs( temp, ins,1,0);
+
+            pyrDown(ins, ins1);
+            cv::Mat up(w,h,ins.type());
+            pyrUp(ins1,up);
+//            //SaveMatrix(up,"insup");
+            cv::subtract(ins,up,ins);
+//            //ins = ins - up;
+
+            pyrDown(refe, ref);
+            w = ref.rows;
+            h = ref.cols;
+            for (int i = 0; i < REGISTRATION_LEVEL-1 ; i++) {
+                w = ref.rows;
+                h = ref.cols;
+                pyrDown(ref, ref);
+            }
+//            ref = LaplacianCompute(ref);
+
+//            Laplacian( ref, temp, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+//            convertScaleAbs( temp, ref,1,0);
+
+            pyrDown(ref, ins1);
+            up=cv::Mat(w,h,ref.type());
+            pyrUp(ins1,up);
+            //SaveMatrix(up,"refup");
+            cv::subtract(ref,up,ref);
+//            Mat dst = new Mat();
+//            Core.convertScaleAbs(ins,dst,1,128);
+//            SaveMatrix(dst,"ref");
+
+        }
+        cv::Mat warp;
+        double ret  = updateTransformationMat(ins,ref,warpmat);
+        if (ret >0.0) {
+            warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
+            //ComputeVector
+        }else{
+            warp = cv::Mat::eye(2,3,CV_32F);
+            warpmat=warp.clone();
+            warp.at<float>(0,2) = refe.cols;
+            warp.at<float>(1,2) = refe.rows;
+        }
+        ref.release();
+        ins.release();
+        return warp;
+    }
+//
+    cv::Mat ObjectDetectionUtil::ComputeMotion(cv::Mat greyMat) {
+        cv::Mat warp;
+        cv::Mat warpmat = FindMotion(greyMat, true);
+        if (warpmat.data != nullptr) {
+            warp = scaleAffineMat(warpmat, REGISTRATION_LEVEL);
+            //ComputeVector
+        }else{
+            warp = cv::Mat::eye(2,3,CV_32F);
+            warp.at<float>(0,0)=1.0;
+            warp.at<float>(1,1)=1.0;
+            warp.at<float>(0,2)=greyMat.cols;
+            warp.at<float>(1,2)=greyMat.rows;
+
+//            warp.put(0,0,1.0);
+//            warp.put(1,1,1.0);
+//            warp.put(0,2,greyMat.width());
+//            warp.put(1,2,greyMat.height());
+        }
+        return warp;
+    }
+
+    double ObjectDetectionUtil::updateTransformationMat(cv::Mat ref, cv::Mat ins,cv::Mat warpMatrix) {
+        //SaveMatrix(ref,"ins");
+        //SaveMatrix(ins,"ref");
+        // Log.d("Transform",ref.cols()+"x"+ref.rows()+ " " +ins.cols()+"x"+ins.rows());
+        int warp_mode = cv::MOTION_TRANSLATION;
+        double ret = -1.0;
+        try {
+            int numIter = 50;
+            double terminationEps = 1e-3;
+            cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, numIter, terminationEps);
+            ret = cv::findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, cv::Mat());
+        }catch(cv::Exception e){
+            return -1.0;
+        }
+        return ret;
+    }
+
+    cv::Mat ObjectDetectionUtil::getTransformation(cv::Mat ref, cv::Mat ins) {
+       // Log.d("Transform",ref.cols()+"x"+ref.rows()+ " " +ins.cols()+"x"+ins.rows());
+        int warp_mode = cv::MOTION_TRANSLATION;
+        cv::Mat warpMatrix = cv::Mat::eye(2,3,CV_32F);
+        cv::Mat defResp;
+        try {
+            int numIter = 50;
+            double terminationEps = 1e-3;
+            cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, numIter, terminationEps);
+            double r= cv::findTransformECC(ref, ins, warpMatrix, warp_mode, criteria, cv::Mat());
+            if(r == -1){
+                return defResp;
+            }
+        }catch(cv::Exception e){
+            return defResp;
+        }
+        return warpMatrix;
+    }
+    cv::Mat ObjectDetectionUtil::DetectEdges(cv::Mat grayMat){
+        //Matrices to store gradient and absolute gradient respectively
+        cv::Mat grad_x;
+        cv::Mat abs_grad_x;
+
+        cv::Mat grad_y;
+        cv::Mat abs_grad_y;
+        //Calculating gradient in horizontal direction
+        cv::Sobel(grayMat, grad_x, CV_16S, 1, 0, 3, 1, 0);
+
+        //Calculating gradient in vertical direction
+        cv::Sobel(grayMat, grad_y, CV_16S, 0, 1, 3, 1, 0);
+
+        //Calculating absolute value of gradients in both the direction
+        cv::convertScaleAbs(grad_x, abs_grad_x);
+        cv::convertScaleAbs(grad_y, abs_grad_y);
+
+        //Calculating the resultant gradient
+        cv::Mat sobel; //Mat to store the final result
+        cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 1, sobel);
+
+        grad_x.release();
+        abs_grad_x.release();
+        grad_y.release();
+        abs_grad_y.release();
+
+        return sobel;
+    }
+int ObjectDetectionUtil::checkSteady(cv::Mat greyMat){
+    int res = 0;
+    cv::Point lt;
+    cv::Point rb;
+    cv::Mat warp;
+
+    warp = ComputeMotion(greyMat);
+    std::pair<cv::Mat,cv::Mat> item(warp.clone(),greyMat.clone());
+    mWarpList.push_back(item);
+    
+    long stend = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch()).count()-st;
+    if(mWarpList.size() >10){
+        mWarpList.pop_back();
+    }
+    //Lets Check Motion now.
+    if(sizeof mRefImage != 0) {
+        mRefImage = greyMat.clone();
+        mWarpInfo = cv::Mat::eye(2,3,CV_32F);
+    }
+    cv::Point p(0,0);
+    for(int i=1;i<mWarpList.size();i++){
+        p.x +=mWarpList[i].first.at<float>(0,2);
+        p.y +=mWarpList[i].first.at<float>(1,2);
+        //Log.i(i+"", mWarpList.elementAt(i).get(0,2)[0] + "x" + mWarpList.elementAt(i).get(1,2)[0]);
+    }
+    cv::Mat warp10 = FindMotionRefIns(mRefImage,greyMat,mWarpInfo,false);
+    mWarpedMat = cv::Mat(greyMat.cols, greyMat.rows, greyMat.type());
+    warpAffine(greyMat,mWarpedMat,warp10,greyMat.size());
+    cv::resize(mWarpedMat, mWarpedMat, cv::Size(mWarpedMat.cols>>2,mWarpedMat.rows>>2), 0.0, 0.0, cv::INTER_CUBIC);
+//
+
+    long currtime  = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch()).count();
+    if((currtime - mPreviousTime > 2*1000)/*||(Math.abs(warp10.get(0,2)[0]) >= (greyMat.width()>>2))||(Math.abs(warp10.get(1,2)[0]) >= (greyMat.height()>>2))*/){
+        std::cout<<"ref image updated\n\n";
+        mRefCount = 0;
+        mPreviousTime=currtime;
+        mRefImage.release();
+        mWarpInfo.release();
+        mRefImage = greyMat.clone();
+        mWarpInfo = cv::Mat::eye(2,3,CV_32F);
+        cv::putText(mWarpedMat, "RDT REFERENCE IMAGE ", cv::Point(0, mWarpedMat.cols>>1), cv::FONT_HERSHEY_SIMPLEX, 2.0,cv::Scalar(255,0,0,0),5);
+    }
+
+    //Threshold1 and Threshold 2.
+//    Log.i("10Comp frame", warp10.get(0,2)[0] + "x" + warp10.get(1,2)[0]);
+//    Log.i("10Add frame", p.x + "x" + p.y);
+//    Log.i("1 frame", warp.get(0,2)[0] + "x" + warp.get(1,2)[0]);
+
+    cv::Scalar srg(255,255,0,0);//RGBA
+    mMotionVectorMat = ComputeVector(cv::Point(warp10.at<float>(0,2),warp10.at<float>(1,2)),mMotionVectorMat,srg);
+
+    cv::Scalar sr(255,0,0,0);//RGBA
+    mMotionVectorMat = ComputeVector(p,mMotionVectorMat,sr);
+    res = GOOD;
+    if(mComputeVector_FinalMVector.x > mMax10FrameTranslationalMagnitude){
+        res = TOO_HIGH;
+    }
+
+    cv::Scalar sg(0,255,0,0);
+    mMotionVectorMat = ComputeVector(cv::Point(warp.at<float>(0,2),warp.at<float>(1,2)),mMotionVectorMat,sg);
+    if(mComputeVector_FinalMVector.x > mMaxFrameTranslationalMagnitude){
+        res = TOO_HIGH;
+    }
+
+    
+    return res;
 }
