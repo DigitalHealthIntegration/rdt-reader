@@ -311,12 +311,16 @@ public class MainActivity extends AppCompatActivity {
         mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                mGetResult.setEnabled(false);
                 //progressbar(true);
+               // mStatusView.setText("Waiting...");
                 mImageBytes = null;
                 handlerCall = true;
+                mResultView.setText("");
                 getRDTResultData();
+                startBtn.setEnabled(true);
                 startBtn.setVisibility(View.VISIBLE);
+                mResultView.setTextColor(Color.BLACK);
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
 
@@ -329,12 +333,15 @@ public class MainActivity extends AppCompatActivity {
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                mGetResult.setEnabled(true);
                 startPreview();
                 /*mWarpedImage = null;
                 mWarpedImage = findViewById(R.id.RdtWarpImage);*/
+                mResultView.setText("");
+                mResultView.setTextColor(Color.BLACK);
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.VISIBLE);
+                startBtn.setEnabled(false);
                 startBtn.setVisibility(View.INVISIBLE);
                 progressbar(false);
                 disRdtResultImage.setVisibility(View.INVISIBLE);
