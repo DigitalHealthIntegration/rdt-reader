@@ -398,7 +398,7 @@ public class RdtAPI {
             mPreProcessingTime = System.currentTimeMillis() - st;
             //if linear flow  mRDTProcessingResultAvailable=false;
 
-            if( mRDTProcessingResultAvailable) {
+            if( mRDTProcessingResultAvailable && (studycopy == GOOD)) {
                 mRDTProcessingResultAvailable = false;
                 if ((mStatus!= null) /*&& mStatus.mRDTFound*/) {
                     //Find Transformation..
@@ -421,7 +421,7 @@ public class RdtAPI {
 
             }
             //We should thread from here
-            if(!mRDTProcessing) {
+            if(!mRDTProcessing&& (studycopy == GOOD)) {
                 mRDTProcessing = true;
 //                mRDTProcessingResultAvailable = false;
                 if (mInputMat != null) mInputMat.release();
