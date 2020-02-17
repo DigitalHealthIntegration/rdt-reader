@@ -10,6 +10,7 @@
 #import <opencv2/imgcodecs/ios.h>
 
 static ObjectDetectionUtil objdetut;
+cv::Mat greyMat;
 
 static void UIImageToMat(UIImage *image, cv::Mat &mat) {
     assert(image.size.width > 0 && image.size.height > 0);
@@ -196,12 +197,21 @@ return [NSString stringWithFormat:@"OpenCV Version %s",  CV_VERSION];
 
 +(int)checkSteadyStatus:(UIImage*)inp{
     cv::Mat colMat;
-    cv::Mat greyMat;
     
     UIImageToMat(inp, colMat);
     cv::cvtColor(colMat, greyMat, cv::COLOR_BGR2GRAY);
     int res = objdetut.checkSteady(greyMat);
     return res;
 }
++(int)checkBrightness:(UIImage*)inp {
+    cv::Mat colMat;
+    
+    UIImageToMat(inp, colMat);
+    cv::cvtColor(colMat, greyMat, cv::COLOR_BGR2GRAY);
+    int res = objdetut.checkBrightness(greyMat);
+    return res;
+}
+
+
 
 @end

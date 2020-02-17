@@ -20,7 +20,6 @@
 		8B0967E523F2B5E700550C6B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B0967D623F2B5E700550C6B /* AppDelegate.swift */; };
 		8B0967E623F2B5E700550C6B /* ObjectDetectionUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B0967D723F2B5E700550C6B /* ObjectDetectionUtil.cpp */; };
 		8B0967E723F2B5E700550C6B /* CameraFrameHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B0967D823F2B5E700550C6B /* CameraFrameHandle.swift */; };
-		8B0967E923F2B62400550C6B /* rdt.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 8B0967E823F2B62300550C6B /* rdt.mlmodel */; };
 		8B0967F923F2E3C400550C6B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B0967F323F2E3C300550C6B /* Assets.xcassets */; };
 		8B0967FA23F2E3C400550C6B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B0967F523F2E3C300550C6B /* LaunchScreen.storyboard */; };
 		8B0967FB23F2E3C400550C6B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B0967F723F2E3C300550C6B /* Main.storyboard */; };
@@ -37,6 +36,7 @@
 		8B4B4A7523E05F78003AC0A0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2223E02B23003AC0A0 /* CoreMedia.framework */; };
 		8B4B4A7623E05F78003AC0A0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2023E02B1A003AC0A0 /* CoreGraphics.framework */; };
 		8B4B4A7723E05F78003AC0A0 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A1E23E02B11003AC0A0 /* AssetsLibrary.framework */; };
+		8B7C6A6123FA975D00B39BB8 /* rdt.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 8B7C6A6023FA975C00B39BB8 /* rdt.mlmodel */; };
 		8BCDC60923E15C41007FF308 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BCDC60823E15C41007FF308 /* opencv2.framework */; };
 		8BCDC60A23E15C50007FF308 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BCDC60823E15C41007FF308 /* opencv2.framework */; };
 /* End PBXBuildFile section */
@@ -84,7 +84,6 @@
 		8B0967D723F2B5E700550C6B /* ObjectDetectionUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ObjectDetectionUtil.cpp; sourceTree = "<group>"; };
 		8B0967D823F2B5E700550C6B /* CameraFrameHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraFrameHandle.swift; sourceTree = "<group>"; };
 		8B0967D923F2B5E700550C6B /* rdtcamera-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "rdtcamera-Bridging-Header.h"; sourceTree = "<group>"; };
-		8B0967E823F2B62300550C6B /* rdt.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = rdt.mlmodel; sourceTree = SOURCE_ROOT; };
 		8B0967F323F2E3C300550C6B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8B0967F623F2E3C300550C6B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B0967F823F2E3C300550C6B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Main.storyboard; sourceTree = "<group>"; };
@@ -105,6 +104,7 @@
 		8B4B4A6A23E05CCD003AC0A0 /* ObjectDetectionUtilsTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ObjectDetectionUtilsTest.mm; sourceTree = "<group>"; };
 		8B4B4A6C23E05CCD003AC0A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8B4B4A7223E05DB8003AC0A0 /* rdtcameraTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "rdtcameraTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		8B7C6A6023FA975C00B39BB8 /* rdt.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; name = rdt.mlmodel; path = rdtcamera/rdt.mlmodel; sourceTree = "<group>"; };
 		8BCDC60823E15C41007FF308 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -164,6 +164,7 @@
 		8B4B49DC23E02A74003AC0A0 = {
 			isa = PBXGroup;
 			children = (
+				8B7C6A6023FA975C00B39BB8 /* rdt.mlmodel */,
 				8B4B49E723E02A74003AC0A0 /* rdtcamera */,
 				8B4B4A0123E02A75003AC0A0 /* rdtcameraTests */,
 				8B4B4A0C23E02A75003AC0A0 /* rdtcameraUITests */,
@@ -190,7 +191,6 @@
 			children = (
 				8B0967F323F2E3C300550C6B /* Assets.xcassets */,
 				8B0967F423F2E3C300550C6B /* Base.lproj */,
-				8B0967E823F2B62300550C6B /* rdt.mlmodel */,
 				8B0967D323F2B5E700550C6B /* 1.jpg */,
 				8B0967D623F2B5E700550C6B /* AppDelegate.swift */,
 				8B0967D823F2B5E700550C6B /* CameraFrameHandle.swift */,
@@ -421,7 +421,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8B0967E923F2B62400550C6B /* rdt.mlmodel in Sources */,
+				8B7C6A6123FA975D00B39BB8 /* rdt.mlmodel in Sources */,
 				8B0967DF23F2B5E700550C6B /* ViewController.swift in Sources */,
 				8B0967E623F2B5E700550C6B /* ObjectDetectionUtil.cpp in Sources */,
 				8B0967DB23F2B5E700550C6B /* ObjectDetection.swift in Sources */,

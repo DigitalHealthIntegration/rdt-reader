@@ -10,23 +10,27 @@ import UIKit
 import AVFoundation
 import AudioToolbox
 
+
 class ViewController: UIViewController{
     var previewView : UIView!
     var boxView:UIView!
     var actionButton = UIButton()
-    var resultLabel = UILabel(frame: CGRect(x: 0, y: 580, width: 200, height: 21))
+    var resultLabel = UILabel(frame: CGRect(x: 0, y: 580, width: 100, height: 21))
+    var prompts = UILabel(frame: CGRect(x: 0, y: 80, width: 1000, height: 100))
+
     //Camera Capture requiered properties
     var videoDataOutput: AVCaptureVideoDataOutput!
     var videoDataOutputQueue: DispatchQueue!
     var previewLayer:AVCaptureVideoPreviewLayer!
     var captureDevice : AVCaptureDevice!
     let session = AVCaptureSession()
-    var rdtBox = UIImageView(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
+    var rdtBox = UIImageView(frame: CGRect(x: 120, y: 120, width: 180, height: 650))
     var start_time = NSDate().timeIntervalSince1970
     var returnImg = UIImageView(frame: CGRect(x: 0, y: 600, width: 40, height: 200));
     
-    
-   
+    var timeSinceLastCheck = NSDate().timeIntervalSince1970
+    var rdtRes = acceptanceStatus(mScale: -1.0, mBrightness: -1, RDT_found: false);
+    var goodImageFlag = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,8 +65,9 @@ class ViewController: UIViewController{
         view.addSubview(actionButton);
         //resultLabel.center = CGPoint(x: 160, y: 285)
         //resultLabel.textAlignment = .center
+        prompts.numberOfLines = 4;
         view.addSubview(resultLabel)
-
+        view.addSubview(prompts)
         print(previewView.layer.bounds)
         print(view.layer.bounds)
         
@@ -85,39 +90,51 @@ class ViewController: UIViewController{
         print("button clicked");
         // call rdt api from here
         AudioServicesPlaySystemSound(1520); // Actuate "Pop" feedback (strong boom)
-        DispatchQueue.main.async {
-            let data = Data("".utf8)
-            self.returnImg.image = UIImage(data: data as Data)
-            self.resultLabel.text = "waiting"
-        }
-        CameraFrameHandle.evaluateRDTRestApi(){(result:String,img:String) in
-            print(result);
-            let data = NSData (base64Encoded: img, options: NSData.Base64DecodingOptions(rawValue: 0))
-            let dataStr = Data(result.utf8)
-            var res = "error"
-            
-            DispatchQueue.main.async {
-              self.returnImg.image = UIImage(data: data! as Data)
-                do {
-                    // make sure this JSON is in the format we expect
-                    if let json = try JSONSerialization.jsonObject(with: dataStr, options: []) as? [String: Any] {
-                        // try to read out a string array
-                        if let names = json["msg"] as? String {
-                            self.resultLabel.text = names
-
-                        }
-                    }
-                } catch let error as NSError {
-                    print("Failed to load: \(error.localizedDescription)")
-                }
-            }
-        }
+        hitServer();
     }
 }
 
 
 // AVCaptureVideoDataOutputSampleBufferDelegate protocol and related methods
 extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
+    
+    func hitServer(){
+        
+        
+               CameraFrameHandle.evaluateRDTRestApi(){(result:String,img:String) in
+                   print(result);
+                   let data = NSData (base64Encoded: img, options: NSData.Base64DecodingOptions(rawValue: 0))
+                   let dataStr = Data(result.utf8)
+                   var res = "error"
+                   
+                   DispatchQueue.main.async {
+                     self.returnImg.image = UIImage(data: data! as Data)
+                       do {
+                           // make sure this JSON is in the format we expect
+                           if let json = try JSONSerialization.jsonObject(with: dataStr, options: []) as? [String: Any] {
+                               // try to read out a string array
+                               if let names = json["msg"] as? String {
+                                   self.resultLabel.text = names
+                                
+                                self.session.startRunning();
+                               }
+                           }
+                       } catch let error as NSError {
+                           print("Failed to load: \(error.localizedDescription)")
+                       }
+                   }
+               }
+        DispatchQueue.main.async {
+            let data = Data("".utf8)
+            self.returnImg.image = UIImage(data: data as Data)
+            self.session.stopRunning();
+
+//            self.prompts.text = "Waiting for server"
+            self.resultLabel.text = "Waiting"
+
+        }
+    }
+    
     
     func setupAVCapture(){
         session.sessionPreset = AVCaptureSession.Preset.hd1280x720
@@ -175,9 +192,7 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
         let ciImage = CIImage(cvPixelBuffer: imageBuffer)
         let context = CIContext()
         guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return  }
-        var rdtRes: [Bool] = [false]
         let image = UIImage(cgImage: cgImage)
-        CameraFrameHandle.handleFrame(imageFrame: image)
 //        print("Image Size \(image.size.width)x\(image.size.height)")
 //        print(previewLayer.frame.width,previewLayer.frame.height);
         let curr_time = NSDate().timeIntervalSince1970
@@ -195,16 +210,71 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
                     
                     if curr_time > start_time {
                         start_time = curr_time
+                        var textTodisp = "RDT not found"
+                        
                         DispatchQueue.main.async {
                             var position = CGPoint(x:tmp.origin.y,y:tmp.origin.x);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
                             var resolution = CGSize(width: tmp.size.height, height: tmp.size.width    );// CG
-                            if rdtRes[0]==false{
-                                 position = CGPoint(x:0,y:0);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
-                                 resolution = CGSize(width: 0, height: 0);// CG
+                            if self.rdtRes.RDT_found==false{
+                                self.goodImageFlag = false;
+                                self.timeSinceLastCheck = NSDate().timeIntervalSince1970
+                                textTodisp = "RDT not found";
+                                 var position = CGPoint(x:0,y:0);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
+                                 var resolution = CGSize(width: 0, height: 0);// CG
                             }
+                            else if self.rdtRes.RDT_found==true{
+                                self.goodImageFlag = self.rdtRes.mScale>0.6 && self.rdtRes.mBrightness>100 && self.rdtRes.mBrightness<200 && position.x>135 && position.x<280;
+                                var tmpTime = curr_time-self.timeSinceLastCheck
+                                
+                                textTodisp = "Found RDT ..."
+                                if self.rdtRes.mScale>0.6{
+                                    textTodisp  += "\nscale is good "
+                                }
+                                else if self.rdtRes.mScale<0.6{
+                                    self.timeSinceLastCheck = NSDate().timeIntervalSince1970
+
+                                    textTodisp  += "\nslowly bring camera closer "
+                                    
+                                }
+                                if self.rdtRes.mBrightness>100 && self.rdtRes.mBrightness<200{
+                                    textTodisp  += "\nbrightness is good.. hold steady"
+                                }
+                                else if self.rdtRes.mBrightness<100 {
+                                    self.timeSinceLastCheck = NSDate().timeIntervalSince1970
+
+                                    textTodisp  += "\nbrightness is low "
+                                }
+                                else if self.rdtRes.mBrightness>200 {
+                                    self.timeSinceLastCheck = NSDate().timeIntervalSince1970
+
+                                    textTodisp  += "\nbrightness is high "
+                                }
+                                if position.x<135{
+                                    self.timeSinceLastCheck = NSDate().timeIntervalSince1970
+
+                                    textTodisp  += "\nmove phone to the left "
+                                }
+                                else if position.x>280{
+                                    self.timeSinceLastCheck = NSDate().timeIntervalSince1970
+
+                                    textTodisp  += "\nmove phone to the right "
+                                }
+                            }
+                            self.prompts.text = textTodisp
+//                            print("Scale : ",self.rdtRes.mScale, "Brightness : ",self.rdtRes.mBrightness);
             //                Size(width: tmp.size.width, height: tmp.size.height);
-                            self.rdtBox.frame.origin = position
-                            self.rdtBox.frame.size = resolution
+//                            self.rdtBox.frame.origin = position
+//                            self.rdtBox.frame.size = resolution
+                            if curr_time - self.timeSinceLastCheck>1.0{
+                                if self.goodImageFlag{
+                                    self.timeSinceLastCheck = NSDate().timeIntervalSince1970
+                                    CameraFrameHandle.handleFrame(imageFrame: image)
+                                    self.hitServer();
+                                    print("\n\n******One second up*****\n\n")
+                                }
+                                
+                                
+                            }
                         }
                     }
             

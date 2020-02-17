@@ -166,7 +166,7 @@ public class HTTPHandlers {
     public static func hitAPI(paramName: String, fileName: String, image: UIImage, callback: @escaping (Any,Any) -> ()) -> () {
        let configuration = URLSessionConfiguration.default
        let session = URLSession(configuration: configuration)
-       let url = URL(string: "http://100.24.50.45:9000/Quidel/QuickVue")
+       let url = URL(string: "http://0.0.0.0:8000/Quidel/QuickVue")
        var request : URLRequest = URLRequest(url: url!)
        request.httpMethod = "POST"
        request.addValue("application/json", forHTTPHeaderField: "Content-Type")

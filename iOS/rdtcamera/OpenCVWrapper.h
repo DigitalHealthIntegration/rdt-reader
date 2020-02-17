@@ -46,6 +46,7 @@ static double mThreshold = 0.9;
 + (double)detect2wrapper:(CGPoint)arrowPreds :(CGPoint)Cpreds :(CGPoint)InfPreds :(const double[])orientations :(CGPoint *)outscalerot;
 + (CGRect)returnBoundingRect:(CGPoint)rdt :(double)s_w :(double)s_h :(double)calculatedAngle;
 + (int)checkSteadyStatus:(UIImage*)inp;
++ (int)checkBrightness:(UIImage*)inp;
 @end
 
 NS_ASSUME_NONNULL_END

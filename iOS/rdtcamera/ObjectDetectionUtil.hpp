@@ -42,12 +42,14 @@ class ObjectDetectionUtil{
     public:
          // static int REGISTRATION_LEVEL=5;
     long st;
+    int firstImage;
     std::string TAG;
     int REGISTRATION_LEVEL;
         ObjectDetectionUtil(){
          st=0;
          TAG = "test";
          REGISTRATION_LEVEL=5;
+            firstImage = 0;
         };
          cv::Mat mRefPyr;
          std::deque<std::pair<cv::Mat,cv::Mat>> mWarpList;
@@ -85,6 +87,7 @@ class ObjectDetectionUtil{
         cv::Mat FindMotionLaplacianRefIns(cv::Mat refe,cv::Mat inp,cv::Mat warpmat ,bool resize);
         cv::Mat ComputeVector(cv::Point translation,cv::Mat m,cv::Scalar s);
         cv::Mat ComputeMotion(cv::Mat greyMat);
+        int checkBrightness(cv::Mat greyMat);
         //        long st;
         //        std::string TAG;
         //        int REGISTRATION_LEVEL;

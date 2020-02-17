@@ -13,6 +13,22 @@ import CoreML
 
 @available(iOS 13.0, *)
 
+struct acceptanceStatus {
+   var mScale: Float
+   var mBrightness: Int
+    var RDT_found: Bool
+
+   init(mScale: Float, mBrightness: Int, RDT_found: Bool) {
+      self.mScale = mScale
+      self.mBrightness = mBrightness
+      self.RDT_found = RDT_found
+   }
+}
+func cropImage(image: UIImage, rect: CGRect) -> UIImage {
+    let cgImage = image.cgImage! // better to write "guard" in realm app
+    let croppedCGImage = cgImage.cropping(to: rect)
+    return UIImage(cgImage: croppedCGImage!)
+}
 func deg2rad(_ number: Double) -> Double {
     return number * .pi / 180
 }
@@ -66,7 +82,7 @@ class ObjectDetection: UIViewController {
     ] as [String : Any];
 
 
-    public static func  update(imageFrame: UIImage, RDT:inout [Bool]) -> CGRect{
+    public static func  update(imageFrame: UIImage, RDT:inout acceptanceStatus) -> CGRect{
         //currentImageFrame = UIImage.init(cgImage: UIImage() as! CGImage);
         currentImageFrame = OpenCVWrapper.preprocessImage(imageFrame);
 //        UIImageWriteToSavedPhotosAlbum(currentImageFrame,nil,nil,nil);
@@ -151,16 +167,24 @@ class ObjectDetection: UIViewController {
 
         }
         if (vectorTableArrow.count > 0 && vectorTableCpattern.count > 0 && vectorTableInfluenza.count > 0) {
-            roi = locateRdt(vecArr: vectorTableArrow, vecC: vectorTableCpattern,vecInf: vectorTableInfluenza);
-            RDT[0] = found;
+            roi = locateRdt(vecArr: vectorTableArrow, vecC: vectorTableCpattern,vecInf: vectorTableInfluenza,rdtRes:&RDT);
+            RDT.RDT_found = found;
+            let cropepdImg = cropImage(image: imageFrame,rect: roi);
+            computeBrightness(inp: cropepdImg, ret: &RDT);
+
         }
+        else{
+            RDT.RDT_found = false;
+
+        }
+        
 //        print("Time taken for post processing",NSDate().timeIntervalSince1970-curr_time)
 
         return roi;
     }
     
     
-    private static func locateRdt(vecArr:Array<resultObj>,vecC:Array<resultObj>,vecInf:Array<resultObj>)->CGRect{
+    private static func locateRdt(vecArr:Array<resultObj>,vecC:Array<resultObj>,vecInf:Array<resultObj>,rdtRes:inout acceptanceStatus)->CGRect{
         
         var roiIn = CGRect(x: -1, y: -1, width: -1, height: -1);
         var exit = false;
@@ -202,7 +226,7 @@ class ObjectDetection: UIViewController {
             
             
         }
-        mscale=Double(best_scale_rot.x);
+        rdtRes.mScale=Float(best_scale_rot.x);
         var angleRads=Double(best_scale_rot.y);
         if(angleRads>Double.pi){
             angleRads=angleRads-Double.pi*2;
@@ -228,7 +252,6 @@ class ObjectDetection: UIViewController {
         
 //        RotatedRect rotatedRect = new RotatedRect(rdt_c, sz, calculatedAngleRotation);
         roiIn = OpenCVWrapper.returnBoundingRect(rdt_c,tmpW,tmpH,calculatedAngleRotation);
-        
         
         //if(tmp_for_draw != null) putText(tmp_for_draw, "MinError = " + String.valueOf(minError), new Point(0, tmp_for_draw.cols()>>1), FONT_HERSHEY_SIMPLEX, 1.5,new Scalar(255,0,0,0),2);
         //Log.d("ROI:", "X : " + roi.x + "Y : " + roi.y + "W : " + roi.width + "H : " + roi.height);
@@ -294,7 +317,20 @@ class ObjectDetection: UIViewController {
         return predResult.Identity;
     }
     
-
+    private static func computeBrightness(inp: UIImage,ret:inout acceptanceStatus)->Bool {
+        //        if(false) {
+//           //Log.d("Brightness","mBrightness "+brightness);
+//           if (brightness > mConfig.mMaxBrightness) {
+//               ret.mBrightness = TOO_HIGH;
+//               return false;
+//           } else if (brightness < mConfig.mMinBrightness) {
+//               ret.mBrightness = TOO_LOW;
+//               return false;
+//           }
+//        }
+        ret.mBrightness =  Int(OpenCVWrapper.checkBrightness(inp));
+        return true;
+    }
     
     public static func evaluateRDTRestApi(callback: @escaping (String) -> ()){
         // call this on button click from UI

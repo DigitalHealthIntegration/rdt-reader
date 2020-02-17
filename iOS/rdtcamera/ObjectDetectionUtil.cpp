@@ -406,6 +406,15 @@ cv::Mat ObjectDetectionUtil::FindMotionLaplacianRefIns(cv::Mat refe,cv::Mat inp,
 
         return sobel;
     }
+
+
+int ObjectDetectionUtil::checkBrightness(cv::Mat greyMat){
+    cv::Scalar tempVal = mean(greyMat);
+    double brightness = tempVal.val[0];
+    
+    return (int) brightness;
+}
+
 int ObjectDetectionUtil::checkSteady(cv::Mat greyMat){
     int res = 0;
     cv::Point lt;
@@ -418,7 +427,7 @@ int ObjectDetectionUtil::checkSteady(cv::Mat greyMat){
     
     long stend = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch()).count()-st;
     if(mWarpList.size() >10){
-        mWarpList.pop_back();
+        mWarpList.pop_front();
     }
     //Lets Check Motion now.
     if(sizeof mRefImage != 0) {
@@ -442,8 +451,8 @@ int ObjectDetectionUtil::checkSteady(cv::Mat greyMat){
         std::cout<<"ref image updated\n\n";
         mRefCount = 0;
         mPreviousTime=currtime;
-        mRefImage.release();
-        mWarpInfo.release();
+//        mRefImage.release();
+//        mWarpInfo.release();
         mRefImage = greyMat.clone();
         mWarpInfo = cv::Mat::eye(2,3,CV_32F);
         cv::putText(mWarpedMat, "RDT REFERENCE IMAGE ", cv::Point(0, mWarpedMat.cols>>1), cv::FONT_HERSHEY_SIMPLEX, 2.0,cv::Scalar(255,0,0,0),5);
