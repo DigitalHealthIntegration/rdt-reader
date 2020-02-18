@@ -14,7 +14,6 @@ import AudioToolbox
 class ViewController: UIViewController{
     var previewView : UIView!
     var boxView:UIView!
-    var actionButton = UIButton()
     var resultLabel = UILabel(frame: CGRect(x: 0, y: 580, width: 100, height: 21))
     var prompts = UILabel(frame: CGRect(x: 0, y: 80, width: 1000, height: 100))
 
@@ -44,7 +43,6 @@ class ViewController: UIViewController{
         returnImg.contentMode = UIImageView.ContentMode.scaleAspectFit
         previewView.backgroundColor = UIColor.darkGray
         view.addSubview(previewView)
-        
         //Add a view on top of the cameras' view
         boxView = UIView(frame: self.previewView.frame)
         view.addSubview(boxView)
@@ -56,15 +54,16 @@ class ViewController: UIViewController{
         view.addSubview(rdtBox);
         
         view.addSubview(returnImg);
-        actionButton.setTitle("Check RDT", for: .normal);
-        actionButton.setTitleColor(UIColor.blue, for: .normal)
-        actionButton.frame = CGRect(x: 10, y: UIScreen.main.bounds.size.height - 80, width: UIScreen.main.bounds.size.width - 20, height: 60)
-        actionButton.addTarget(self, action: #selector(pressed(sender:)), for: .touchUpInside)
-        actionButton.backgroundColor = UIColor.init(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
         
-        view.addSubview(actionButton);
+        let overlay = createOverlay(frame: view.frame,
+                                    xOffset: view.frame.midX,
+                                    yOffset: view.frame.midY,
+                                    rect: CGRect(x: 120, y: 120, width: 180, height: 650))
+        view.addSubview(overlay)
         //resultLabel.center = CGPoint(x: 160, y: 285)
         //resultLabel.textAlignment = .center
+        resultLabel.textColor = UIColor.white
+        prompts.textColor = UIColor.white
         prompts.numberOfLines = 4;
         view.addSubview(resultLabel)
         view.addSubview(prompts)
@@ -86,11 +85,39 @@ class ViewController: UIViewController{
     }
     
     
-    @objc func pressed(sender: UIButton!) {
-        print("button clicked");
-        // call rdt api from here
-        AudioServicesPlaySystemSound(1520); // Actuate "Pop" feedback (strong boom)
-        hitServer();
+//    @objc func pressed(sender: UIButton!) {
+//        print("button clicked");
+//        // call rdt api from here
+//        hitServer();
+//    }
+    
+    func createOverlay(frame: CGRect,
+                       xOffset: CGFloat,
+                       yOffset: CGFloat,
+                       rect: CGRect) -> UIView {
+        // Step 1
+        let overlayView = UIView(frame: frame)
+        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        // Step 2
+        let path = CGMutablePath()
+//        path.addArc(center: CGPoint(x: xOffset, y: yOffset),
+//                    radius: radius,
+//                    startAngle: 0.0,
+//                    endAngle: 2.0 * .pi,
+//                    clockwise: false)
+        path.addRect(CGRect(origin: rect.origin, size: rect.size))
+
+        path.addRect(CGRect(origin: .zero, size: overlayView.frame.size))
+        // Step 3
+        let maskLayer = CAShapeLayer()
+        maskLayer.backgroundColor = UIColor.black.cgColor
+        maskLayer.path = path
+        maskLayer.fillRule = CAShapeLayerFillRule.evenOdd
+        // Step 4
+        overlayView.layer.mask = maskLayer
+        overlayView.clipsToBounds = true
+
+        return overlayView
     }
 }
 
@@ -109,6 +136,8 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
                    
                    DispatchQueue.main.async {
                      self.returnImg.image = UIImage(data: data! as Data)
+                    self.view.bringSubviewToFront(self.returnImg)
+
                        do {
                            // make sure this JSON is in the format we expect
                            if let json = try JSONSerialization.jsonObject(with: dataStr, options: []) as? [String: Any] {
@@ -216,6 +245,7 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
                             var position = CGPoint(x:tmp.origin.y,y:tmp.origin.x);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
                             var resolution = CGSize(width: tmp.size.height, height: tmp.size.width    );// CG
                             if self.rdtRes.RDT_found==false{
+                                self.rdtBox.layer.borderColor = UIColor.red.cgColor
                                 self.goodImageFlag = false;
                                 self.timeSinceLastCheck = NSDate().timeIntervalSince1970
                                 textTodisp = "RDT not found";
@@ -223,6 +253,8 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
                                  var resolution = CGSize(width: 0, height: 0);// CG
                             }
                             else if self.rdtRes.RDT_found==true{
+                                self.rdtBox.layer.borderColor = UIColor.green.cgColor
+
                                 self.goodImageFlag = self.rdtRes.mScale>0.6 && self.rdtRes.mBrightness>100 && self.rdtRes.mBrightness<200 && position.x>135 && position.x<280;
                                 var tmpTime = curr_time-self.timeSinceLastCheck
                                 
@@ -270,6 +302,9 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
                                     self.timeSinceLastCheck = NSDate().timeIntervalSince1970
                                     CameraFrameHandle.handleFrame(imageFrame: image)
                                     self.hitServer();
+                                    AudioServicesPlaySystemSound(1520); // Actuate "Pop" feedback (strong boom)
+                                    AudioServicesPlaySystemSound(1108); // Actuate "Pop" feedback (strong boom)
+
                                     print("\n\n******One second up*****\n\n")
                                 }
                                 
