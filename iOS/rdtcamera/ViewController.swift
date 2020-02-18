@@ -14,8 +14,6 @@ import AudioToolbox
 class ViewController: UIViewController{
     var previewView : UIView!
     var boxView:UIView!
-    var resultLabel = UILabel(frame: CGRect(x: 0, y: 580, width: 100, height: 21))
-    var prompts = UILabel(frame: CGRect(x: 0, y: 80, width: 1000, height: 100))
 
     //Camera Capture requiered properties
     var videoDataOutput: AVCaptureVideoDataOutput!
@@ -23,22 +21,42 @@ class ViewController: UIViewController{
     var previewLayer:AVCaptureVideoPreviewLayer!
     var captureDevice : AVCaptureDevice!
     let session = AVCaptureSession()
-    var rdtBox = UIImageView(frame: CGRect(x: 120, y: 120, width: 180, height: 650))
-    var start_time = NSDate().timeIntervalSince1970
-    var returnImg = UIImageView(frame: CGRect(x: 0, y: 600, width: 40, height: 200));
+    var objdet=ObjectDetection.init(W: Double(UIScreen.main.bounds.size.width),
+                                           H: Double(UIScreen.main.bounds.size.height));
     
     var timeSinceLastCheck = NSDate().timeIntervalSince1970
     var rdtRes = acceptanceStatus(mScale: -1.0, mBrightness: -1, RDT_found: false);
     var goodImageFlag = false;
     
+    var wf = UIScreen.main.bounds.size.width/414.0;
+    var hf = UIScreen.main.bounds.size.height/896.0;
+
+    
+    var resultLabel = UILabel();
+    var prompts = UILabel();
+    var rdtBox = UIImageView();
+    var start_time = NSDate().timeIntervalSince1970
+    var returnImg = UIImageView();
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        print(UIScreen.main.bounds.size.width,UIScreen.main.bounds.size.height)
+
         
         print("\(OpenCVWrapper.openCVVersionString())")
         previewView = UIView(frame: CGRect(x: 0,
                                            y: 0,
                                            width: UIScreen.main.bounds.size.width,
                                            height: UIScreen.main.bounds.size.height))
+        
+        
+        
+        resultLabel = UILabel(frame: CGRect(x: 0, y: hf*580, width: wf*100, height: hf*21))
+        prompts = UILabel(frame: CGRect(x: 0, y: hf*80, width: 1000, height: hf*100))
+        rdtBox = UIImageView(frame: CGRect(x: wf*120, y: hf*120, width: wf*180, height: hf*650))
+        returnImg = UIImageView(frame: CGRect(x: 0, y: hf*600, width: wf*40, height: hf*200));
+
         previewView.contentMode = UIView.ContentMode.scaleAspectFit
         returnImg.contentMode = UIImageView.ContentMode.scaleAspectFit
         previewView.backgroundColor = UIColor.darkGray
@@ -58,7 +76,7 @@ class ViewController: UIViewController{
         let overlay = createOverlay(frame: view.frame,
                                     xOffset: view.frame.midX,
                                     yOffset: view.frame.midY,
-                                    rect: CGRect(x: 120, y: 120, width: 180, height: 650))
+                                    rect: CGRect(x: wf*120, y: hf*120, width: wf*180, height: hf*650))
         view.addSubview(overlay)
         //resultLabel.center = CGPoint(x: 160, y: 285)
         //resultLabel.textAlignment = .center
@@ -132,7 +150,7 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
                    print(result);
                    let data = NSData (base64Encoded: img, options: NSData.Base64DecodingOptions(rawValue: 0))
                    let dataStr = Data(result.utf8)
-                   var res = "error"
+                _ = "error"
                    
                    DispatchQueue.main.async {
                      self.returnImg.image = UIImage(data: data! as Data)
@@ -225,16 +243,19 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
 //        print("Image Size \(image.size.width)x\(image.size.height)")
 //        print(previewLayer.frame.width,previewLayer.frame.height);
         let curr_time = NSDate().timeIntervalSince1970
-        var motion = OpenCVWrapper.checkSteadyStatus(image);
+        let motion = OpenCVWrapper.checkSteadyStatus(image);
         print("OMG it detects motion",motion);
         if (motion==0){
             
-               var tmp = ObjectDetection.update(imageFrame: image, RDT: &rdtRes)
+            var tmp = self.objdet.update(imageFrame: image, RDT: &rdtRes)
             //        print("Time taken for full process",NSDate().timeIntervalSince1970-curr_time)
 
             //        tmp.origin.x = tmp.origin.x/720*414
-                    tmp.origin.x = tmp.origin.x+70
-                    tmp.size.width = tmp.size.width-140
+            tmp.origin.x = self.wf*(tmp.origin.x+60)
+            tmp.size.width = self.wf*(tmp.size.width-140)
+            tmp.origin.y = self.hf*(tmp.origin.y)
+            tmp.size.height = self.hf*(tmp.size.height)
+            
             //        tmp.size.height = tmp.size.height-160
                     
                     if curr_time > start_time {
@@ -242,21 +263,21 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
                         var textTodisp = "RDT not found"
                         
                         DispatchQueue.main.async {
-                            var position = CGPoint(x:tmp.origin.y,y:tmp.origin.x);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
-                            var resolution = CGSize(width: tmp.size.height, height: tmp.size.width    );// CG
+                            let position = CGPoint(x:tmp.origin.y,y:tmp.origin.x);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
+                            _ = CGSize(width: tmp.size.height, height: tmp.size.width    );// CG
                             if self.rdtRes.RDT_found==false{
                                 self.rdtBox.layer.borderColor = UIColor.red.cgColor
                                 self.goodImageFlag = false;
                                 self.timeSinceLastCheck = NSDate().timeIntervalSince1970
                                 textTodisp = "RDT not found";
-                                 var position = CGPoint(x:0,y:0);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
-                                 var resolution = CGSize(width: 0, height: 0);// CG
+                                _ = CGPoint(x:0,y:0);// CGPoint(x:tmp.origin.x,y:tmp.origin.y);
+                                _ = CGSize(width: 0, height: 0);// CG
                             }
                             else if self.rdtRes.RDT_found==true{
                                 self.rdtBox.layer.borderColor = UIColor.green.cgColor
 
-                                self.goodImageFlag = self.rdtRes.mScale>0.6 && self.rdtRes.mBrightness>100 && self.rdtRes.mBrightness<200 && position.x>135 && position.x<280;
-                                var tmpTime = curr_time-self.timeSinceLastCheck
+                                self.goodImageFlag = self.rdtRes.mScale>0.6 && self.rdtRes.mBrightness>100 && self.rdtRes.mBrightness<200 && position.x>self.wf*100 && position.x<self.wf*280;
+                                _ = curr_time-self.timeSinceLastCheck
                                 
                                 textTodisp = "Found RDT ..."
                                 if self.rdtRes.mScale>0.6{
@@ -281,12 +302,12 @@ extension ViewController:  AVCaptureVideoDataOutputSampleBufferDelegate{
 
                                     textTodisp  += "\nbrightness is high "
                                 }
-                                if position.x<135{
+                                if position.x<self.wf*100{
                                     self.timeSinceLastCheck = NSDate().timeIntervalSince1970
 
                                     textTodisp  += "\nmove phone to the left "
                                 }
-                                else if position.x>280{
+                                else if position.x>self.wf*280{
                                     self.timeSinceLastCheck = NSDate().timeIntervalSince1970
 
                                     textTodisp  += "\nmove phone to the right "

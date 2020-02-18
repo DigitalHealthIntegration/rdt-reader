@@ -92,6 +92,7 @@ public class CvUtils {
     }
     public static Point mComputeVector_FinalPoint=new Point();
     public static Point mComputeVector_FinalMVector=new Point();
+    
     public static Mat ComputeVector(Point translation,Mat m,Scalar s) {
         double y = translation.y;//warp.get(1, 2)[0];
         double x = translation.x;//warp.get(0, 2)[0];

@@ -12,6 +12,7 @@
 @end
 
 @implementation ObjectDetectionUtilsTest
+static ObjectDetectionUtil objdetut;
 
 - (void)setUp {
     // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -22,6 +23,7 @@
 }
 
 - (void)testIdentity {
+    
     CvPoint2D32f a(152.0f, 30.0f);
     CvPoint2D32f c(746.0f, 30.0f);
     CvPoint2D32f i(874.0f, 30.0f);
@@ -29,7 +31,7 @@
     CvPoint2D32f t(10.0f, 20.0f);
     CvPoint3D32f orientations(0,0,0);
     CvPoint2D32f est_scal_rot;
-    XCTAssert(detect2(a, c, i,orientations, &est_scal_rot) == 0.0);
+    XCTAssert(objdetut.detect2(a, c, i,orientations, &est_scal_rot) == 0.0);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,1,0.000000001);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,0,0.000000001);
 
@@ -44,11 +46,11 @@
     CvPoint2D32f t(10.0f, 20.0f);
     CvPoint3D32f orientations(0,0,0);
     CvPoint2D32f est_scal_rot;
-    CvPoint2D32f a1=translate(a,t);
-    CvPoint2D32f c1=translate(c,t);
-    CvPoint2D32f i1=translate(i,t);
+    CvPoint2D32f a1=objdetut.translate(a,t);
+    CvPoint2D32f c1=objdetut.translate(c,t);
+    CvPoint2D32f i1=objdetut.translate(i,t);
     
-    XCTAssert(detect2(a1, c1, i1,orientations, &est_scal_rot) == 0.0);
+    XCTAssert(objdetut.detect2(a1, c1, i1,orientations, &est_scal_rot) == 0.0);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,1,0.00001);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,0,0.00001);
 
@@ -63,11 +65,11 @@
     CvPoint2D32f t(10.0f, 20.0f);
     CvPoint3D32f orientations(0,0,0);
     CvPoint2D32f est_scal_rot;
-    CvPoint2D32f a1=scale(a, s);
-    CvPoint2D32f c1=scale(c,s);
-    CvPoint2D32f i1=scale(i,s);
+    CvPoint2D32f a1=objdetut.scale(a, s);
+    CvPoint2D32f c1=objdetut.scale(c,s);
+    CvPoint2D32f i1=objdetut.scale(i,s);
 
-    XCTAssertEqualWithAccuracy(detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,0.75,0.00001);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,0,0.00001);
 
@@ -82,11 +84,11 @@
     CvPoint2D32f t(10.0f, 20.0f);
     CvPoint3D32f orientations(90,90,90);
     CvPoint2D32f est_scal_rot;
-    CvPoint2D32f a1=swap(a);
-    CvPoint2D32f c1=swap(c);
-    CvPoint2D32f i1=swap(i);
+    CvPoint2D32f a1=objdetut.swap(a);
+    CvPoint2D32f c1=objdetut.swap(c);
+    CvPoint2D32f i1=objdetut.swap(i);
 
-    XCTAssertEqualWithAccuracy(detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,1.0,0.01);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,M_PI/2.0,0.01);
 
@@ -101,11 +103,11 @@
     CvPoint2D32f t(10.0f, 20.0f);
     CvPoint3D32f orientations(90,90,90);
     CvPoint2D32f est_scal_rot;
-    CvPoint2D32f a1=swap(scale(translate(a,t),s));
-    CvPoint2D32f c1=swap(scale(translate(c,t),s));
-    CvPoint2D32f i1=swap(scale(translate(i,t),s));
+    CvPoint2D32f a1=objdetut.swap(objdetut.scale(objdetut.translate(a,t),s));
+    CvPoint2D32f c1=objdetut.swap(objdetut.scale(objdetut.translate(c,t),s));
+    CvPoint2D32f i1=objdetut.swap(objdetut.scale(objdetut.translate(i,t),s));
 
-    XCTAssertEqualWithAccuracy(detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,0.75,0.01);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,M_PI/2.0,0.01);
 
@@ -118,12 +120,12 @@
     CvPoint2D32f i(874.0f, 30.0f);
     CvPoint3D32f orientations(30,30,30);
     CvPoint2D32f est_scal_rot;
-    cv::Mat R =makeRMat(0.85,M_PI/6,CvPoint2D32f(14,23));
-    CvPoint2D32f a1=warpPoint(a, R);
-    CvPoint2D32f c1=warpPoint(c, R);
-    CvPoint2D32f i1=warpPoint(i, R);
+    cv::Mat R =objdetut.makeRMat(0.85,M_PI/6,CvPoint2D32f(14,23));
+    CvPoint2D32f a1=objdetut.warpPoint(a, R);
+    CvPoint2D32f c1=objdetut.warpPoint(c, R);
+    CvPoint2D32f i1=objdetut.warpPoint(i, R);
 
-    XCTAssertEqualWithAccuracy(detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,0.85,0.01);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,M_PI/6.0,0.01);
 
@@ -136,7 +138,7 @@
     CvPoint2D32f i(874.0f, 30.0f);
     CvPoint3D32f orientations(0,22.5,22.5);
     CvPoint2D32f est_scal_rot;
-    XCTAssertEqualWithAccuracy(detect2(a, c, i,orientations, &est_scal_rot), 0.0,0.001);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a, c, i,orientations, &est_scal_rot), 0.0,0.001);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,1,0.01);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,0,0.01);
 
@@ -150,7 +152,7 @@
     CvPoint2D32f i(874.0f, 30.0f);
     CvPoint3D32f orientations(0,360-22.5,360-22.5);
     CvPoint2D32f est_scal_rot;
-    XCTAssertEqualWithAccuracy(detect2(a, c, i,orientations, &est_scal_rot), 0.0,0.001);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a, c, i,orientations, &est_scal_rot), 0.0,0.001);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,1,0.01);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,0,0.01);
 
@@ -163,7 +165,7 @@
     CvPoint2D32f i(874.0f, 30.0f);
     CvPoint3D32f orientations(0,22.5,360.0);
     CvPoint2D32f est_scal_rot;
-    XCTAssertEqualWithAccuracy(detect2(a, c, i,orientations, &est_scal_rot), 0.0,0.001);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a, c, i,orientations, &est_scal_rot), 0.0,0.001);
     XCTAssertEqualWithAccuracy(est_scal_rot.x,1,0.01);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,0,0.01);
 
@@ -177,11 +179,11 @@
     CvPoint3D32f orientations(67.5, 90, 90.0);
     CvPoint2D32f est_scal_rot;
     
-    CvPoint2D32f a1=swap(a);
-    CvPoint2D32f c1=swap(c);
-    CvPoint2D32f i1=swap(i);
+    CvPoint2D32f a1=objdetut.swap(a);
+    CvPoint2D32f c1=objdetut.swap(c);
+    CvPoint2D32f i1=objdetut.swap(i);
 
-    XCTAssertEqualWithAccuracy(detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a1, c1, i1,orientations, &est_scal_rot), 0.0,3.0);
 
     XCTAssertEqualWithAccuracy(est_scal_rot.x,1,0.01);
     XCTAssertEqualWithAccuracy(est_scal_rot.y,M_PI/2,0.01);
@@ -195,7 +197,7 @@
     CvPoint2D32f i(874.0f, 30.0f);
     CvPoint3D32f orientations(0,22.5,45.0);
     CvPoint2D32f est_scal_rot;
-    XCTAssertEqualWithAccuracy(detect2(a, c, i,orientations, &est_scal_rot), MAX_VALUE,0.001);
+    XCTAssertEqualWithAccuracy(objdetut.detect2(a, c, i,orientations, &est_scal_rot), MAX_VALUE,0.001);
 
     // This is an example of a functional test case.
     // Use XCTAssert and related functions to verify your tests produce the correct results.

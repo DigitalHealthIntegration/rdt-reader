@@ -20,50 +20,17 @@
 		8B0967E523F2B5E700550C6B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B0967D623F2B5E700550C6B /* AppDelegate.swift */; };
 		8B0967E623F2B5E700550C6B /* ObjectDetectionUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B0967D723F2B5E700550C6B /* ObjectDetectionUtil.cpp */; };
 		8B0967E723F2B5E700550C6B /* CameraFrameHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B0967D823F2B5E700550C6B /* CameraFrameHandle.swift */; };
-		8B0967F923F2E3C400550C6B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B0967F323F2E3C300550C6B /* Assets.xcassets */; };
 		8B0967FA23F2E3C400550C6B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B0967F523F2E3C300550C6B /* LaunchScreen.storyboard */; };
 		8B0967FB23F2E3C400550C6B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B0967F723F2E3C300550C6B /* Main.storyboard */; };
-		8B4B4A0323E02A75003AC0A0 /* rdtcameraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4B4A0223E02A75003AC0A0 /* rdtcameraTests.swift */; };
-		8B4B4A0E23E02A75003AC0A0 /* rdtcameraUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4B4A0D23E02A75003AC0A0 /* rdtcameraUITests.swift */; };
+		8B1AA8A223FC07D9009713D7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B1AA8A123FC07D9009713D7 /* Assets.xcassets */; };
 		8B4B4A1F23E02B11003AC0A0 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A1E23E02B11003AC0A0 /* AssetsLibrary.framework */; };
 		8B4B4A2123E02B1A003AC0A0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2023E02B1A003AC0A0 /* CoreGraphics.framework */; };
 		8B4B4A2323E02B23003AC0A0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2223E02B23003AC0A0 /* CoreMedia.framework */; };
 		8B4B4A2523E02B2C003AC0A0 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2423E02B2C003AC0A0 /* CoreFoundation.framework */; };
 		8B4B4A2723E02B33003AC0A0 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2623E02B33003AC0A0 /* Accelerate.framework */; };
-		8B4B4A6B23E05CCD003AC0A0 /* ObjectDetectionUtilsTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B4B4A6A23E05CCD003AC0A0 /* ObjectDetectionUtilsTest.mm */; };
-		8B4B4A7323E05F78003AC0A0 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2623E02B33003AC0A0 /* Accelerate.framework */; };
-		8B4B4A7423E05F78003AC0A0 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2423E02B2C003AC0A0 /* CoreFoundation.framework */; };
-		8B4B4A7523E05F78003AC0A0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2223E02B23003AC0A0 /* CoreMedia.framework */; };
-		8B4B4A7623E05F78003AC0A0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A2023E02B1A003AC0A0 /* CoreGraphics.framework */; };
-		8B4B4A7723E05F78003AC0A0 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8B4B4A1E23E02B11003AC0A0 /* AssetsLibrary.framework */; };
 		8B7C6A6123FA975D00B39BB8 /* rdt.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 8B7C6A6023FA975C00B39BB8 /* rdt.mlmodel */; };
 		8BCDC60923E15C41007FF308 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BCDC60823E15C41007FF308 /* opencv2.framework */; };
-		8BCDC60A23E15C50007FF308 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BCDC60823E15C41007FF308 /* opencv2.framework */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		8B4B49FF23E02A75003AC0A0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8B4B49DD23E02A74003AC0A0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8B4B49E423E02A74003AC0A0;
-			remoteInfo = rdtcamera;
-		};
-		8B4B4A0A23E02A75003AC0A0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8B4B49DD23E02A74003AC0A0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8B4B49E423E02A74003AC0A0;
-			remoteInfo = rdtcamera;
-		};
-		8B4B4A6D23E05CCD003AC0A0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8B4B49DD23E02A74003AC0A0 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8B4B49E423E02A74003AC0A0;
-			remoteInfo = rdtcamera;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		8B0967C723F2B5E700550C6B /* HttpHandlers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HttpHandlers.swift; sourceTree = "<group>"; };
@@ -84,14 +51,12 @@
 		8B0967D723F2B5E700550C6B /* ObjectDetectionUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ObjectDetectionUtil.cpp; sourceTree = "<group>"; };
 		8B0967D823F2B5E700550C6B /* CameraFrameHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraFrameHandle.swift; sourceTree = "<group>"; };
 		8B0967D923F2B5E700550C6B /* rdtcamera-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "rdtcamera-Bridging-Header.h"; sourceTree = "<group>"; };
-		8B0967F323F2E3C300550C6B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8B0967F623F2E3C300550C6B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B0967F823F2E3C300550C6B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Main.storyboard; sourceTree = "<group>"; };
+		8B1AA8A123FC07D9009713D7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8B4B49E523E02A74003AC0A0 /* rdtcamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = rdtcamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8B4B49FE23E02A75003AC0A0 /* rdtcameraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rdtcameraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B4B4A0223E02A75003AC0A0 /* rdtcameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rdtcameraTests.swift; sourceTree = "<group>"; };
 		8B4B4A0423E02A75003AC0A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8B4B4A0923E02A75003AC0A0 /* rdtcameraUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rdtcameraUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B4B4A0D23E02A75003AC0A0 /* rdtcameraUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rdtcameraUITests.swift; sourceTree = "<group>"; };
 		8B4B4A0F23E02A75003AC0A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8B4B4A1E23E02B11003AC0A0 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
@@ -100,7 +65,6 @@
 		8B4B4A2423E02B2C003AC0A0 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		8B4B4A2623E02B33003AC0A0 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		8B4B4A6323E05BA2003AC0A0 /* rdtcamera copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "rdtcamera copy-Info.plist"; path = "/Users/developer/rdtcamera/rdtcamera copy-Info.plist"; sourceTree = "<absolute>"; };
-		8B4B4A6823E05CCD003AC0A0 /* ObjectDetectionUtilsTest.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ObjectDetectionUtilsTest.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B4B4A6A23E05CCD003AC0A0 /* ObjectDetectionUtilsTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ObjectDetectionUtilsTest.mm; sourceTree = "<group>"; };
 		8B4B4A6C23E05CCD003AC0A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8B4B4A7223E05DB8003AC0A0 /* rdtcameraTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "rdtcameraTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -119,33 +83,6 @@
 				8B4B4A2323E02B23003AC0A0 /* CoreMedia.framework in Frameworks */,
 				8B4B4A2123E02B1A003AC0A0 /* CoreGraphics.framework in Frameworks */,
 				8B4B4A1F23E02B11003AC0A0 /* AssetsLibrary.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B49FB23E02A75003AC0A0 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B4A0623E02A75003AC0A0 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B4A6523E05CCD003AC0A0 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8BCDC60A23E15C50007FF308 /* opencv2.framework in Frameworks */,
-				8B4B4A7323E05F78003AC0A0 /* Accelerate.framework in Frameworks */,
-				8B4B4A7423E05F78003AC0A0 /* CoreFoundation.framework in Frameworks */,
-				8B4B4A7523E05F78003AC0A0 /* CoreMedia.framework in Frameworks */,
-				8B4B4A7623E05F78003AC0A0 /* CoreGraphics.framework in Frameworks */,
-				8B4B4A7723E05F78003AC0A0 /* AssetsLibrary.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -179,9 +116,6 @@
 			isa = PBXGroup;
 			children = (
 				8B4B49E523E02A74003AC0A0 /* rdtcamera.app */,
-				8B4B49FE23E02A75003AC0A0 /* rdtcameraTests.xctest */,
-				8B4B4A0923E02A75003AC0A0 /* rdtcameraUITests.xctest */,
-				8B4B4A6823E05CCD003AC0A0 /* ObjectDetectionUtilsTest.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -189,10 +123,10 @@
 		8B4B49E723E02A74003AC0A0 /* rdtcamera */ = {
 			isa = PBXGroup;
 			children = (
-				8B0967F323F2E3C300550C6B /* Assets.xcassets */,
+				8B1AA8A123FC07D9009713D7 /* Assets.xcassets */,
 				8B0967F423F2E3C300550C6B /* Base.lproj */,
-				8B0967D323F2B5E700550C6B /* 1.jpg */,
 				8B0967D623F2B5E700550C6B /* AppDelegate.swift */,
+				8B0967D323F2B5E700550C6B /* 1.jpg */,
 				8B0967D823F2B5E700550C6B /* CameraFrameHandle.swift */,
 				8B0967D423F2B5E700550C6B /* Constants.swift */,
 				8B0967C723F2B5E700550C6B /* HttpHandlers.swift */,
@@ -274,60 +208,6 @@
 			productReference = 8B4B49E523E02A74003AC0A0 /* rdtcamera.app */;
 			productType = "com.apple.product-type.application";
 		};
-		8B4B49FD23E02A75003AC0A0 /* rdtcameraTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8B4B4A1523E02A75003AC0A0 /* Build configuration list for PBXNativeTarget "rdtcameraTests" */;
-			buildPhases = (
-				8B4B49FA23E02A75003AC0A0 /* Sources */,
-				8B4B49FB23E02A75003AC0A0 /* Frameworks */,
-				8B4B49FC23E02A75003AC0A0 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				8B4B4A0023E02A75003AC0A0 /* PBXTargetDependency */,
-			);
-			name = rdtcameraTests;
-			productName = rdtcameraTests;
-			productReference = 8B4B49FE23E02A75003AC0A0 /* rdtcameraTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		8B4B4A0823E02A75003AC0A0 /* rdtcameraUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8B4B4A1823E02A75003AC0A0 /* Build configuration list for PBXNativeTarget "rdtcameraUITests" */;
-			buildPhases = (
-				8B4B4A0523E02A75003AC0A0 /* Sources */,
-				8B4B4A0623E02A75003AC0A0 /* Frameworks */,
-				8B4B4A0723E02A75003AC0A0 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				8B4B4A0B23E02A75003AC0A0 /* PBXTargetDependency */,
-			);
-			name = rdtcameraUITests;
-			productName = rdtcameraUITests;
-			productReference = 8B4B4A0923E02A75003AC0A0 /* rdtcameraUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
-		8B4B4A6723E05CCD003AC0A0 /* ObjectDetectionUtilsTest */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8B4B4A6F23E05CCD003AC0A0 /* Build configuration list for PBXNativeTarget "ObjectDetectionUtilsTest" */;
-			buildPhases = (
-				8B4B4A6423E05CCD003AC0A0 /* Sources */,
-				8B4B4A6523E05CCD003AC0A0 /* Frameworks */,
-				8B4B4A6623E05CCD003AC0A0 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				8B4B4A6E23E05CCD003AC0A0 /* PBXTargetDependency */,
-			);
-			name = ObjectDetectionUtilsTest;
-			productName = ObjectDetectionUtilsTest;
-			productReference = 8B4B4A6823E05CCD003AC0A0 /* ObjectDetectionUtilsTest.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -345,19 +225,6 @@
 						CreatedOnToolsVersion = 11.3.1;
 						LastSwiftMigration = 1130;
 					};
-					8B4B49FD23E02A75003AC0A0 = {
-						CreatedOnToolsVersion = 11.3.1;
-						LastSwiftMigration = 1130;
-						TestTargetID = 8B4B49E423E02A74003AC0A0;
-					};
-					8B4B4A0823E02A75003AC0A0 = {
-						CreatedOnToolsVersion = 11.3.1;
-						TestTargetID = 8B4B49E423E02A74003AC0A0;
-					};
-					8B4B4A6723E05CCD003AC0A0 = {
-						CreatedOnToolsVersion = 11.3.1;
-						TestTargetID = 8B4B49E423E02A74003AC0A0;
-					};
 				};
 			};
 			buildConfigurationList = 8B4B49E023E02A74003AC0A0 /* Build configuration list for PBXProject "rdtcamera" */;
@@ -374,9 +241,6 @@
 			projectRoot = "";
 			targets = (
 				8B4B49E423E02A74003AC0A0 /* rdtcamera */,
-				8B4B49FD23E02A75003AC0A0 /* rdtcameraTests */,
-				8B4B4A0823E02A75003AC0A0 /* rdtcameraUITests */,
-				8B4B4A6723E05CCD003AC0A0 /* ObjectDetectionUtilsTest */,
 			);
 		};
 /* End PBXProject section */
@@ -387,30 +251,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B0967FA23F2E3C400550C6B /* LaunchScreen.storyboard in Resources */,
-				8B0967F923F2E3C400550C6B /* Assets.xcassets in Resources */,
 				8B0967E223F2B5E700550C6B /* 1.jpg in Resources */,
+				8B1AA8A223FC07D9009713D7 /* Assets.xcassets in Resources */,
 				8B0967FB23F2E3C400550C6B /* Main.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B49FC23E02A75003AC0A0 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B4A0723E02A75003AC0A0 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B4A6623E05CCD003AC0A0 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,49 +280,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		8B4B49FA23E02A75003AC0A0 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8B4B4A0323E02A75003AC0A0 /* rdtcameraTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B4A0523E02A75003AC0A0 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8B4B4A0E23E02A75003AC0A0 /* rdtcameraUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8B4B4A6423E05CCD003AC0A0 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8B4B4A6B23E05CCD003AC0A0 /* ObjectDetectionUtilsTest.mm in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		8B4B4A0023E02A75003AC0A0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8B4B49E423E02A74003AC0A0 /* rdtcamera */;
-			targetProxy = 8B4B49FF23E02A75003AC0A0 /* PBXContainerItemProxy */;
-		};
-		8B4B4A0B23E02A75003AC0A0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8B4B49E423E02A74003AC0A0 /* rdtcamera */;
-			targetProxy = 8B4B4A0A23E02A75003AC0A0 /* PBXContainerItemProxy */;
-		};
-		8B4B4A6E23E05CCD003AC0A0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8B4B49E423E02A74003AC0A0 /* rdtcamera */;
-			targetProxy = 8B4B4A6D23E05CCD003AC0A0 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		8B0967F523F2E3C300550C6B /* LaunchScreen.storyboard */ = {
@@ -621,7 +422,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = N98WK8855R;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -639,9 +442,10 @@
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/include;
-				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.rdtcamera;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.iprdgroup.rdtcamera;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "rdtcamera/rdtcamera-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -665,7 +469,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = N98WK8855R;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -685,8 +491,9 @@
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/include;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.rdtcamera;
+				PRODUCT_BUNDLE_IDENTIFIER = com.iprdgroup.rdtcamera;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "rdtcamera/rdtcamera-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -700,203 +507,6 @@
 					"-Wall",
 					"-Wextra",
 				);
-			};
-			name = Release;
-		};
-		8B4B4A1623E02A75003AC0A0 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = N98WK8855R;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					$SRCROOT/rdtcamera,
-				);
-				INFOPLIST_FILE = rdtcameraTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = /usr/local/include;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.rdtcameraTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
-				SWIFT_VERSION = 5.0;
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = $PROJECT_DIR;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/rdtcamera.app/rdtcamera";
-				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wextra",
-				);
-			};
-			name = Debug;
-		};
-		8B4B4A1723E02A75003AC0A0 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = N98WK8855R;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					$SRCROOT/rdtcamera,
-				);
-				INFOPLIST_FILE = rdtcameraTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = /usr/local/include;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.rdtcameraTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
-				SWIFT_VERSION = 5.0;
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = $PROJECT_DIR;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/rdtcamera.app/rdtcamera";
-				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wextra",
-				);
-			};
-			name = Release;
-		};
-		8B4B4A1923E02A75003AC0A0 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = N98WK8855R;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					$SRCROOT/rdtcamera,
-				);
-				INFOPLIST_FILE = rdtcameraUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = /usr/local/include;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.rdtcameraUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
-				SWIFT_VERSION = 5.0;
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = $PROJECT_DIR;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = rdtcamera;
-				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wextra",
-				);
-			};
-			name = Debug;
-		};
-		8B4B4A1A23E02A75003AC0A0 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = N98WK8855R;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					$SRCROOT/rdtcamera,
-				);
-				INFOPLIST_FILE = rdtcameraUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = /usr/local/include;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.rdtcameraUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
-				SWIFT_VERSION = 5.0;
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = $PROJECT_DIR;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = rdtcamera;
-				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wextra",
-				);
-			};
-			name = Release;
-		};
-		8B4B4A7023E05CCD003AC0A0 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				COREML_CODEGEN_LANGUAGE = "Objective-C";
-				COREML_CODEGEN_SWIFT_GLOBAL_MODULE = YES;
-				DEVELOPMENT_TEAM = N98WK8855R;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)",
-				);
-				INFOPLIST_FILE = ObjectDetectionUtilsTest/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.ObjectDetectionUtilsTest;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = $PROJECT_DIR;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/rdtcamera.app/rdtcamera";
-			};
-			name = Debug;
-		};
-		8B4B4A7123E05CCD003AC0A0 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				COREML_CODEGEN_LANGUAGE = "Objective-C";
-				COREML_CODEGEN_SWIFT_GLOBAL_MODULE = YES;
-				DEVELOPMENT_TEAM = N98WK8855R;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)",
-				);
-				INFOPLIST_FILE = ObjectDetectionUtilsTest/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.iprd.ObjectDetectionUtilsTest;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYSTEM_FRAMEWORK_SEARCH_PATHS = $PROJECT_DIR;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/rdtcamera.app/rdtcamera";
 			};
 			name = Release;
 		};
@@ -917,33 +527,6 @@
 			buildConfigurations = (
 				8B4B4A1323E02A75003AC0A0 /* Debug */,
 				8B4B4A1423E02A75003AC0A0 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		8B4B4A1523E02A75003AC0A0 /* Build configuration list for PBXNativeTarget "rdtcameraTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8B4B4A1623E02A75003AC0A0 /* Debug */,
-				8B4B4A1723E02A75003AC0A0 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		8B4B4A1823E02A75003AC0A0 /* Build configuration list for PBXNativeTarget "rdtcameraUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8B4B4A1923E02A75003AC0A0 /* Debug */,
-				8B4B4A1A23E02A75003AC0A0 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		8B4B4A6F23E05CCD003AC0A0 /* Build configuration list for PBXNativeTarget "ObjectDetectionUtilsTest" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8B4B4A7023E05CCD003AC0A0 /* Debug */,
-				8B4B4A7123E05CCD003AC0A0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
