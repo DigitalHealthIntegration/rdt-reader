@@ -1,6 +1,7 @@
 package com.iprd.rdtcamera;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -28,7 +29,12 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static androidx.core.app.NavUtils.navigateUpTo;
+
 public class Httpok extends AsyncTask<String, Void, String> {
+
+    public AsyncResponse delegate = null;
+
     String imgName;
     byte[] img;
     String urlString;
@@ -81,37 +87,37 @@ public class Httpok extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
 //        Log.i("HTTPOK","ONPOSTEXECUTE");
-        if(null != mProgressBar){
+        if (null != mProgressBar) {
             mProgressBar.setVisibility(View.INVISIBLE);
-            if(mResult != null){
+            if (mResult != null) {
                 mImageView.setVisibility(View.VISIBLE);
-                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+mResult);
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + mResult);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
                 //Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
-                if(mJsonResult!=null){
-                    String str="";
+                if (mJsonResult != null) {
+                    String str = "";
                     try {
-                        str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
+                        str = mJsonResult.getString("rc") + " " + mJsonResult.getString("msg");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    if(null != mResultView) {
+                    if (null != mResultView) {
                         mResultView.setTextColor(Color.BLACK);
                         mResultView.setText(str);
                         mResultView.setVisibility(View.VISIBLE);
                     }
                     //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
                 }
-            }else{
-                if(mJsonResult!=null){
-                    String str="";
+            } else {
+                if (mJsonResult != null) {
+                    String str = "";
                     try {
-                        str = mJsonResult.getString("rc") + " " +mJsonResult.getString("msg");
+                        str = mJsonResult.getString("rc") + " " + mJsonResult.getString("msg");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    if(null != mResultView) {
+                    if (null != mResultView) {
                         mResultView.setTextColor(Color.BLACK);
                         mResultView.setText(str);
                         mResultView.setVisibility(View.VISIBLE);
@@ -122,7 +128,11 @@ public class Httpok extends AsyncTask<String, Void, String> {
                     //mResultView.setText("waiting...");
                 }*/
             }
+
+
         }
+        delegate.processFinish("done");
+
     }
     @Override
     protected void onPreExecute() {

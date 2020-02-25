@@ -13,7 +13,10 @@
         app:layout_constraintDimensionRatio="H,9:16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
+    <SurfaceView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/surfaceView"/>
     <ImageView
         android:id="@+id/rdtRect"
         android:layout_width="0dp"
@@ -172,7 +175,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Get Result"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@id/torch"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.06"
@@ -186,7 +189,7 @@
         android:text="TextView"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/RdtWarpImage"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="@+id/texture" />
 
     <Button
         android:id="@+id/startBtn"

@@ -62,7 +62,9 @@ public class RdtAPI {
     Mat mInputMat;
     Mat mGreyMat;
     Mat mGreyMatResized;
-    AcceptanceStatus mStatus=null;
+    AcceptanceStatus mStatus= new AcceptanceStatus();
+    AcceptanceStatus mStatus2= new AcceptanceStatus();
+
     Vector<Pair<Mat,Mat>> mWarpList= new Vector<>();
     Mat mRefImage=null;
     int mRefCount=0;
@@ -302,7 +304,6 @@ public class RdtAPI {
         ret.mPerspectiveDistortion= GOOD;
         return true;
     }
-
     public AcceptanceStatus checkFrame(Bitmap capFrame) {
         mInprogress = true;
         mBrightness = -1;
@@ -384,7 +385,7 @@ public class RdtAPI {
             if(mComputeVector_FinalMVector.x > mConfig.mMaxFrameTranslationalMagnitude){
                 ret.mSteady = TOO_HIGH;
             }
-            short studycopy= ret.mSteady;
+            short steady= ret.mSteady;
 
             //process frame
             if(matinput.width() < matinput.height()) {
@@ -398,11 +399,12 @@ public class RdtAPI {
             mPreProcessingTime = System.currentTimeMillis() - st;
             //if linear flow  mRDTProcessingResultAvailable=false;
 
-            if( mRDTProcessingResultAvailable && (studycopy == GOOD)) {
+            if( mRDTProcessingResultAvailable && (steady == GOOD)) {
                 mRDTProcessingResultAvailable = false;
-                if ((mStatus!= null) /*&& mStatus.mRDTFound*/) {
+                if ((mStatus2!= null) /*&& mStatus.mRDTFound*/) {
                     //Find Transformation..
-                    ret.mRDTFound =true;
+                    mStatus = mStatus2;
+                    ret.mRDTFound = mStatus.mRDTFound;
                     Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
                     ret.mSteady = mStatus.mSteady;
 
@@ -411,7 +413,7 @@ public class RdtAPI {
                     ret.mBoundingBoxWidth = mStatus.mBoundingBoxWidth;
                     ret.mBoundingBoxHeight = mStatus.mBoundingBoxHeight;
                     Log.i("Rect ",mStatus.mBoundingBoxX+"x"+mStatus.mBoundingBoxY+" "+mStatus.mBoundingBoxWidth+"x"+mStatus.mBoundingBoxHeight);
-                }else{
+                }else {
                     ret.mRDTFound =false;
                 }
                 if(mInputMat != null ) mInputMat.release();
@@ -420,8 +422,11 @@ public class RdtAPI {
                 mRDTProcessing=false;
 
             }
+            else {
+                ret = mStatus;
+            }
             //We should thread from here
-            if(!mRDTProcessing&& (studycopy == GOOD)) {
+            if(!mRDTProcessing&& (steady == GOOD)) {
                 mRDTProcessing = true;
 //                mRDTProcessingResultAvailable = false;
                 if (mInputMat != null) mInputMat.release();
@@ -430,8 +435,9 @@ public class RdtAPI {
                 mInputMat = matinput.clone();
                 mGreyMat = greyMat.clone();
                 mGreyMatResized = greyMatResized.clone();
-                mStatus = new AcceptanceStatus();
-                mStatus.mSteady = studycopy;
+
+//                mStatus = new AcceptanceStatus();
+                mStatus.mSteady = steady;
                 if (mLinearflow) {
                     ProcessRDT(mStatus, mInputMat, mGreyMatResized);
                     ret = mStatus;
@@ -440,7 +446,7 @@ public class RdtAPI {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ProcessRDT(mStatus, mInputMat, mGreyMatResized);
+                            ProcessRDT(mStatus2, mInputMat, mGreyMatResized);
                         }
                     }).start();
                 }
@@ -476,8 +482,8 @@ public class RdtAPI {
             matinput.release();
             ret.mInfo.mWarpedImage = getBitmapFromMat(mWarpedMat);
             ret.mInfo.mMinError = mTensorFlow.getMinError();
-            ret .mInfo.mAngle =  mTensorFlow.getMangleDegree();
-            ret .mInfo.mScale =  mTensorFlow.getMscale();
+            ret.mInfo.mAngle =  mTensorFlow.getMangleDegree();
+            ret.mInfo.mScale =  mTensorFlow.getMscale();
             if(mWarpedMat != null) mWarpedMat.release();
             if(mMotionVectorMat!= null){
                 ret.mInfo.mTrackedImage = getBitmapFromMat(mMotionVectorMat);
@@ -487,6 +493,8 @@ public class RdtAPI {
             mInprogress = false;
             mPostProcessingTime = System.currentTimeMillis()-mPostProcessingTime;
         }
+
+
         return ret;
     }
 
@@ -554,7 +562,6 @@ public class RdtAPI {
                 retStatus.mBoundingBoxHeight = (short) (roi.height * hfactor);
                 retStatus.mInfo.mAngle = mTensorFlow.getMangleDegree();
                 retStatus.mInfo.mScale = mTensorFlow.getMscale();
-
                 //Log.d("Bounding Box Computed ",retStatus.mBoundingBoxX+"x"+retStatus.mBoundingBoxY +"  "+retStatus.mBoundingBoxWidth+"x"+retStatus.mBoundingBoxHeight);// greyMatResized.submat(detectedRoi);)
             }
         }
