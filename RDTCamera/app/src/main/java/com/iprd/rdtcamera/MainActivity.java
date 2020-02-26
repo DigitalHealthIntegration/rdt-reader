@@ -102,6 +102,8 @@ import static com.iprd.rdtcamera.Httpok.mHttpURL;
 import static com.iprd.rdtcamera.ModelInfo.mModelFileName;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 import static org.opencv.imgproc.Imgproc.floodFill;
+import android.os.Vibrator;
+
 
 public class MainActivity extends AppCompatActivity implements AsyncResponse{
     private boolean goodImageFlag;
@@ -121,6 +123,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     private Paint paint;
     private Paint p = new Paint();
     private Paint textPaint = new Paint();
+    private Vibrator Vibobj;
+
 
     private Paint transparentPaint;
     long timeSinceLastChecked= System.currentTimeMillis();
@@ -240,6 +244,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         disRdtResultImage.getLayoutParams().width = 100;
         disRdtResultImage.requestLayout();
 
+        Vibobj = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+
         // mCyclicProgressBar.setVisibility(View.INVISIBLE);
         startBtn = findViewById(R.id.startBtn);
         //rdtDataToBeDisplay.setTextColor(0x000000FF);
@@ -346,6 +352,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 mGetResult.setEnabled(false);
                 //progressbar(true);
                // mStatusView.setText("Waiting...");
@@ -371,6 +378,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                timeSinceLastChecked=0;
 //                mGetResult.setEnabled(true);
                 startPreview();
 //                mImageBytes = null;
@@ -630,15 +639,26 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                             if (timeSinceLastChecked==0){
                                 timeSinceLastChecked = System.currentTimeMillis();
                             }
-                            if (System.currentTimeMillis()-timeSinceLastChecked>1500){
+                            else if (System.currentTimeMillis()-timeSinceLastChecked>2000) {
                                 status = new AcceptanceStatus();
+                                mRdtApi.mStatus =new AcceptanceStatus();
+                                mRdtApi.mStatus2 =new AcceptanceStatus();
+
                                 timeSinceLastChecked = 0;
                                 goodImageFlag = false;
                                 mGetResult.performClick();
 
+                            }else{
+                                rdtFound(true,textTodisp);
+
                             }
+
+
                         }
-                        rdtFound(true,textTodisp);
+                        else{
+                            rdtFound(true,textTodisp);
+
+                        }
 
                     } else {
                         rdtFound(false,textTodisp);
@@ -874,18 +894,15 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    progressbar(true);
+
+
                                     Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
-
-                                    mWarpedImage.setImageBitmap(bitmap);
-                                    mWarpedImage.setMaxHeight(430);
-                                    mWarpedImage.setMaxWidth(430);
-                                    mWarpedImage.setAdjustViewBounds(true);
-
-                                    mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
-                                    mWarpedImage.requestLayout();
+//
 
                                     rdtResults(mImageBytes);
+                                    Vibobj.vibrate(50);
+                                    progressbar(true);
+
                                 }
                             });
                         }
