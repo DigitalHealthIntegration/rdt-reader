@@ -412,7 +412,14 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
             canvas.drawRect(left, top, right, bottom, transparentPaint);
 
-            canvas.drawText(msg, left, top, textPaint);
+            System.out.println(">>>>>>>>>>>>>>>> >"+msg);
+            String[] msgString = msg.split("\\.\\.");
+            float y = top+32;
+            for(String str : msgString){
+                canvas.drawText(str.trim().toUpperCase(), left, y, textPaint);
+                y += textPaint.descent() - textPaint.ascent();
+            }
+            //canvas.drawText(msg, left, top, textPaint);
             if (mImageBytes!=null){
                 canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
                 canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
@@ -592,13 +599,13 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                        // t += "\nE=" + Math.ceil(status.mInfo.mMinRdtError);
                         goodImageFlag = status.mInfo.mScale>0.6 && status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200;
                         if (status.mInfo.mScale>0.6){
-                            textTodisp  += "scale is good ";
+                            textTodisp  += "scale is good ..";
                         }
                         else if (status.mInfo.mScale<0.6){
                             timeSinceLastChecked = System.currentTimeMillis();
 
 
-                            textTodisp  += "slowly bring camera closer ";
+                            textTodisp  += "slowly bring camera closer ..";
 
                         }
                         if (status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200){
@@ -607,12 +614,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                         else if (status.mInfo.mBrightness<120) {
                             timeSinceLastChecked = System.currentTimeMillis();
 
-                            textTodisp  += "brightness is low ";
+                            textTodisp  += "brightness is low ..";
                         }
                         else if (status.mInfo.mBrightness>200) {
                             timeSinceLastChecked = System.currentTimeMillis();
 
-                            textTodisp  += "brightness is high ";
+                            textTodisp  += "brightness is high ..";
                         }
 
 
