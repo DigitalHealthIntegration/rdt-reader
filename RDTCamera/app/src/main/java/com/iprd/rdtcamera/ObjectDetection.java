@@ -494,7 +494,7 @@ public class ObjectDetection {
         Rect roi = new Rect(-1, -1, -1, -1);
         boolean exit = false;
         found = false;
-        mscale = -1.0;
+//        mscale = -1.0;
         mangleDegree = 0;
         int cnt_arr = 0;
         int cnt_c=0;

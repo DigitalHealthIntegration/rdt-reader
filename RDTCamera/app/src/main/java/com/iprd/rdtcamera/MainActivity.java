@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
-
+    AcceptanceStatus status;
     private short mShowImageData = 0;
     public Switch mode;
     public Switch torch;
@@ -236,6 +236,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         mResultView = findViewById(R.id.ResultView);
         mResultView.bringToFront();
 
+        disRdtResultImage.getLayoutParams().height = 500;
+        disRdtResultImage.getLayoutParams().width = 100;
+        disRdtResultImage.requestLayout();
 
         // mCyclicProgressBar.setVisibility(View.INVISIBLE);
         startBtn = findViewById(R.id.startBtn);
@@ -572,7 +575,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         private void ProcessBitmap(Bitmap capFrame) {
             //capFrame = RotateBitmap(capFrame,90);
             long st = System.currentTimeMillis();
-            final AcceptanceStatus status = mRdtApi.checkFrame(capFrame);
+            status = mRdtApi.checkFrame(capFrame);
             if (mShowImageData != 0) {
                 status.mSharpness = mRdtApi.getSharpness();
                 status.mBrightness = mRdtApi.getBrightness();
@@ -594,39 +597,43 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 //                    }
                     if (status.mRDTFound) {
                         textTodisp = "RDT found .. ";
-                        time= System.currentTimeMillis();
-
+//                        timeSinceLastChecked = System.currentTimeMillis();
                        // t += "\nE=" + Math.ceil(status.mInfo.mMinRdtError);
                         goodImageFlag = status.mInfo.mScale>0.6 && status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200;
                         if (status.mInfo.mScale>0.6){
                             textTodisp  += "scale is good ..";
                         }
                         else if (status.mInfo.mScale<0.6){
-                            timeSinceLastChecked = System.currentTimeMillis();
-
 
                             textTodisp  += "slowly bring camera closer ..";
+                            timeSinceLastChecked = 0;
 
                         }
                         if (status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200){
                             textTodisp  += "brightness is good.. hold steady";
                         }
                         else if (status.mInfo.mBrightness<120) {
-                            timeSinceLastChecked = System.currentTimeMillis();
+                            timeSinceLastChecked = 0;
 
                             textTodisp  += "brightness is low ..";
                         }
                         else if (status.mInfo.mBrightness>200) {
-                            timeSinceLastChecked = System.currentTimeMillis();
+                            timeSinceLastChecked = 0;
 
                             textTodisp  += "brightness is high ..";
                         }
 
+                        Log.i("TIME since last check", String.valueOf(timeSinceLastChecked));
+                        Log.i("Scale", String.valueOf(status.mInfo.mScale));
 
-                        if (time-timeSinceLastChecked>1000){
-                            if (goodImageFlag){
-
+                        if (goodImageFlag){
+                            if (timeSinceLastChecked==0){
                                 timeSinceLastChecked = System.currentTimeMillis();
+                            }
+                            if (System.currentTimeMillis()-timeSinceLastChecked>1500){
+                                status = new AcceptanceStatus();
+                                timeSinceLastChecked = 0;
+                                goodImageFlag = false;
                                 mGetResult.performClick();
 
                             }
@@ -635,8 +642,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
                     } else {
                         rdtFound(false,textTodisp);
-                        timeSinceLastChecked = System.currentTimeMillis();
-
+                        timeSinceLastChecked =0;
 //                        countertomakedatadisppear++;
 //                        if (countertomakedatadisppear > 9) {
 //                            timeSinceLastChecked = System.currentTimeMillis();
@@ -890,6 +896,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                             mSession.close();
                         }
                         Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
+                        timeSinceLastChecked = 0;
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -1181,6 +1188,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
     @Override
     public void processFinish(String output) {
+        timeSinceLastChecked=0;
         Continue();
     }
 }

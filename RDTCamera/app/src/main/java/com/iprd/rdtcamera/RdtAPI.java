@@ -423,7 +423,10 @@ public class RdtAPI {
 
             }
             else {
+                Log.i("Scale","damn");
                 ret = mStatus;
+                ret.mInfo.mScale =  mTensorFlow.getMscale();
+
             }
             //We should thread from here
             if(!mRDTProcessing&& (steady == GOOD)) {
@@ -484,6 +487,7 @@ public class RdtAPI {
             ret.mInfo.mMinError = mTensorFlow.getMinError();
             ret.mInfo.mAngle =  mTensorFlow.getMangleDegree();
             ret.mInfo.mScale =  mTensorFlow.getMscale();
+
             if(mWarpedMat != null) mWarpedMat.release();
             if(mMotionVectorMat!= null){
                 ret.mInfo.mTrackedImage = getBitmapFromMat(mMotionVectorMat);
