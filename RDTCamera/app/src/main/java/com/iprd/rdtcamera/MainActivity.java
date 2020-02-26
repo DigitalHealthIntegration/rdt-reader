@@ -412,9 +412,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
             canvas.drawRect(left, top, right, bottom, transparentPaint);
 
-            System.out.println(">>>>>>>>>>>>>>>> >"+msg);
+            //System.out.println(">>>>>>>>>>>>>>>> >"+msg);
             String[] msgString = msg.split("\\.\\.");
-            float y = top+32;
+            float y = top*0.25f;
             for(String str : msgString){
                 canvas.drawText(str.trim().toUpperCase(), left, y, textPaint);
                 y += textPaint.descent() - textPaint.ascent();
