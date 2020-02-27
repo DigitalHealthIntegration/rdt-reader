@@ -121,10 +121,10 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     Boolean isFlashRequired = false;
     SurfaceView surfaceView;
     private Paint paint;
-    private Paint p = new Paint();
+    public static Paint p = new Paint();
     private Paint textPaint = new Paint();
     private Vibrator Vibobj;
-
+    Boolean isfired = false;
 
     private Paint transparentPaint;
     long timeSinceLastChecked= System.currentTimeMillis();
@@ -399,6 +399,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     public void Continue() {
 
         startBtn.performClick();
+        mWarpedImage.setImageBitmap(null);
+        mWarpedImage.setVisibility(View.INVISIBLE);
     }
     public void rdtFound(boolean found,String msg){
         Canvas canvas = mHolder.lockCanvas();
@@ -410,14 +412,16 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             canvas.drawColor(Color.TRANSPARENT);
 
             canvas.drawRect(0, 0, mTextureView.getRight(), mTextureView.getBottom(), paint);
-            if (found){
-                p.setColor(Color.rgb(0, 200, 50));
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+isfired);
+            if(!isfired) {
 
+                if (found) {
+                    p.setColor(Color.rgb(0, 200, 50));
+                } else {
+                    //p.setColor(Color.rgb(100, 20, 50));
+                    p.setColor(Color.rgb(255,25,25));
+                }
             }
-            else{
-                p.setColor(Color.rgb(100, 20, 50));
-            }
-
             p.setStrokeWidth(20);
             p.setStyle(Paint.Style.STROKE);
             canvas.drawRect(left, top, right, bottom, p);
@@ -646,6 +650,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
                                 timeSinceLastChecked = 0;
                                 goodImageFlag = false;
+                                isfired = true;
+                                mWarpedImage.setVisibility(View.VISIBLE);
+                                p.setColor(Color.rgb(104,104,104));
                                 mGetResult.performClick();
 
                             }else{
@@ -655,10 +662,10 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
 
                         }
-                        else{
+                        /*else{
                             rdtFound(true,textTodisp);
 
-                        }
+                        }*/
 
                     } else {
                         rdtFound(false,textTodisp);
@@ -806,8 +813,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     public void rdtResults(byte[] bytes) {
         OutputStream output = null;
         try {
+            //p.setColor(Color.rgb(210,105,30));
             String urlString = prefs.getString("rdtCheckUrl", mHttpURL);
-            System.out.println("url >>>>>>>>" + urlString);
+            //System.out.println("url >>>>>>>>" + urlString);
             String guid = String.valueOf(java.util.UUID.randomUUID());
             String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
             try {
@@ -899,6 +907,18 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                                     Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
 //
 
+                                    isfired = false;
+                                    mWarpedImage = findViewById(R.id.RdtWarpImage);
+                                    mWarpedImage.setImageBitmap(null);
+                                    mWarpedImage.setImageBitmap(bitmap);
+                                   // mWarpedImage.setMaxHeight(mTextureView.getHeight());
+                                   // mWarpedImage.setMaxWidth(mTextureView.getWidth());
+                                   // mWarpedImage.setAdjustViewBounds(true);
+
+                                    mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
+                                    mWarpedImage.requestLayout();
+                                    mWarpedImage.setRotation(90f);
+                                        //
                                     rdtResults(mImageBytes);
                                     Vibobj.vibrate(50);
                                     progressbar(true);
