@@ -410,32 +410,26 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         } else {
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             canvas.drawColor(Color.TRANSPARENT);
-
             canvas.drawRect(0, 0, mTextureView.getRight(), mTextureView.getBottom(), paint);
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+isfired);
+            System.out.println(status.mRDTFound+">>>>>>>>>>>>>> >"+found);
             if(!isfired) {
-
                 if (found) {
+
                     p.setColor(Color.rgb(0, 200, 50));
                 } else {
-                    //p.setColor(Color.rgb(100, 20, 50));
                     p.setColor(Color.rgb(255,25,25));
                 }
             }
             p.setStrokeWidth(20);
             p.setStyle(Paint.Style.STROKE);
             canvas.drawRect(left, top, right, bottom, p);
-
             canvas.drawRect(left, top, right, bottom, transparentPaint);
-
-            //System.out.println(">>>>>>>>>>>>>>>> >"+msg);
             String[] msgString = msg.split("\\.\\.");
             float y = top*0.25f;
             for(String str : msgString){
                 canvas.drawText(str.trim().toUpperCase(), left, y, textPaint);
                 y += textPaint.descent() - textPaint.ascent();
             }
-            //canvas.drawText(msg, left, top, textPaint);
             if (mImageBytes!=null){
                 canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
                 canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
@@ -583,105 +577,57 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
         }
 
-        int countertomakedatadisppear = 0;
-
         private void ProcessBitmap(Bitmap capFrame) {
-            //capFrame = RotateBitmap(capFrame,90);
-            long st = System.currentTimeMillis();
-            status = mRdtApi.checkFrame(capFrame);
+            if(!isfired) {
+                status = mRdtApi.checkFrame(capFrame);
+            }
             if (mShowImageData != 0) {
                 status.mSharpness = mRdtApi.getSharpness();
                 status.mBrightness = mRdtApi.getBrightness();
             }
-            Bitmap TrackedImage = status.mInfo.mTrackedImage;
-            long et = System.currentTimeMillis() - st;
-
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     String textTodisp = "RDT not found";
-                    long time= System.currentTimeMillis();
-//                    Bitmap b = mRdtApi.getPipMat();
-//                    if (TrackedImage != null) {
-//                        mTrackedView.setImageBitmap(TrackedImage);
-//                        mTrackedView.setVisibility(View.VISIBLE);
-//                    } else {
-//                        mTrackedView.setVisibility(View.INVISIBLE);
-//                    }
-                    if (status.mRDTFound) {
+                    if (status.mRDTFound && !isfired) {
                         textTodisp = "RDT found .. ";
-//                        timeSinceLastChecked = System.currentTimeMillis();
-                       // t += "\nE=" + Math.ceil(status.mInfo.mMinRdtError);
-                        goodImageFlag = status.mInfo.mScale>0.6 && status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200;
                         if (status.mInfo.mScale>0.6){
                             textTodisp  += "scale is good ..";
-                        }
-                        else if (status.mInfo.mScale<0.6){
-
+                        }else if (status.mInfo.mScale<0.6){
                             textTodisp  += "slowly bring camera closer ..";
                             timeSinceLastChecked = 0;
-
                         }
                         if (status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200){
                             textTodisp  += "brightness is good.. hold steady";
-                        }
-                        else if (status.mInfo.mBrightness<120) {
+                        }else if (status.mInfo.mBrightness<120) {
                             timeSinceLastChecked = 0;
-
                             textTodisp  += "brightness is low ..";
-                        }
-                        else if (status.mInfo.mBrightness>200) {
+                        }else if (status.mInfo.mBrightness>200) {
                             timeSinceLastChecked = 0;
-
                             textTodisp  += "brightness is high ..";
-                        }
-
+                        }else{timeSinceLastChecked =0L;}
                         Log.i("TIME since last check", String.valueOf(timeSinceLastChecked));
                         Log.i("Scale", String.valueOf(status.mInfo.mScale));
-
-                        if (goodImageFlag){
+                        if (status.mInfo.mScale>0.6 && status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200 ){
+                            rdtFound(true,textTodisp);
                             if (timeSinceLastChecked==0){
                                 timeSinceLastChecked = System.currentTimeMillis();
-                            }
-                            else if (System.currentTimeMillis()-timeSinceLastChecked>2000) {
+                            }else if (System.currentTimeMillis()-timeSinceLastChecked > 2000) {
                                 status = new AcceptanceStatus();
                                 mRdtApi.mStatus =new AcceptanceStatus();
                                 mRdtApi.mStatus2 =new AcceptanceStatus();
 
-                                timeSinceLastChecked = 0;
-                                goodImageFlag = false;
+                                timeSinceLastChecked = 0L;
                                 isfired = true;
                                 mWarpedImage.setVisibility(View.VISIBLE);
                                 p.setColor(Color.rgb(104,104,104));
                                 mGetResult.performClick();
-
-                            }else{
-                                rdtFound(true,textTodisp);
-
                             }
-
-
                         }
-                        /*else{
-                            rdtFound(true,textTodisp);
-
-                        }*/
-
-                    } else {
+                    } else{
                         rdtFound(false,textTodisp);
-                        timeSinceLastChecked =0;
-//                        countertomakedatadisppear++;
-//                        if (countertomakedatadisppear > 9) {
-//                            timeSinceLastChecked = System.currentTimeMillis();
-////                            rdtFound(false);
-//                            countertomakedatadisppear=0;
-////                            mStatusView.setText("No RDT Found");
-////                            mStatusView.setTextColor(Color.RED);
-//                        }
+                        timeSinceLastChecked =0L;
                     }
-
-//                    mStatusView.setText(textTodisp);
-
                 }
             });
             sem.release();
@@ -813,13 +759,10 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     public void rdtResults(byte[] bytes) {
         OutputStream output = null;
         try {
-            //p.setColor(Color.rgb(210,105,30));
             String urlString = prefs.getString("rdtCheckUrl", mHttpURL);
-            //System.out.println("url >>>>>>>>" + urlString);
             String guid = String.valueOf(java.util.UUID.randomUUID());
             String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
             try {
-
                 Httpok mr = new Httpok("img.jpg", bytes, urlString, metaDataStr, mCyclicProgressBar, disRdtResultImage, mResultView);//disRdtResultImage
                 mr.delegate = this;
                 mr.setCtx(getApplicationContext());
@@ -887,9 +830,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
-                    //Thread.yield();
-                    //captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
-
                     Image image = null;
                     try {
                         image = reader.acquireLatestImage();
@@ -902,11 +842,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-
-
                                     Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
-//
-
                                     isfired = false;
                                     mWarpedImage = findViewById(R.id.RdtWarpImage);
                                     mWarpedImage.setImageBitmap(null);
@@ -914,11 +850,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                                    // mWarpedImage.setMaxHeight(mTextureView.getHeight());
                                    // mWarpedImage.setMaxWidth(mTextureView.getWidth());
                                    // mWarpedImage.setAdjustViewBounds(true);
-
+                                   // p.setColor(Color.rgb(255,25,25));
                                     mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
                                     mWarpedImage.requestLayout();
                                     mWarpedImage.setRotation(90f);
-                                        //
+
                                     rdtResults(mImageBytes);
                                     Vibobj.vibrate(50);
                                     progressbar(true);

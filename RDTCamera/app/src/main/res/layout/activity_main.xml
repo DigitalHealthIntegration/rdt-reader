@@ -46,8 +46,8 @@
 
     <ImageView
         android:id="@+id/RdtWarpImage"
-        android:layout_width="371dp"
-        android:layout_height="586dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
 
         app:layout_constraintBottom_toTopOf="@+id/mode"
         app:layout_constraintEnd_toEndOf="@+id/texture"
