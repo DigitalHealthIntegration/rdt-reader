@@ -371,10 +371,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 canvas.drawText(str.trim().toUpperCase(), left, y, textPaint);
                 y += textPaint.descent() - textPaint.ascent();
             }
-            if (mImageBytes!=null ){
-                if(disRdtResultImage != null)
-                canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
-                canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
+            if (mImageBytes!=null && mResultView != null ){
+                if(disRdtResultImage.getDrawable() != null) {
+                    canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
+                    canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
+                }
             }
             mHolder.unlockCanvasAndPost(canvas);
         }
