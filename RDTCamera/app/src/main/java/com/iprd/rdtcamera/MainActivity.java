@@ -165,7 +165,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
     private int left,top,right,bottom;
-    //   private Semaphore mCameraOpenCloseLock = new Semaphore(1);
     private CaptureRequest.Builder mPreviewBuilder;
 
     private Integer mSensorOrientation;
@@ -221,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         mHolder.setFormat(PixelFormat.TRANSPARENT);
         mGetResult = findViewById(R.id.getResult);
         Context c = getApplicationContext();
-        prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(c);
+        prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);
         gridTable = findViewById(R.id.gridTable);
         gridTable.setVisibility(View.VISIBLE);
 
@@ -231,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         mMotionText = findViewById(R.id.MotionText);
         mWarpedImage = findViewById(R.id.RdtWarpImage);
         mStatusView = findViewById(R.id.Status);
-        //mRectView.setImageDrawable(R.drawable.grid);
 
         disRdtResultImage = findViewById(R.id.disRdtResultImage);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
@@ -245,12 +243,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         disRdtResultImage.requestLayout();
 
         Vibobj = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
-
-        // mCyclicProgressBar.setVisibility(View.INVISIBLE);
         startBtn = findViewById(R.id.startBtn);
-        //rdtDataToBeDisplay.setTextColor(0x000000FF);
-        // preferences
-
         preferenceSettingBtn = (Button) findViewById(R.id.preferenceSettingBtn);
         preferenceSettingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -282,13 +275,15 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         torch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 isFlashRequired = isChecked;
+                System.out.println(">>>>>>>>>>>"+isfired);
+
                 try{
                     if (shouldOffTorch == false && mPreviewSession != null ){
                         if (isChecked) {
                             // The toggle is enabled
+                                mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+                                mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
 
-                            mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
-                            mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
                         } else {
                             // The toggle is disabled
                             mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
@@ -298,64 +293,20 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                         shouldOffTorch = false;
                         if(torch.isChecked())
                             torch.setChecked(false);
+                            // torch.setEnabled(false);
                         isFlashRequired = false;
                         }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
             }
         });
 
-        /// Set Save button
-        saveData = (Switch) findViewById(R.id.saveData);
-        //saveData.setVisibility(View.VISIBLE);
-        saveData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    mRdtApi.setSavePoints(true);
-                } else {
-                    mRdtApi.setSavePoints(false);
-                }
-            }
-        });
-
-        ///Video Play
-        mode = (Switch) findViewById(R.id.mode);
-        mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isPreviewOff) {
-                    startPreview();
-                    if (mCyclicProgressBar.getVisibility() == View.VISIBLE) {
-                        mCyclicProgressBar.setVisibility(View.INVISIBLE);
-                        mResultView.setVisibility(View.INVISIBLE);
-//                        mGetResult.setVisibility(View.VISIBLE);
-                        startBtn.setVisibility(View.INVISIBLE);
-                    }
-
-                }
-                if (isChecked) {
-                    mode.setChecked(false);
-                    mode.setChecked(false);
-                    torch.setChecked(false);
-
-                    Intent i = new Intent(MainActivity.this, ActivityVideo.class);
-                    i.putExtra("videoPath", "aaaaaa");
-                    i.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
-                    startActivity(i);
-                } else {
-                    Log.d(">>Mode Switch<<", "OFF");
-                }
-            }
-        });
         mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 mGetResult.setEnabled(false);
-                //progressbar(true);
-               // mStatusView.setText("Waiting...");
                 mResultView.setText("");
                 mResultView.setTextColor(Color.BLACK);
                 mResultView.setVisibility(View.INVISIBLE);
@@ -368,7 +319,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 mResultView.setTextColor(Color.BLACK);
                 mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
-
                 shouldOffTorch = true;
 
                 if(torch.isChecked())
@@ -380,19 +330,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             public void onClick(View v) {
 
                 timeSinceLastChecked=0;
-//                mGetResult.setEnabled(true);
                 startPreview();
-//                mImageBytes = null;
-                /*mWarpedImage = null;
-                mWarpedImage = findViewById(R.id.RdtWarpImage);*/
-//                mResultView.setText("");
-//                mResultView.setTextColor(Color.BLACK);
-//                mResultView.setVisibility(View.INVISIBLE);
-//                mGetResult.setVisibility(View.VISIBLE);
                 startBtn.setEnabled(false);
                 progressbar(false);
-//                disRdtResultImage.setVisibility(View.INVISIBLE);
                 shouldOffTorch = false;
+                torch.setEnabled(true);
             }
         });
     }
@@ -411,10 +353,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             canvas.drawColor(Color.TRANSPARENT);
             canvas.drawRect(0, 0, mTextureView.getRight(), mTextureView.getBottom(), paint);
-            System.out.println(status.mRDTFound+">>>>>>>>>>>>>> >"+found);
             if(!isfired) {
                 if (found) {
-
                     p.setColor(Color.rgb(0, 200, 50));
                 } else {
                     p.setColor(Color.rgb(255,25,25));
@@ -422,6 +362,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             }
             p.setStrokeWidth(20);
             p.setStyle(Paint.Style.STROKE);
+
             canvas.drawRect(left, top, right, bottom, p);
             canvas.drawRect(left, top, right, bottom, transparentPaint);
             String[] msgString = msg.split("\\.\\.");
@@ -430,37 +371,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 canvas.drawText(str.trim().toUpperCase(), left, y, textPaint);
                 y += textPaint.descent() - textPaint.ascent();
             }
-            if (mImageBytes!=null){
+            if (mImageBytes!=null ){
+                if(disRdtResultImage != null)
                 canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
                 canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
-
             }
-
             mHolder.unlockCanvasAndPost(canvas);
-        }
-    }
-
-
-    private void setAndDisplayGrid() {
-        float cell_width = mTextureView.getWidth() > 0 ? mTextureView.getWidth() / ModelInfo.numberBlocks[0] : 1;
-        float cell_height = mTextureView.getHeight() > 0 ? mTextureView.getHeight() / ModelInfo.numberBlocks[1] : 1;
-        TableLayout tableLayout = (TableLayout) findViewById(R.id.gridTable);
-
-        for (int j = 0; j < ModelInfo.numberBlocks[1]; j++) {
-            TableRow tableRowr = new TableRow(this);
-
-            tableRowr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-
-            for (int i = 0; i < ModelInfo.numberBlocks[0]; i++) {
-                TextView b = new TextView(this);
-                b.setText("");
-                b.setHeight((int) Math.ceil(cell_height));
-                b.setWidth((int) Math.ceil(cell_width));
-                b.setBackgroundResource(R.drawable.cell_shape);
-                b.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-                tableRowr.addView(b);
-            }
-            tableLayout.addView(tableRowr, new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
         }
     }
 
@@ -469,6 +385,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             @Override
             public void run() {
                 mCyclicProgressBar.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+                if(isVisible){
+                    if(torch.isChecked()){
+                        torch.setChecked(false);
+                    }
+                    torch.setEnabled(false);
+                }
             }
         });
     }
@@ -535,7 +457,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
             configureTransform(width, height);
-//            setAndDisplayGrid();
         }
 
         @Override
@@ -547,9 +468,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-            //Log.d(".... ","onSurfaceTextureUpdated");
-            mode.setVisibility(View.VISIBLE);
-            saveData.setVisibility(View.VISIBLE);
             torch.setVisibility(View.VISIBLE);
 
             if (!mRdtApi.isInprogress() && sem.tryAcquire(1) == true) {
@@ -563,18 +481,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         }
 
         void Process(final Bitmap capFrame) {
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
             ProcessBitmap(capFrame);
-//                }
-//            }).start();
-        }
-
-        public Bitmap RotateBitmap(Bitmap source, float angle) {
-            Matrix matrix = new Matrix();
-            matrix.postRotate(angle);
-            return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
         }
 
         private void ProcessBitmap(Bitmap capFrame) {
@@ -645,7 +552,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         public void onOpened(@NonNull CameraDevice cameraDevice) {
             mCameraDevice = cameraDevice;
             startPreview();
-           /// mCameraOpenCloseLock.release();
             if (null != mTextureView) {
                 configureTransform(mTextureView.getWidth(), mTextureView.getHeight());
             }
@@ -719,19 +625,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 }
             }
             mVideoSize = closestPreviewSize;
-            Size videoSize = closestPreviewSize;//= chooseOptimalSize(sizes, mVideoSize.getWidth(), mVideoSize.getHeight(),mVideoSize);
-            mImageReader = ImageReader.newInstance(videoSize.getWidth(), videoSize.getHeight(), ImageFormat.YUV_420_888, 5);//YUV_420_888
+            Size videoSize = closestPreviewSize;
+            mImageReader = ImageReader.newInstance(videoSize.getWidth(), videoSize.getHeight(), ImageFormat.YUV_420_888, 5);
 
-            /*mImageReader = ImageReader.newInstance(closestImageSize.getWidth(), closestImageSize.getHeight(),
-                    ImageFormat.JPEG, */
             mImageReader.setOnImageAvailableListener(mImageAvailable, mBackgroundHandler);
 
-            // Get all available size for the textureSurface preview window
-            //sizes = map.getOutputSizes(SurfaceTexture.class);
-            // Get the optimal size for a preview window
-            mPreviewSize = closestPreviewSize;//chooseOptimalSize(sizes, width, height,mVideoSize);
-
-
+            mPreviewSize = closestPreviewSize;
             // We fit the aspect ratio of TextureView to the size of preview we picked.
             int orientation = getResources().getConfiguration().orientation;
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -743,9 +642,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             }
             configureTransform(width, height);
             manager.openCamera(cameraId, mStateCallback, null);
-            /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                manager.setTorchMode(cameraId, true);
-            }*/
+
         } catch (CameraAccessException e) {
             Log.e(TAG, "Cannot access the camera.", e);
             return false;
@@ -820,7 +717,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);//
-            //captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
 
             if(isFlashRequired) {
                 isInnerFlashOn = true;
@@ -851,16 +747,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                                     if(bitmap.getHeight() < bitmap.getWidth()) bitmap =RotateBitmap(bitmap,90);
                                     isfired = false;
                                     mWarpedImage = findViewById(R.id.RdtWarpImage);
-                                    //mWarpedImage.setImageBitmap(null);
                                     mWarpedImage.setImageBitmap(bitmap);
-//                                    mWarpedImage.setMaxHeight(mTextureView.getHeight());
-//                                    mWarpedImage.setMaxWidth(mTextureView.getWidth());
-//                                    mWarpedImage.setAdjustViewBounds(true);
-                                   // p.setColor(Color.rgb(255,25,25));
                                     mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
                                     mWarpedImage.requestLayout();
-                                    //mWarpedImage.setRotation(90f);
-
                                     rdtResults(mImageBytes);
                                     Vibobj.vibrate(50);
                                     progressbar(true);
@@ -870,7 +759,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                         }
                         if(isInnerFlashOn) {
                             captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
-                            // mSession.abortCaptures();
                             mSession.setRepeatingRequest(captureBuilder.build(), null, null);//mBackgroundHandler
                             mSession.close();
                         }
@@ -902,7 +790,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                     try {
                         mSession = session;
                         session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
-                        //session
                     } catch (CameraAccessException e) {
                         e.printStackTrace();
                     }
@@ -911,24 +798,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
             }, mBackgroundHandler);
-
-            ////
-           // captureBuilder.
-            ////////
-            /*mCameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(CameraCaptureSession session) {
-                    try {
-                        session.capture(captureBuilder.build(), captureListener, mBackgroundHandler);
-
-                    } catch (CameraAccessException e) {
-                        e.printStackTrace();
-                    }
-                }
-                @Override
-                public void onConfigureFailed(CameraCaptureSession session) {
-                }
-            }, mBackgroundHandler);*/
 
         }catch(Exception e){
             e.printStackTrace();
@@ -969,7 +838,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     }
 
     public void closeCamera() {
-      //  closePreviewSession();
         if (null != mCameraDevice) {
             mCameraDevice.close();
             mCameraDevice = null;
@@ -1011,15 +879,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                         public void onConfigureFailed(CameraCaptureSession cameraCaptureSession){
                             Log.w(TAG, "Create capture session failed");
                         }
-                       /* final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
-                            @Override
-                            public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-                                super.onCaptureCompleted(session, request, result);
-                                *//*isPreviewOff = true;
-                                handlerCall = true;*//*
-                                Log.d("00-","000000000000");
-                            }
-                        };*//////////
 
                     }, mBackgroundHandler);
         } catch (CameraAccessException e) {
@@ -1047,8 +906,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     long prevTime=0;
     static int counter =0;
     private void repositionRect(AcceptanceStatus status){
-        int height = mTextureView.getHeight();//displayMetrics.heightPixels;
-        int width = mTextureView.getWidth();//displayMetrics.widthPixels;
+        int height = mTextureView.getHeight();
+        int width = mTextureView.getWidth();
         mRectView.bringToFront();
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
         lp.width=(int)Math.floor(width*3.0/5);
@@ -1085,22 +944,14 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
-
-
     }
 
-    /**
-     * Starts a background thread and its {@link Handler}.
-     */
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("CameraBackground");
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
-    /**
-     * Stops the background thread and its {@link Handler}.
-     */
     private void stopBackgroundThread() {
         if(mBackgroundHandler != null) {
             mBackgroundHandler.removeCallbacksAndMessages(null);
@@ -1115,14 +966,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         }
     }
 
-
     @Override
     public void onPause() {
         Log.d(TAG,"onPause called");
         mTextureView.setVisibility(View.GONE);
         super.onPause();
-
-
         closeCamera();
         stopBackgroundThread();
     }
@@ -1152,7 +1000,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         }
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
@@ -1163,7 +1010,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             }
         }
     }
-
 
     @Override
     public void processFinish(String output) {

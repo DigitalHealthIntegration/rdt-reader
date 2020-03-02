@@ -13,10 +13,11 @@
         app:layout_constraintDimensionRatio="H,9:16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <SurfaceView
+        android:id="@+id/surfaceView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/surfaceView"/>
+        android:layout_height="match_parent" />
     <ImageView
         android:id="@+id/rdtRect"
         android:layout_width="0dp"
@@ -30,9 +31,11 @@
         android:id="@+id/disRdtResultImage"
         android:layout_width="53dp"
         android:layout_height="129dp"
+        android:layout_marginStart="32dp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/ResultView"
-        app:layout_constraintEnd_toEndOf="@+id/texture" />
+        app:layout_constraintBottom_toBottomOf="@+id/loader"
+        app:layout_constraintEnd_toEndOf="@+id/texture"
+        app:layout_constraintStart_toEndOf="@+id/loader" />
 
 
     <ImageView
@@ -52,19 +55,6 @@
 
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <!--
-        app:layout_constraintBottom_toTopOf="@+id/mode"
-        app:layout_constraintEnd_toEndOf="@+id/texture"
-        app:layout_constraintBottom_toTopOf="@+id/mode"
-        app:layout_constraintEnd_toEndOf="@+id/texture"
-
-        android:layout_alignParentLeft="true"
-        android:visibility="visible"
-        android:scaleType="centerInside"
-        android:adjustViewBounds="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-    -->
 
     <TextView
         android:id="@+id/MotionText"
@@ -75,18 +65,6 @@
         app:layout_constraintTop_toBottomOf="@+id/RdtTrackedImage"
         app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn" />
 
-    <!--<TextView
-        android:id="@+id/RdtText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:text="Please place RDT in RedBox"
-        android:textColor="@color/colorGreen"
-        android:visibility="visible"
-        app:layout_constraintEnd_toEndOf="@+id/texture"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/texture" />-->
 
     <TextView
         android:id="@+id/Status"
@@ -133,36 +111,17 @@
 
     <Switch
         android:id="@+id/torch"
-        android:layout_width="90dp"
-        android:layout_height="35dp"
+        android:layout_width="86dp"
+        android:layout_height="30dp"
+        android:layout_centerInParent="true"
+        android:layout_gravity="right"
         android:layout_marginStart="24dp"
-        android:layout_marginBottom="5dp"
         android:text="Flash"
-        android:visibility="invisible"
+        android:translationZ="200dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/texture" />
-    <Switch
-        android:id="@+id/mode"
-        android:layout_width="88dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="5dp"
-        android:text="Mode"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/saveData"
-        app:layout_constraintHorizontal_bias="0.384"
-        app:layout_constraintStart_toEndOf="@+id/torch" />
-    <Switch
-        android:id="@+id/saveData"
-        android:layout_width="92dp"
-        android:layout_height="34dp"
-        android:layout_marginEnd="28dp"
-        android:layout_marginBottom="5dp"
-        android:text="Save"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/texture" />
+        app:layout_constraintEnd_toEndOf="@+id/loader"
+        app:layout_constraintStart_toStartOf="@+id/loader" />
 
     <Button
         android:id="@+id/preferenceSettingBtn"
@@ -203,11 +162,13 @@
         android:id="@+id/ResultView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:background="@color/colorGrey"
         android:text="TextView"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/saveData"
-        app:layout_constraintEnd_toEndOf="@+id/texture" />
+        app:layout_constraintEnd_toEndOf="@+id/texture"
+        app:layout_constraintStart_toEndOf="@+id/loader"
+        app:layout_constraintTop_toBottomOf="@+id/disRdtResultImage" />
 
     <Button
         android:id="@+id/startBtn"
@@ -231,9 +192,9 @@
         android:paddingRight="0dp"
         app:layout_constraintDimensionRatio="H,9:16"
 
+        app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="-40dp"
-        tools:layout_editor_absoluteY="-69dp"
+        tools:layout_editor_absoluteX="0dp"
         tools:visibility="invisible">
 
 
