@@ -781,7 +781,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             }
         }
     }
-
+    public static Bitmap RotateBitmap(Bitmap source, float angle)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
     private ImageReader reader1 = null;
     private CaptureRequest.Builder captureBuilder = null;
     private CameraCaptureSession mSession;
@@ -843,17 +848,18 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                                 @Override
                                 public void run() {
                                     Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
+                                    if(bitmap.getHeight() < bitmap.getWidth()) bitmap =RotateBitmap(bitmap,90);
                                     isfired = false;
                                     mWarpedImage = findViewById(R.id.RdtWarpImage);
-                                    mWarpedImage.setImageBitmap(null);
+                                    //mWarpedImage.setImageBitmap(null);
                                     mWarpedImage.setImageBitmap(bitmap);
-                                   // mWarpedImage.setMaxHeight(mTextureView.getHeight());
-                                   // mWarpedImage.setMaxWidth(mTextureView.getWidth());
-                                   // mWarpedImage.setAdjustViewBounds(true);
+//                                    mWarpedImage.setMaxHeight(mTextureView.getHeight());
+//                                    mWarpedImage.setMaxWidth(mTextureView.getWidth());
+//                                    mWarpedImage.setAdjustViewBounds(true);
                                    // p.setColor(Color.rgb(255,25,25));
                                     mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
                                     mWarpedImage.requestLayout();
-                                    mWarpedImage.setRotation(90f);
+                                    //mWarpedImage.setRotation(90f);
 
                                     rdtResults(mImageBytes);
                                     Vibobj.vibrate(50);
