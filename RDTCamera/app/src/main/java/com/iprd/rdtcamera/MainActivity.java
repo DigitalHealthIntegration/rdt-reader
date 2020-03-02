@@ -310,7 +310,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 mResultView.setText("");
                 mResultView.setTextColor(Color.BLACK);
                 mResultView.setVisibility(View.INVISIBLE);
-
                 mImageBytes = null;
                 handlerCall = true;
                 mResultView.setText("");
@@ -372,10 +371,10 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 y += textPaint.descent() - textPaint.ascent();
             }
             if (mImageBytes!=null && mResultView != null ){
-                if(disRdtResultImage.getDrawable() != null) {
+                if(disRdtResultImage.getDrawable() != null)
                     canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
                     canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
-                }
+
             }
             mHolder.unlockCanvasAndPost(canvas);
         }
@@ -451,8 +450,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             right = mTextureView.getWidth() - (int) (0.25*mTextureView.getWidth());
 
             openCamera(width, height);
-
-
         }
 
         @Override
@@ -661,7 +658,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             String guid = String.valueOf(java.util.UUID.randomUUID());
             String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
             try {
-                Httpok mr = new Httpok("img.jpg", bytes, urlString, metaDataStr, mCyclicProgressBar, disRdtResultImage, mResultView);//disRdtResultImage
+                Httpok mr = new Httpok("img.jpg", bytes, urlString, metaDataStr, mCyclicProgressBar, disRdtResultImage, mResultView);
                 mr.delegate = this;
                 mr.setCtx(getApplicationContext());
                 mr.execute();

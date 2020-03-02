@@ -91,7 +91,6 @@ public class Httpok extends AsyncTask<String, Void, String> {
             mProgressBar.setVisibility(View.INVISIBLE);
             if (mResult != null) {
                 mImageView.setVisibility(View.VISIBLE);
-                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + mResult);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
                 //Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
@@ -123,10 +122,9 @@ public class Httpok extends AsyncTask<String, Void, String> {
                         mResultView.setVisibility(View.VISIBLE);
                     }
                     //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
-                }/*else{
-                    mResultView.setVisibility(View.INVISIBLE);
-                    //mResultView.setText("waiting...");
-                }*/
+                }else{
+                    Toast.makeText(mCtx,"Unable To Connect To Server",Toast.LENGTH_LONG).show();
+                }
             }
 
 
@@ -162,7 +160,6 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
         Response response = client.newCall(request).execute();
         String res = response.body().string();
-        //System.out.println(">>>>>>>>"+res);
         Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {
