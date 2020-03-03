@@ -133,12 +133,10 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     SharedPreferences prefs;
     ProgressBar mCyclicProgressBar;
 
-    private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
-    private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
     private static final SparseIntArray DEFAULT_ORIENTATIONS = new SparseIntArray();
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
-    public static Size CAMERA2_PREVIEW_SIZE = new Size(1080,1920);//1280, 720);
-    public static Size CAMERA2_IMAGE_SIZE = new Size(1080,1920);//1280, 720);
+    public static Size CAMERA2_PREVIEW_SIZE = new Size(1080,1920);
+    public static Size CAMERA2_IMAGE_SIZE = new Size(1080,1920);
     private Button preferenceSettingBtn;
     private TextView rdtDataToBeDisplay;
     private List<Surface> mSurfaces;
@@ -238,9 +236,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         mResultView = findViewById(R.id.ResultView);
         mResultView.bringToFront();
 
-        disRdtResultImage.getLayoutParams().height = 500;
-        disRdtResultImage.getLayoutParams().width = 100;
-        disRdtResultImage.requestLayout();
+        setSizeOfRdtResultImage(500, 100);
 
         Vibobj = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
         startBtn = findViewById(R.id.startBtn);
@@ -370,8 +366,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 y += textPaint.descent() - textPaint.ascent();
             }
             if (mImageBytes!=null && mResultView != null ){
-                if(disRdtResultImage.getDrawable() != null)
+                setSizeOfRdtResultImage(0, 0);
+                if(disRdtResultImage.getDrawable() != null && !mResultView.getText().toString().equalsIgnoreCase("-2 No rdt found") && !mResultView.getText().toString().equalsIgnoreCase("")) {
+                    setSizeOfRdtResultImage(500, 100);
                     canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
+                }
                     canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
 
             }
@@ -754,6 +753,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                                     rdtResults(mImageBytes);
                                     Vibobj.vibrate(50);
                                     progressbar(true);
+                                    disRdtResultImage.setImageBitmap(null);
+                                    setSizeOfRdtResultImage(0, 0);
 
                                 }
                             });
@@ -803,6 +804,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    private void setSizeOfRdtResultImage(int i1, int i2) {
+        disRdtResultImage.getLayoutParams().height = i1;
+        disRdtResultImage.getLayoutParams().width = i2;
+        disRdtResultImage.requestLayout();
     }
 
     /**
@@ -901,21 +908,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-    }
-
-    AcceptanceStatus prevStat;
-    long prevTime=0;
-    static int counter =0;
-    private void repositionRect(AcceptanceStatus status){
-        int height = mTextureView.getHeight();
-        int width = mTextureView.getWidth();
-        mRectView.bringToFront();
-        ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) mRectView.getLayoutParams();
-        lp.width=(int)Math.floor(width*3.0/5);
-        lp.height=(int)Math.ceil(height*7.0/9)+1;
-        lp.setMargins((int)Math.floor(width/5.0)-1,(int)Math.floor(height/9.0)+1,0,0);
-        mRectView.setLayoutParams(lp);
-        mRectView.setVisibility(View.VISIBLE);
     }
 
     @Override

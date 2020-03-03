@@ -61,7 +61,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view,TextView txtView){
         this.imgName = imgName;
         this.img = img;
-        this.urlString = urlString;//"http://3.95.232.90:9000/Quidel/QuickVue/";//urlString;
+        this.urlString = urlString;
         this.metaDataStr = metaDataStr;
         this.mProgressBar= mProgressBar;
         this.mImageView= view;
@@ -73,27 +73,21 @@ public class Httpok extends AsyncTask<String, Void, String> {
     @Override
     protected String doInBackground(String... strings) {
         try {
-            //Thread.sleep(10000);
             httpOkPostMultipartAndJson();
         } catch (IOException e) {
             e.printStackTrace();
         }
-//         catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
         return null;
     }
 
     @Override
     protected void onPostExecute(String result) {
-//        Log.i("HTTPOK","ONPOSTEXECUTE");
         if (null != mProgressBar) {
             mProgressBar.setVisibility(View.INVISIBLE);
             if (mResult != null) {
                 mImageView.setVisibility(View.VISIBLE);
                 mImageView.setImageBitmap(mResult);
                 mImageView.bringToFront();
-                //Toast.makeText(mCtx,mJsonResult.toString(),Toast.LENGTH_LONG).show();
                 if (mJsonResult != null) {
                     String str = "";
                     try {
@@ -106,7 +100,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
                         mResultView.setText(str);
                         mResultView.setVisibility(View.VISIBLE);
                     }
-                    //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
+
                 }
             } else {
                 if (mJsonResult != null) {
@@ -121,7 +115,6 @@ public class Httpok extends AsyncTask<String, Void, String> {
                         mResultView.setText(str);
                         mResultView.setVisibility(View.VISIBLE);
                     }
-                    //Toast.makeText(mCtx,str,Toast.LENGTH_LONG).show();
                 }else{
                     Toast.makeText(mCtx,"Unable To Connect To Server",Toast.LENGTH_LONG).show();
                 }
@@ -132,7 +125,6 @@ public class Httpok extends AsyncTask<String, Void, String> {
     }
     @Override
     protected void onPreExecute() {
-//        Log.i("HTTPOK","ONPREEXECUTE");
         if(null != mProgressBar  && mProgressBar.getVisibility() == View.INVISIBLE){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
@@ -158,7 +150,6 @@ public class Httpok extends AsyncTask<String, Void, String> {
 
         Response response = client.newCall(request).execute();
         String res = response.body().string();
-        Bitmap bitmap=null;
         if (response.isSuccessful()) {
             try {
                 String[] s = res.split("Content-Type:");
