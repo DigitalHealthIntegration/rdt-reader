@@ -346,8 +346,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     public void rdtFound(boolean found,String msg){
         Canvas canvas = mHolder.lockCanvas();
         if (canvas == null) {
-            Log.e(TAG, "Cannot -" +
-                    " onto the canvas as it's null");
+            Log.e(TAG, "Cannot - onto the canvas as it's null");
         } else {
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             canvas.drawColor(Color.TRANSPARENT);
@@ -525,11 +524,15 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                                 timeSinceLastChecked = 0L;
                                 isfired = true;
                                 mWarpedImage.setVisibility(View.VISIBLE);
+
                                 p.setColor(Color.rgb(104,104,104));
                                 mGetResult.performClick();
                             }
                         }
                     } else{
+                        if(isfired)
+                            textTodisp = "";
+
                         rdtFound(false,textTodisp);
                         timeSinceLastChecked =0L;
                     }

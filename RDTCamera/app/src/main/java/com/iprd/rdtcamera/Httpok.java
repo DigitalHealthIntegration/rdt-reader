@@ -126,8 +126,6 @@ public class Httpok extends AsyncTask<String, Void, String> {
                     Toast.makeText(mCtx,"Unable To Connect To Server",Toast.LENGTH_LONG).show();
                 }
             }
-
-
         }
         delegate.processFinish("done");
 
