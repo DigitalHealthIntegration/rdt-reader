@@ -374,3 +374,4 @@ if __name__ == "__main__":
     kmeans.fit(anchors)
     centroids = kmeans.cluster_centers_
     print(centroids)
+    print("Done")
