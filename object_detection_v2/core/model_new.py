@@ -202,12 +202,13 @@ class ObjectDetection(object):
             return model
        
     def res_net_block(self,input_data, filters, conv_size):
-         x = layers.Conv2D(filters, conv_size, activation='relu', padding='same')(input_data)
+         x = layers.Conv2D(filters, conv_size ,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001), padding='same')(input_data)
          x = layers.BatchNormalization()(x)
+         x = layers.Activation(tf.nn.relu6)(x)
          x = layers.Conv2D(filters, conv_size, activation=None, padding='same')(x)
          x = layers.BatchNormalization()(x)
          x = layers.Add()([x, input_data])
-         x = layers.Activation('relu')(x)
+         x = layers.Activation(tf.nn.relu6)(x)
          return x
 
     def __build_network__imgClassRes(self):   
@@ -233,36 +234,42 @@ class ObjectDetection(object):
             num_res_net_blocks = 2
             for i in range(num_res_net_blocks):
                 x = self.res_net_block(x, 32, 3)
-            conv5 = keras.layers.Conv2D(32,(3,3), padding='valid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(x)
-            conv5 = layers.BatchNormalization()(conv5)
-            conv5 = layers.Activation(tf.nn.relu6)(conv5)
-            conv6 = keras.layers.Conv2D(64,(3,3), padding='valid',activation=tf.nn.relu6,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(conv5)
-            maxpool3 = keras.layers.MaxPooling2D((2,2))(conv6)
-            drop3 = keras.layers.Dropout(0.2)(maxpool3)
-            conv7 = keras.layers.Conv2D(64,(3,3), padding='valid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(drop3)
-            conv7 = layers.BatchNormalization()(conv7)
-            conv7 = layers.Activation(tf.nn.relu6)(conv7)
-            conv8 = keras.layers.Conv2D(64,(3,3), padding='valid',activation=tf.nn.relu6,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(conv7)
-            maxpool4 = keras.layers.MaxPooling2D((2,2))(conv8)
-            drop4 = keras.layers.Dropout(0.2)(maxpool4)
-            conv5 = keras.layers.Conv2D(64,(3,3), padding='valid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(drop4)
-            conv5 = layers.BatchNormalization()(conv5)
-            conv5 = layers.Activation(tf.nn.relu6)(conv5)
-            conv6 = keras.layers.Conv2D(64,(3,3), padding='valid',activation=tf.nn.relu6,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(conv5)
-            maxpool3 = keras.layers.MaxPooling2D((2,2))(conv6)
-            drop3 = keras.layers.Dropout(0.2)(maxpool3)
-            conv9 = keras.layers.Conv2D(self.number_anchors*(self.num_class+4),(3,3), padding='same',activation='linear',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(drop3)
-            #drop2 = keras.layers.Dropout(0.2)(conv4)
+                
+            # conv5 = keras.layers.Conv2D(32,(3,3), padding='valid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(x)
+            # conv5 = layers.BatchNormalization()(conv5)
+            # conv5 = layers.Activation(tf.nn.relu6)(conv5)
+            # conv6 = keras.layers.Conv2D(64,(3,3), padding='valid',activation=tf.nn.relu6,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(conv5)
+            x = keras.layers.MaxPooling2D((2,2))(x)
+            for i in range(num_res_net_blocks):
+                x = self.res_net_block(x, 32, 3)
+            # drop3 = keras.layers.Dropout(0.2)(maxpool3)
+            # conv7 = keras.layers.Conv2D(64,(3,3), padding='valid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(drop3)
+            # conv7 = layers.BatchNormalization()(conv7)
+            # conv7 = layers.Activation(tf.nn.relu6)(conv7)
+            # conv8 = keras.layers.Conv2D(64,(3,3), padding='valid',activation=tf.nn.relu6,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.00001))(conv7)
+            x = keras.layers.MaxPooling2D((2,2))(x)
+            for i in range(num_res_net_blocks):
+                x = self.res_net_block(x, 32, 3)
+            # drop4 = keras.layers.Dropout(0.2)(maxpool4)
+            # conv5 = keras.layers.Conv2D(64,(3,3), padding='valid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(drop4)
+            # conv5 = layers.BatchNormalization()(conv5)
+            # conv5 = layers.Activation(tf.nn.relu6)(conv5)
+            # conv6 = keras.layers.Conv2D(64,(3,3), padding='valid',activation=tf.nn.relu6,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(conv5)
+            x = keras.layers.MaxPooling2D((2,2))(x)
+            for i in range(num_res_net_blocks):
+                x = self.res_net_block(x, 32, 3)
+            # drop3 = keras.layers.Dropout(0.2)(maxpool3)
+            conv9 = keras.layers.Conv2D(self.number_anchors*(self.num_class+4),(3,3), padding='same',activation='sigmoid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(x)
             print("conv 6",conv9.shape)
-            reshapeOut = layers.Reshape((self.numberBlocks[0]*self.numberBlocks[1],self.number_anchors,(self.num_class+4)))(conv9)
+            # reshapeOut = layers.Reshape((self.numberBlocks[0]*self.numberBlocks[1],self.number_anchors,(self.num_class+4)))(conv9)
             # for i in range(self.num_class+4):
-            reshapeOutClass = reshapeOut[:,:,:,0:self.num_class]
-            reshapeOutReg = reshapeOut[:,:,:,self.num_class:]
-            reshapeOutClass = layers.Softmax()(reshapeOutClass)
-            reshapeOutReg = layers.Activation("tanh")(reshapeOutReg)
-            concat_1 = layers.concatenate([reshapeOutClass,reshapeOutReg])
+            # reshapeOutClass = reshapeOut[:,:,:,0:self.num_class]
+            # reshapeOutReg = reshapeOut[:,:,:,self.num_class:]
+            # reshapeOutClass = layers.Softmax()(reshapeOutClass)
+            # reshapeOutReg = layers.Activation("tanh")(reshapeOutReg)
+            # concat_1 = layers.concatenate([reshapeOutClass,reshapeOutReg])
 
-            model = tf.keras.Model(inputs=inputs,outputs=[concat_1])
+            model = tf.keras.Model(inputs=inputs,outputs=conv9)
 
             if (self.loadWeights):
                 model.load_weights(self.weightsFile,by_name=True)
