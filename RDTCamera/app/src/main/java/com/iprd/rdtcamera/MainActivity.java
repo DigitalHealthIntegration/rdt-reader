@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     private ImageView mRdtView,mTrackedView;
     private ImageView disRdtResultImage,mWarpedImage;
     Button mGetResult;
+    Button nextPage;
     Button startBtn;
     TextView mResultView,mMotionText,mStatusView;
     Boolean isPreviewOff = false;
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     private Paint textPaint = new Paint();
     private Vibrator Vibobj;
     Boolean isfired = false;
-
+    private Bitmap finalImage;
     private Paint transparentPaint;
     long timeSinceLastChecked= System.currentTimeMillis();
 
@@ -177,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     boolean isGridDispaly;
     TableLayout gridTable;
     byte[] mImageBytes = null;
+    private Context mctx;
 
     int idx;
     RdtAPI mRdtApi = null;
@@ -220,29 +222,30 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         mHolder = surfaceView.getHolder();
         mHolder.setFormat(PixelFormat.TRANSPARENT);
         mGetResult = findViewById(R.id.getResult);
-        Context c = getApplicationContext();
+        nextPage = findViewById(R.id.next);
+        mctx = getApplicationContext();
         prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(c);
         gridTable = findViewById(R.id.gridTable);
         gridTable.setVisibility(View.VISIBLE);
 
-        mRdtView = findViewById(R.id.RdtDetectImage);
+//        mRdtView = findViewById(R.id.RdtDetectImage);
         mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
         mMotionText = findViewById(R.id.MotionText);
-        mWarpedImage = findViewById(R.id.RdtWarpImage);
-        mStatusView = findViewById(R.id.Status);
+//        mWarpedImage = findViewById(R.id.RdtWarpImage);
+//        mStatusView = findViewById(R.id.Status);
         //mRectView.setImageDrawable(R.drawable.grid);
 
-        disRdtResultImage = findViewById(R.id.disRdtResultImage);
+//        disRdtResultImage = findViewById(R.id.disRdtResultImage);
         rdtDataToBeDisplay = findViewById(R.id.rdtDataToBeDisplay);
         mCyclicProgressBar = findViewById(R.id.loader);
 
-        mResultView = findViewById(R.id.ResultView);
-        mResultView.bringToFront();
+//        mResultView = findViewById(R.id.ResultView);
+//        mResultView.bringToFront();
 
-        disRdtResultImage.getLayoutParams().height = 500;
-        disRdtResultImage.getLayoutParams().width = 100;
-        disRdtResultImage.requestLayout();
+//        disRdtResultImage.getLayoutParams().height = 500;
+//        disRdtResultImage.getLayoutParams().width = 100;
+//        disRdtResultImage.requestLayout();
 
         Vibobj = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 
@@ -353,21 +356,29 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             @Override
             public void onClick(View view) {
 
+
+
+
                 mGetResult.setEnabled(false);
                 //progressbar(true);
                // mStatusView.setText("Waiting...");
-                mResultView.setText("");
-                mResultView.setTextColor(Color.BLACK);
-                mResultView.setVisibility(View.INVISIBLE);
+//                mResultView.setText("");
+//                mResultView.setTextColor(Color.BLACK);
+//                mResultView.setVisibility(View.INVISIBLE);
 
                 mImageBytes = null;
                 handlerCall = true;
-                mResultView.setText("");
+//                mResultView.setText("");
                 getRDTResultData();
-                startBtn.setEnabled(true);
-                mResultView.setTextColor(Color.BLACK);
-                mResultView.setVisibility(View.INVISIBLE);
                 mGetResult.setVisibility(View.INVISIBLE);
+
+                startBtn.setEnabled(true);
+
+                startBtn.setVisibility(View.VISIBLE);
+                nextPage.setVisibility(View.VISIBLE);
+
+//                mResultView.setTextColor(Color.BLACK);
+//                mResultView.setVisibility(View.INVISIBLE);
 
                 shouldOffTorch = true;
 
@@ -375,6 +386,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                     torch.setChecked(false);
             }
         });
+
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -382,25 +394,54 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 timeSinceLastChecked=0;
 //                mGetResult.setEnabled(true);
                 startPreview();
+
+
+                mGetResult.setEnabled(true);
+
 //                mImageBytes = null;
                 /*mWarpedImage = null;
                 mWarpedImage = findViewById(R.id.RdtWarpImage);*/
 //                mResultView.setText("");
 //                mResultView.setTextColor(Color.BLACK);
 //                mResultView.setVisibility(View.INVISIBLE);
-//                mGetResult.setVisibility(View.VISIBLE);
+                mGetResult.setVisibility(View.VISIBLE);
                 startBtn.setEnabled(false);
-                progressbar(false);
+                startBtn.setVisibility(View.INVISIBLE);
 //                disRdtResultImage.setVisibility(View.INVISIBLE);
                 shouldOffTorch = false;
+                nextPage.setVisibility(View.INVISIBLE);
             }
         });
+
+        nextPage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent nextIntent = new Intent(mctx, LabelScreen.class);
+                nextIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                String path = writeFile("Capture.jpg", finalImage);
+                nextIntent.putExtra("image_path", path);
+                startActivity(nextIntent);
+                finish();
+            }
+        });
+
+    }
+    private String writeFile(String filename, Bitmap bmp) {
+        String extStorageState =  mctx.getFilesDir().getAbsolutePath();
+        File myExternalFile = new File(extStorageState + File.separator, filename);
+        try (FileOutputStream out = new FileOutputStream(myExternalFile)) {
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, out); // bmp is your Bitmap instance
+            // PNG is a lossless format, the compression factor (100) is ignored
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return myExternalFile.getAbsolutePath();
     }
     public void Continue() {
 
         startBtn.performClick();
-        mWarpedImage.setImageBitmap(null);
-        mWarpedImage.setVisibility(View.INVISIBLE);
+
     }
     public void rdtFound(boolean found,String msg){
         Canvas canvas = mHolder.lockCanvas();
@@ -430,11 +471,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 canvas.drawText(str.trim().toUpperCase(), left, y, textPaint);
                 y += textPaint.descent() - textPaint.ascent();
             }
-            if (mImageBytes!=null){
-                canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
-                canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
-
-            }
+//            if (mImageBytes!=null){
+//                canvas.drawRect(disRdtResultImage.getLeft(), disRdtResultImage.getTop(), disRdtResultImage.getRight(), disRdtResultImage.getBottom(), transparentPaint);
+//                canvas.drawRect(mResultView.getLeft(), mResultView.getTop(), mResultView.getRight(), mResultView.getBottom(), transparentPaint);
+//
+//            }
 
             mHolder.unlockCanvasAndPost(canvas);
         }
@@ -460,7 +501,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 b.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.FILL_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
                 tableRowr.addView(b);
             }
-            tableLayout.addView(tableRowr, new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
+            tableLayout.addView(tableRowr, new TableLayout.LayoutParams(TableLayout.LayoutParams. FILL_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
         }
     }
 
@@ -580,6 +621,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         private void ProcessBitmap(Bitmap capFrame) {
             if(!isfired) {
                 status = mRdtApi.checkFrame(capFrame);
+                Log.d("MOTION_CALCULATED"," *** 5 "+status.mSteady);
+
             }
             if (mShowImageData != 0) {
                 status.mSharpness = mRdtApi.getSharpness();
@@ -589,17 +632,18 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 @Override
                 public void run() {
                     String textTodisp = "RDT not found";
+
                     if (status.mRDTFound && !isfired) {
                         textTodisp = "RDT found .. ";
-                        if (status.mInfo.mScale>0.6){
-                            textTodisp  += "scale is good ..";
-                        }else if (status.mInfo.mScale<0.6){
-                            textTodisp  += "slowly bring camera closer ..";
-                            timeSinceLastChecked = 0;
-                        }
-                        if (status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200){
+//                        if (status.mInfo.mScale>0.6){
+//                            textTodisp  += "scale is good ..";
+//                        }else if (status.mInfo.mScale<0.6){
+//                            textTodisp  += "slowly bring camera closer ..";
+//                            timeSinceLastChecked = 0;
+//                        }
+                        if (status.mInfo.mBrightness>60 && status.mInfo.mBrightness<200){
                             textTodisp  += "brightness is good.. hold steady";
-                        }else if (status.mInfo.mBrightness<120) {
+                        }else if (status.mInfo.mBrightness<60) {
                             timeSinceLastChecked = 0;
                             textTodisp  += "brightness is low ..";
                         }else if (status.mInfo.mBrightness>200) {
@@ -608,24 +652,32 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                         }else{timeSinceLastChecked =0L;}
                         Log.i("TIME since last check", String.valueOf(timeSinceLastChecked));
                         Log.i("Scale", String.valueOf(status.mInfo.mScale));
-                        if (status.mInfo.mScale>0.6 && status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200 ){
-                            rdtFound(true,textTodisp);
+//                        if (status.mInfo.mScale>0.6 && status.mInfo.mBrightness>120 && status.mInfo.mBrightness<200 ){
+                        if (status.mInfo.mBrightness>60 && status.mInfo.mBrightness<200 && status.mSteady == GOOD){
+
+                                rdtFound(true,textTodisp);
                             if (timeSinceLastChecked==0){
                                 timeSinceLastChecked = System.currentTimeMillis();
-                            }else if (System.currentTimeMillis()-timeSinceLastChecked > 2000) {
-                                status = new AcceptanceStatus();
-                                mRdtApi.mStatus =new AcceptanceStatus();
-                                mRdtApi.mStatus2 =new AcceptanceStatus();
-
-                                timeSinceLastChecked = 0L;
-                                isfired = true;
-                                mWarpedImage.setVisibility(View.VISIBLE);
-                                p.setColor(Color.rgb(104,104,104));
-                                mGetResult.performClick();
                             }
+//                            else if (System.currentTimeMillis()-timeSinceLastChecked > 2000) {
+//                                status = new AcceptanceStatus();
+//                                mRdtApi.mStatus =new AcceptanceStatus();
+//                                mRdtApi.mStatus2 =new AcceptanceStatus();
+//
+//                                timeSinceLastChecked = 0L;
+//                                isfired = true;
+//                                mWarpedImage.setVisibility(View.VISIBLE);
+//                                p.setColor(Color.rgb(104,104,104));
+//                                mGetResult.performClick();
+//                            }
                         }
+                        else{
+                            rdtFound(false,textTodisp);
+
+                        }
+
                     } else{
-                        rdtFound(false,textTodisp);
+                        rdtFound(false,"");
                         timeSinceLastChecked =0L;
                     }
                 }
@@ -757,29 +809,30 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     }
 
     public void rdtResults(byte[] bytes) {
-        OutputStream output = null;
-        try {
-            String urlString = prefs.getString("rdtCheckUrl", mHttpURL);
-            String guid = String.valueOf(java.util.UUID.randomUUID());
-            String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
-            try {
-                Httpok mr = new Httpok("img.jpg", bytes, urlString, metaDataStr, mCyclicProgressBar, disRdtResultImage, mResultView);//disRdtResultImage
-                mr.delegate = this;
-                mr.setCtx(getApplicationContext());
-                mr.execute();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } finally {
-            if (null != output) {
-                try {
-                    Continue();
-                    output.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+//        Continue();
+
+//        OutputStream output = null;
+//        try {
+//            String urlString = prefs.getString("rdtCheckUrl", mHttpURL);
+//            String guid = String.valueOf(java.util.UUID.randomUUID());
+//            String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
+//            try {
+//                Httpok mr = new Httpok("img.jpg", bytes, urlString, metaDataStr, mCyclicProgressBar, disRdtResultImage, mResultView);//disRdtResultImage
+//                mr.delegate = this;
+//                mr.setCtx(getApplicationContext());
+//                mr.execute();
+//            } catch (Exception ex) {
+//                ex.printStackTrace();
+//            }
+//        } finally {
+//            if (null != output) {
+//                try {
+//                    output.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
     }
 
     private ImageReader reader1 = null;
@@ -842,22 +895,21 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Bitmap bitmap = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
+                                    finalImage = BitmapFactory.decodeByteArray(mImageBytes, 0, mImageBytes.length);
                                     isfired = false;
-                                    mWarpedImage = findViewById(R.id.RdtWarpImage);
-                                    mWarpedImage.setImageBitmap(null);
-                                    mWarpedImage.setImageBitmap(bitmap);
-                                   // mWarpedImage.setMaxHeight(mTextureView.getHeight());
-                                   // mWarpedImage.setMaxWidth(mTextureView.getWidth());
-                                   // mWarpedImage.setAdjustViewBounds(true);
-                                   // p.setColor(Color.rgb(255,25,25));
-                                    mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
-                                    mWarpedImage.requestLayout();
-                                    mWarpedImage.setRotation(90f);
+//                                    mWarpedImage = findViewById(R.id.RdtWarpImage);
+//                                    mWarpedImage.setImageBitmap(null);
+//                                    mWarpedImage.setImageBitmap(bitmap);
+//                                   // mWarpedImage.setMaxHeight(mTextureView.getHeight());
+//                                   // mWarpedImage.setMaxWidth(mTextureView.getWidth());
+//                                   // mWarpedImage.setAdjustViewBounds(true);
+//                                   // p.setColor(Color.rgb(255,25,25));
+//                                    mWarpedImage.setLayoutParams(mWarpedImage.getLayoutParams());
+//                                    mWarpedImage.requestLayout();
+//                                    mWarpedImage.setRotation(90f);
 
                                     rdtResults(mImageBytes);
                                     Vibobj.vibrate(50);
-                                    progressbar(true);
 
                                 }
                             });
@@ -868,7 +920,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                             mSession.setRepeatingRequest(captureBuilder.build(), null, null);//mBackgroundHandler
                             mSession.close();
                         }
-                        Toast.makeText(MainActivity.this, "Requested for RDT result", Toast.LENGTH_SHORT).show();
                         timeSinceLastChecked = 0;
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -971,6 +1022,10 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         if (null != mImageReader) {
             mImageReader.close();
             mImageReader = null;
+        }
+        if(null!=reader1){
+            reader1.close();
+            reader1=null;
         }
     }
     private void startPreview() {

@@ -307,6 +307,7 @@ public class RdtAPI {
     public AcceptanceStatus checkFrame(Bitmap capFrame) {
         mInprogress = true;
         mBrightness = -1;
+        short steady = TOO_HIGH;
         mSharpness = -1;
         Mat matinput = new Mat();
         Mat greyMat = new Mat();
@@ -365,6 +366,7 @@ public class RdtAPI {
                 putText(mWarpedMat, "RDT REFERENCE IMAGE ", new Point(0, mWarpedMat.cols()>>1), FONT_HERSHEY_SIMPLEX, 2.0,new Scalar(255,0,0,0),5);
             }
 
+
             //Threshold1 and Threshold 2.
             Log.i("10Comp frame", warp10.get(0,2)[0] + "x" + warp10.get(1,2)[0]);
             Log.i("10Add frame", p.x + "x" + p.y);
@@ -385,7 +387,8 @@ public class RdtAPI {
             if(mComputeVector_FinalMVector.x > mConfig.mMaxFrameTranslationalMagnitude){
                 ret.mSteady = TOO_HIGH;
             }
-            short steady= ret.mSteady;
+            Log.d("MOTION_CALCULATED"," ***  "+ret.mSteady);
+            steady= ret.mSteady;
 
             //process frame
             if(matinput.width() < matinput.height()) {
@@ -498,7 +501,8 @@ public class RdtAPI {
             mPostProcessingTime = System.currentTimeMillis()-mPostProcessingTime;
         }
 
-
+        Log.d("MOTION_CALCULATED"," *** 5 5 "+steady);
+        ret.mSteady = steady;
         return ret;
     }
 
@@ -524,8 +528,14 @@ public class RdtAPI {
         final long updatetimest = System.currentTimeMillis();
         try {
             //Log.i("ProcessRDT","Coming in process RDT");
-            Boolean[] rdtFound = new Boolean[]{new Boolean(false)};
-            detectedRoi = mTensorFlow.update(reszgreymat, rdtFound);
+            Boolean[] rdtFound = new Boolean[]{new Boolean(true)};
+
+            int left = (int) (0.25 *720);
+            int top = (int) (0.1*1280);
+            int bottom = 1280 - (int) (0.1*1280);
+            int right = 720 - (int) (0.25*720);
+
+            detectedRoi = new Rect(top,left,bottom-top,right-left);//mTensorFlow.update(reszgreymat, rdtFound);
             mTensorFlowProcessTime = System.currentTimeMillis() - updatetimest;
 
             retStatus.mRDTFound = rdtFound[0].booleanValue();

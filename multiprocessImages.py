@@ -9,13 +9,16 @@ from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from flasker import angle_with_yaxis,returnCentre
 import numpy as np
 from sklearn.cluster import KMeans
+import xml.etree.ElementTree as ET
 
-folderDirectory="../object_detection_mobile_v2/dataset/images_seg_te/"
+
+labelsMapping = "../syndata-generation/temp/train.txt"
+folderDirectory="../syndata-generation/temp/images/"
 onlyfiles = [os.path.join(folderDirectory, f) for f in os.listdir(folderDirectory) if os.path.isfile(os.path.join(folderDirectory, f))]
-rootPathCentreLabel="../object_detection_mobile_v2/dataset/labels_seg_tr/"
-classes=["top","bottom","2","7","1"]
-outdirectory ="../object_detection_mobile_v2/output_check/"
-horizontalImages="../object_detection_mobile_v2/train_16_rotations_ratioCropped/"
+rootPathCentreLabel="../syndata-generation/temp/annotations/"
+classes=["top","bottom","2","7","1","top_pattern","bottom_arrow","test_area"]
+outdirectory ="../syndata-generation/output_check/"
+horizontalImages="../syndata-generation/train_16_rotations_ratioCropped/"
 weirdRotations=["IMG_1614.jpg"]
 def returnAugmentationObjRot(angle):
     seq = iaa.Sequential(
@@ -56,7 +59,7 @@ def processImage(imagePath,all_annots_imagelist):
     imageFileName=ntpath.basename(imagePath)
 
     all_annots,imagelist=all_annots_imagelist[0],all_annots_imagelist[1]
-    
+    # print(all_annots,imagelist)
     resize_dim=(256,256)
     img = cv2.imread(imagePath,cv2.IMREAD_COLOR)
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -72,7 +75,8 @@ def processImage(imagePath,all_annots_imagelist):
 def rotateAndAug(img,objs,imageFileName):
     newImg=img
     newObjects=objs
-    BBoxs=[BoundingBox(x1=0, x2=0, y1=0, y2=0),BoundingBox(x1=0, x2=0, y1=0, y2=0),BoundingBox(x1=0, x2=0, y1=0, y2=0),BoundingBox(x1=0, x2=0, y1=0, y2=0)]
+    # BBoxs=[BoundingBox(x1=0, x2=0, y1=0, y2=0),BoundingBox(x1=0, x2=0, y1=0, y2=0),BoundingBox(x1=0, x2=0, y1=0, y2=0),BoundingBox(x1=0, x2=0, y1=0, y2=0)]
+    BBoxs =[]
     p1=[0,0]
     p2=[0,0]
     for inde,obj in enumerate(objs):
@@ -82,105 +86,90 @@ def rotateAndAug(img,objs,imageFileName):
             x2 = obj["box"]["x2"]
             y2 = obj["box"]["y2"]
 
-            if obj["tags"][0] in ["top","2"]:
-                BBoxs[0]=BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2,label="top")
-                p1 = returnCentre([x1,y1,x2,y2])
-            elif obj["tags"][0] in ["bottom","7"]:
-                BBoxs[1]=BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2,label="bottom")
-                p2 = returnCentre([x1,y1,x2,y2])
-            elif obj["tags"][0] in ["1"]:
-                BBoxs[2]=BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2,label="influenza")
-                p3 = returnCentre([x1,y1,x2,y2])
-            BBoxs[3]=BoundingBox(x1=0, x2=obj["width"], y1=0, y2=obj["height"],label="entireimage")
-    if max(p1)>0 and max(p2)>0:
+            if obj["tags"][0] in ["top","2","test_area"]:
+                BBoxs.append(BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2,label="test_area"))
+                # p1 = returnCentre([x1,y1,x2,y2])
+            elif obj["tags"][0] in ["bottom","7","bottom_arrow"]:
+                BBoxs.append(BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2,label="bottom_arrow"))
+                # p2 = returnCentre([x1,y1,x2,y2])
+            elif obj["tags"][0] in ["1","top_pattern"]:
+                BBoxs.append(BoundingBox(x1=x1, x2=x2, y1=y1, y2=y2,label="top_pattern"))
+                # p3 = returnCentre([x1,y1,x2,y2])
+            # BBoxs[3]=BoundingBox(x1=0, x2=obj["width"], y1=0, y2=obj["height"],label="entireimage")
+        # print(obj,imageFileName)
+    if len(BBoxs)>0:
         p1=np.array(p1)
         p2=np.array(p2)
         angleToRotate,im0,scale_percent,quad,_=angle_with_yaxis(p1,p2,img,[],0)
-        angleToRotate=angleToRotate+90
+        angleToRotate=0 ##angleToRotate+90
         seqAug = returnAugmentationObj(angleToRotate,scale_percent)
+        # print(img.shape)
         bbs = BoundingBoxesOnImage(BBoxs, shape=img.shape)
         newshape = [img.shape[0]*scale_percent,img.shape[1]*scale_percent]
-        image_hor, bbs_hor = seqAug(image=img, bounding_boxes=bbs)
+        image_hor, bbs_hor =img,bbs ##seqAug(image=img, bounding_boxes=bbs)
 
-        X=max(bbs_hor.bounding_boxes[-1].x1,bbs_hor.bounding_boxes[-1].x2)
-        x1_inf=bbs_hor.bounding_boxes[0].x1+118
-        y1_inf=bbs_hor.bounding_boxes[0].y1
-        x2_inf=min(bbs_hor.bounding_boxes[0].x2+150,X)
-        y2_inf=bbs_hor.bounding_boxes[0].y2
-        listOfbb=bbs_hor.bounding_boxes
-        imggrayaug=cv2.cvtColor(image_hor, cv2.COLOR_BGR2GRAY)
-        infCalculatedFlag=False
+        # X=max(bbs_hor.bounding_boxes[-1].x1,bbs_hor.bounding_boxes[-1].x2)
+        # x1_inf=bbs_hor.bounding_boxes[0].x1+118
+        # y1_inf=bbs_hor.bounding_boxes[0].y1
+        # x2_inf=min(bbs_hor.bounding_boxes[0].x2+150,X)
+        # y2_inf=bbs_hor.bounding_boxes[0].y2
+        # listOfbb=bbs_hor.bounding_boxes
+        # imggrayaug=cv2.cvtColor(image_hor, cv2.COLOR_BGR2GRAY)
+        # infCalculatedFlag=False
 
-        if (y2_inf-y1_inf)>70:
-            for i in range(3):
-                yy=listOfbb[i].y2
-                y=listOfbb[i].y1
-                offset=((yy-y)-70)/2
+        # if (y2_inf-y1_inf)>70:
+        #     for i in range(len(listOfbb)):
+        #         yy=listOfbb[i].y2
+        #         y=listOfbb[i].y1
+        #         offset=((yy-y)-70)/2
                 
-                listOfbb[i].y2-=offset
-                listOfbb[i].y1+=offset
-            offset=((y2_inf-y1_inf)-70)/2
-            y2_inf-=offset
-            y1_inf+=offset
-        
-        if listOfbb[2].label==None:
-            # print((x2_inf-x1_inf),imageFileName)
-            if (x2_inf-x1_inf)>102:
-                listOfbb[2]=(BoundingBox(x1=x1_inf,x2=x2_inf,y1=y1_inf,y2=y2_inf))
-                bbs_hor =BoundingBoxesOnImage(listOfbb, shape=image_hor.shape)
-                infCalculatedFlag=True
-                listOfbb[2].label="influenza"
-            elif (x2_inf-x1_inf)>0 and (x2_inf-x1_inf)<102:
-                # print(removeInf,image_hor.shape,int(x2_inf-x1_inf))
-
-                image_hor[:,int(x1_inf):int(x2_inf),:]=0
-                # print(image_hor[:,removeInf:,:])
-                # crop_right=int(x2_inf-x1_inf)
-                # seqAug2 = returnAugmentationObjCrop(0,crop_right,0,0)
-                # image_hor, bbs_hor =seqAug2(image=image_hor, bounding_boxes=bbs_hor)
-
-        
+        #         listOfbb[i].y2-=offset
+        #         listOfbb[i].y1+=offset
+        #     offset=((y2_inf-y1_inf)-70)/2
+        #     y2_inf-=offset
+        #     y1_inf+=offset
+                
         cnt=0
         for numRotation in range(16):
             if numRotation in [0,1,2,8,7,6,10,9,15,14]:
                 
                 angleToRotate=numRotation*22.5
                 seqAug = returnAugmentationObjRot(angleToRotate)
-                image_aug_, bbs_aug_ = seqAug(image=image_hor, bounding_boxes=bbs_hor)
-                topBB=bbs_aug_.bounding_boxes[0]
-                bottBB=bbs_aug_.bounding_boxes[1]
-                p1=returnCentre([topBB.x1,topBB.y1,topBB.x2,topBB.y2])
-                p2=returnCentre([bottBB.x1,bottBB.y1,bottBB.x2,bottBB.y2])
-                centreRDT=returnCentre([p2[0],p2[1],p1[0],p1[1]])
-                # print(centreRDT)
-                leftLim=centreRDT[0]-640
-                rightLim=centreRDT[0]+640
-                topLim=centreRDT[1]-360
-                botLim=centreRDT[1]+360
-                crop_top=int(topLim) #int(Imagebb.y1)
-                crop_right=int(-rightLim+image_aug_.shape[1])#int(-Imagebb.x2+image_aug.shape[1])
-                crop_bott=int(-botLim+image_aug_.shape[0])#int(-Imagebb.y2+image_aug.shape[0])
-                crop_left=int(leftLim)#int(Imagebb.x1)
-                seqAug2 = returnAugmentationObjCrop(crop_top,crop_right,crop_bott,crop_left)
-                image_aug, bbs_aug =seqAug2(image=image_aug_, bounding_boxes=bbs_aug_)
+                image_aug, bbs_aug = seqAug(image=image_hor, bounding_boxes=bbs_hor)
+                # topBB=bbs_aug_.bounding_boxes[0]
+                # bottBB=bbs_aug_.bounding_boxes[1]
+                # p1=returnCentre([topBB.x1,topBB.y1,topBB.x2,topBB.y2])
+                # p2=returnCentre([bottBB.x1,bottBB.y1,bottBB.x2,bottBB.y2])
+                # centreRDT=returnCentre([p2[0],p2[1],p1[0],p1[1]])
+                # # print(centreRDT)
+                # leftLim=centreRDT[0]-304
+                # rightLim=centreRDT[0]+304
+                # topLim=centreRDT[1]-540
+                # botLim=centreRDT[1]+540
+                # crop_top=int(topLim) #int(Imagebb.y1)
+                # crop_right=int(-rightLim+image_aug_.shape[1])#int(-Imagebb.x2+image_aug.shape[1])
+                # crop_bott=int(-botLim+image_aug_.shape[0])#int(-Imagebb.y2+image_aug.shape[0])
+                # crop_left=int(leftLim)#int(Imagebb.x1)
+                # seqAug2 = returnAugmentationObjCrop(crop_top,crop_right,crop_bott,crop_left)
+                # image_aug, bbs_aug =seqAug2(image=image_aug_, bounding_boxes=bbs_aug_)
 
                 image_with_bbs = bbs_aug.draw_on_image(image_aug)
                 
-    ###########UNCOMMENT FOR CREATING YOLO TRAINING FILES
+    ###########UNCOMMENT FOR CREATING OBJ TRAINING FILES
                 lock.acquire()
-                with open("rdt_test_crop_rot.txt","a") as fout:
+                with open("rdt_test_crop_rot_HIV.txt","a") as fout:
                     boxes=bbs_aug.bounding_boxes
                     fout.write(os.path.join(horizontalImages,str(numRotation)+"_"+imageFileName)+" ")
                     for bb in boxes:
-                        if bb.label =="influenza":
+                        if bb.label =="top_pattern":
                             annots=[str(x) for x in [bb.x1,bb.y1,bb.x2,bb.y2]]
                             annots=",".join(annots)+","+str(cnt)+" "
                             fout.write(annots)
-                        if bb.label =="top":
+                        if bb.label =="test_area":
                             annots=[str(x) for x in [bb.x1,bb.y1,bb.x2,bb.y2]]
                             annots=",".join(annots)+","+str(10+cnt)+" "
                             fout.write(annots)
-                        if bb.label =="bottom":
+                        if bb.label =="bottom_arrow":
                             annots=[str(x) for x in [bb.x1,bb.y1,bb.x2,bb.y2]]
                             annots=",".join(annots)+","+str(10*2+cnt)+" "
                             fout.write(annots)
@@ -239,10 +228,10 @@ def rotate(img,objs,imageFileName):
         p2=returnCentre([bottBB.x1,bottBB.y1,bottBB.x2,bottBB.y2])
         centreRDT=returnCentre([p2[0],p2[1],p1[0],p1[1]])
         # print(centreRDT)
-        leftLim=centreRDT[0]-640
-        rightLim=centreRDT[0]+640
-        topLim=centreRDT[1]-360
-        botLim=centreRDT[1]+360
+        leftLim=centreRDT[0]-320
+        rightLim=centreRDT[0]+320
+        topLim=centreRDT[1]-180
+        botLim=centreRDT[1]+180
         crop_top=int(topLim) #int(Imagebb.y1)
         crop_right=int(-rightLim+image_aug.shape[1])#int(-Imagebb.x2+image_aug.shape[1])
         crop_bott=int(-botLim+image_aug.shape[0])#int(-Imagebb.y2+image_aug.shape[0])
@@ -307,7 +296,7 @@ def rotate(img,objs,imageFileName):
         # image_with_bbs = bbs.draw_on_image(img)
 ###########UNCOMMENT FOR CREATING YOLO TRAINING FILES
         lock.acquire()
-        with open("rdt_train_crop.txt","a") as fout:
+        with open("rdt_train_crop_HIV.txt","a") as fout:
             boxes=bbs_aug.bounding_boxes
             fout.write(os.path.join(horizontalImages,imageFileName)+" ")
             for bb in boxes:
@@ -346,12 +335,38 @@ def main():
     l = Lock()
     all_annotations = []
     image_list_id = {}
+    xml_2_img = {}
+    with open(labelsMapping) as fin :
+        for line in fin:
+            line = line.strip()
+            line = line.split()
+            imgName,xmlName = line[0].split("\\")[-1],line[1].split("\\")[-1]
+            try:
+                xml_2_img[xmlName].append(imgName)
+            except KeyError:
+                xml_2_img[xmlName] = [imgName]            
     for ind,element in enumerate(os.listdir(rootPathCentreLabel)):
-        with open(os.path.join(rootPathCentreLabel,element)) as fin:
-            annotations = json.load(fin)
-            all_annotations.append(annotations)
-            for f in annotations["frames"].keys():
-                image_list_id[f]=ind
+        tree = ET.parse(os.path.join(rootPathCentreLabel,element))
+        root = tree.getroot()
+        annots = {"frames":{}}
+        tmp_list = []
+        for obj in root.findall('object'):
+            tmp={}
+            name = obj.find('name').text
+            tmp["x1"] = float(obj.find('bndbox').find('xmin').text) 
+            tmp["x2"] = float(obj.find('bndbox').find('xmax').text)
+            tmp["y1"] = float(obj.find('bndbox').find('ymin').text)
+            tmp["y2"] = float(obj.find('bndbox').find('ymax').text)
+
+            tmp_list.append({"box":tmp,"tags":[name],"width":608,"height":1080})
+        for imgnames in xml_2_img[element]:
+            annots["frames"][imgnames]=tmp_list
+            image_list_id[imgnames]=ind
+        all_annotations.append(annots)
+            # annotations = json.load(fin)
+            # all_annotations.append(annotations)
+            # for f in annotations["frames"].keys():
+            #     image_list_id[f]=ind
     args = [(x,[all_annotations,image_list_id]) for x in onlyfiles]
     p = Pool(8,initializer=init, initargs=(l,))
     p.starmap(processImage,args)
@@ -361,12 +376,10 @@ def main():
 if __name__ == "__main__":
     anchors=[]
     main()
-
-
     with open("anchors.txt") as fin:
         for line in fin:
             line=line.strip().split(",")
-            anchors.append([float(line[0]),float(line[1])])
+            anchors.append([float(line[0])*0.25,float(line[1])*0.25])
 
     # print(bbox_size)
     anchors=np.array(anchors)

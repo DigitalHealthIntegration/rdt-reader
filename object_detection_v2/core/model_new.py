@@ -259,7 +259,8 @@ class ObjectDetection(object):
             for i in range(num_res_net_blocks):
                 x = self.res_net_block(x, 32, 3)
             # drop3 = keras.layers.Dropout(0.2)(maxpool3)
-            conv9 = keras.layers.Conv2D(self.number_anchors*(self.num_class+4),(3,3), padding='same',activation='sigmoid',kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(x)
+            conv9 = keras.layers.Conv2D(self.number_anchors*(self.num_class+4),(3,3), padding='same',activation=None,kernel_initializer=keras.initializers.lecun_uniform(seed=None),kernel_regularizer=keras.regularizers.l2(l=0.000001))(x)
+            
             print("conv 6",conv9.shape)
             # reshapeOut = layers.Reshape((self.numberBlocks[0]*self.numberBlocks[1],self.number_anchors,(self.num_class+4)))(conv9)
             # for i in range(self.num_class+4):

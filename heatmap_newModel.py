@@ -2,7 +2,7 @@ import cv2
 import sys
 import imgaug.augmenters as iaa
 
-sys.path.insert(1,"D:\\source\\repos\\rdt-reader\\object_detection_v2")
+sys.path.insert(1,"C:\\Users\\Kashyap\\bkp\\source\\repos\\rdt-reader\\object_detection_v2")
 import core.model_new as model
 from core.config import cfg
 import numpy as np
@@ -13,6 +13,14 @@ import math
 import itertools 
 from imgaug.augmentables.kps import Keypoint, KeypointsOnImage
 import tensorflow as tf
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  try:
+    for gpu in gpus:
+      tf.config.experimental.set_memory_growth(gpu, True)
+  except RuntimeError as e:
+    print(e)
+
 def euclidianDistance(p1,p2):
     """Compute euclidian distance between p1 and p2
         
@@ -71,12 +79,16 @@ def rotate_bound(image, angle):
 def prepocessImageCOD(img,resize_dim):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.pyrDown(img)
-    # img = cv2.pyrDown(img)
+    img = cv2.pyrDown(img)
     img = img[...,np.newaxis]
     img = img/255.0
     img = img[np.newaxis,...]
     img = np.array(img,dtype=np.float32)
     return img
+
+def sigmoid(x):
+  return 1 / (1 + math.exp(-x))
+
 
 
 def main():
@@ -87,9 +99,11 @@ def main():
     resizefactor = [0,0]
     resizefactor[0] = int(resize_dim[0]/number_blocks[0])
     resizefactor[1] = int(resize_dim[1]/number_blocks[1])
-    Model = model.ObjectDetection(True,"Model_KH_EXP/model_save_rot_360x640.hdf5").model
+    featureMAPWH=[resize_dim[0]/number_blocks[0],resize_dim[1]/number_blocks[1]]
+
+    Model = model.ObjectDetection(True,"Model_KH_EXP/model_HIV_save_rot_180x320_resnet.hdf5").model
     
-    with open(cfg.TEST.LABEL_FILE_YOLO) as fin, open("Analysis_2.csv","w") as fout:
+    with open(cfg.TRAIN.LABEL_FILE_YOLO) as fin, open("Analysis_2.csv","w") as fout:
         # fout.write("Arrow`_prob,Arrow`_cx,Arrow`_cy,Arrow_cx,Arrow_cy,Arrow`_Angle,Arrow_Angle,Cpattern`_prob,Cpattern`_cx,Cpattern`_cy,Cpattern_cx,Cpattern_cy,Cpattern`_Angle,Cpattern_Angle,Inlfuenza`_prob,Inlfuenza`_cx,Inlfuenza`_cy,Inlfuenza_cx,Inlfuenza_cy,Inlfuenza`_Angle,Inlfuenza_Angle\n")
         fout.write("ImageName,Arrow`_prob,Cpattern`_prob,Inlfuenza`_prob,A_ang-A`_ang,C_ang-C`_ang,I_ang-I`_ang-,A_C,C_I,A_I,A-A`,C-C`,I-I`\n")
 
@@ -140,18 +154,20 @@ def main():
 
             Input = prepocessImageCOD(fullsizeimg,resize_dim)
             # print(np.max(Input))
-            interpreter = tf.lite.Interpreter(model_path="D:/source/repos/object_detection_mobile_v2/eval_model/OD.lite")
+            interpreter = tf.lite.Interpreter(model_path="C:/Users/Kashyap/bkp/source/repos/object_detection_mobile_v2/eval_model/OD_180x320_HIV.lite")
             interpreter.allocate_tensors()
             input_details = interpreter.get_input_details()
             output_details = interpreter.get_output_details()
             input_shape = input_details[0]['shape']
             print(input_details)
-            interpreter.set_tensor(input_details[0]['index'], Input)
-            interpreter.invoke()
+            # interpreter.set_tensor(input_details[0]['index'], Input)
+            print("start")
+            # interpreter.invoke()
+            print("end")
             # 
 
-            predictions = interpreter.get_tensor(output_details[0]['index'])
-            # predictions=Model.predict(Input) 190 10 x 19
+            # predictions = interpreter.get_tensor(output_details[0]['index'])
+            predictions=Model.predict(Input) #190 10 x 19
             preds = predictions #np.reshape(predictions,(predictions.shape[0],number_blocks[0],number_blocks[1],4,num_class+4))
             preds=preds[0]
             all_boxes = []
@@ -165,15 +181,21 @@ def main():
                 for ax_2 in range(number_blocks[1]): #19
                     for anch_id in range(len(anchors[0])):
                         computedIndex=ax_1*number_blocks[1]+ax_2
-                        tar_class = np.argmax(preds[computedIndex,anch_id,0:num_class])
-                        # print(preds[ax_1,ax_2,anch_id,0:num_class])
+                        sigmoid_preds = 1/(1+np.exp(-preds[ax_1,ax_2,8+anch_id*num_class:8+(anch_id+1)*num_class]))
+                        tar_class = np.argmax(sigmoid_preds)
                         
-                        prob=preds[computedIndex,anch_id,tar_class]
-                        offsets = preds[computedIndex,anch_id,num_class:]
-                        cx = (ax_2+0.5)*resizefactor[1]+offsets[-4]*resize_dim[1]
-                        cy =  (ax_1+0.5)*resizefactor[0]+offsets[-3]*resize_dim[0]
-                        w = anchors[0][anch_id][1]*math.exp(offsets[-2])
-                        h = anchors[0][anch_id][0]*math.exp(offsets[-1])
+                        prob = np.max(sigmoid_preds)
+                        # print(preds[ax_1,ax_2,anch_id,0:num_class])
+                        # prob=preds[ax_1,ax_2,8+anch_id*num_class+tar_class]
+                        offsets = preds[ax_1,ax_2,anch_id*4:(anch_id+1)*4]
+                        # x1,y1,x2,y2 = label[row,col,anch_id*4:(anch_id+1)*4]
+    
+                        cx = (ax_2+0.5)*featureMAPWH[1]+offsets[0]*resize_dim[1]
+                        cy =  (ax_1+0.5)*featureMAPWH[0]+offsets[1]*resize_dim[0]
+                        w = anchors[0][anch_id][1]*math.exp(offsets[2])
+                        h = anchors[0][anch_id][0]*math.exp(offsets[3])
+
+
                         # if(tar_class==20):
                         #     print(cx,cy,w,h,prob,ax_1,ax_2,anch_id,offsets)
                         x1,y1,x2,y2=data_loader.cxcy2xy([cx,cy,w,h])
@@ -205,6 +227,7 @@ def main():
                     if color_ind!=3:
                         for i in range(3):
                             if i ==color_ind:
+                                
                                 final_img[y1:y2,x1:x2,color_ind]=val
                             else:
                                 final_img[y1:y2,x1:x2,i]=0
@@ -220,7 +243,7 @@ def main():
             # sorted_all_combinations=sorted(all_combinations, key=lambda x: x[0][0],reverse=True)
             # print(sorted_all_combinations[0])
             print(len(Boxes_Arrow),len(Boxes_Cpattern),len(Boxes_Infl))
-            print(Boxes_Arrow)
+            # print(Boxes_Arrow)
             for cmbs in all_combinations:
                 fout.write(imgName+",")
                 cmb_f=[]
@@ -243,7 +266,7 @@ def main():
                 fout.write("\n")
                 
             cv2.imwrite("heatmap/"+imgName,final_img)
-            break
+            
     # print(box_0,box_1)
 main()
 

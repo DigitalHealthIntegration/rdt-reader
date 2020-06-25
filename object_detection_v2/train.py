@@ -11,6 +11,15 @@ import tensorflow.keras.backend as K
 import cv2
 from tensorflow import keras
 import tensorflow.keras.backend as K
+# import tensorflow_addons as tfa
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  try:
+    for gpu in gpus:
+      tf.config.experimental.set_memory_growth(gpu, True)
+  except RuntimeError as e:
+    print(e)
+
 
 @tf.function
 def custloss(y_true,y_pred):
@@ -40,12 +49,12 @@ def custloss(y_true,y_pred):
 @tf.function
 def custlossSSD(y_true,y_pred):
 
+    print(y_pred.shape,y_true.shape)
 
-
-    categoricalLoss = tf.keras.losses.categorical_crossentropy(y_true[:,:,:,0:31],y_pred[:,:,:,0:31])
-
-    l1_smooth = tf.keras.losses.mean_squared_error(y_true[:,:,:,31:],y_pred[:,:,:,31:])
-    total_loss = tf.reduce_mean(categoricalLoss,axis=[1,2])+tf.reduce_mean(l1_smooth,axis=[1,2])
+    categoricalLoss = tf.nn.sigmoid_cross_entropy_with_logits(y_true[:,:,:,8:],y_pred[:,:,:,8:])
+    
+    l1_smooth = tf.keras.losses.mean_squared_error(y_true[:,:,:,:8],tf.math.tanh(y_pred[:,:,:,:8]) )
+    total_loss = tf.reduce_mean(categoricalLoss)+tf.reduce_mean(l1_smooth)
     return total_loss
 
 
@@ -71,35 +80,46 @@ class Train(object):
         self.saveModelpath       = cfg.TEST.WEIGHT_FILE
         self.time                = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         self.train_logdir        = "./dataset/log/"
-        self.trainset            = data_loader.loadDataObjSSDFromYoloFormat('train')
-        self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
-        self.model               = ObjectDetection(False,self.initial_weight).model
+        # self.trainset            = data_loader.loadDataObjSSDFromYoloFormat('train')
+        # self.testset             = data_loader.loadDataObjSSDFromYoloFormat('test')
+        print("*************LOADING DATA*************")
+        self.filePathsTrain = data_loader.getImagePaths("train")
+        self.labelDictTrain=data_loader.getAllAnnotations("train",self.filePathsTrain)
+        self.filePathsTest = data_loader.getImagePaths("test")
+        self.labelDictTest=data_loader.getAllAnnotations("test",self.filePathsTest)
+        self.batchSizeTrain  = cfg.TRAIN.BATCH_SIZE
+        self.batchSizeTest = cfg.TEST.BATCH_SIZE
+        self.stepPerEpochTrain =int(len(self.filePathsTrain)/self.batchSizeTrain)-1     
+        self.stepPerEpochTest = int(len(self.filePathsTest)/self.batchSizeTest)-1
+        print(self.stepPerEpochTrain,self.stepPerEpochTest)
+        self.trainGen = data_loader.image_generator(self.filePathsTrain,self.labelDictTrain,"train")
+        self.testGen = data_loader.image_generator(self.filePathsTest,self.labelDictTest,"test")
+
+        self.model = ObjectDetection(False ,self.initial_weight).model
         self.number_blocks = cfg.TRAIN.NUMBER_BLOCKS
 
     def train(self):
 
         checkpoint = keras.callbacks.ModelCheckpoint(self.saveModelpath, monitor='val_loss', verbose=1, save_best_only=True, mode='min') # Checkpoint call back to save best model on validation set
 
-        lrd=keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.9, patience=10, verbose=1, mode='auto', min_delta=0.00001, cooldown=5, min_lr=0.00000000000000000001) # Callback to control learning rate on plateau condition 
+        lrd=keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.9, patience=100, verbose=1, mode='auto', min_delta=0.00001, cooldown=5, min_lr=0.0000000001) # Callback to control learning rate on plateau condition 
         tensorboard_callback = keras.callbacks.TensorBoard(log_dir=self.train_logdir,update_freq="batch")
 
-        callbacks_list = [checkpoint,lrd,tensorboard_callback]
+        callbacks_list = [checkpoint,lrd]
 
-        optimizer = keras.optimizers.Adam(lr=0.009, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True) # Optimizer used to train
-
-        X_train,y_train,name=self.trainset
-        X_test,y_test,name=self.testset
+        optimizer = keras.optimizers.Adam(lr=0.00009, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True) # Optimizer used to train
+        
+        # X_train,y_train,name=trainset
+        # X_test,y_test,name=testset
         self.model.compile(optimizer=optimizer,  # Optimizer
               # Loss function to minimize
-              loss=custlossSSD,
-              metrics=['mean_squared_error'])
-        history = self.model.fit(X_train, y_train,
-                    batch_size=2,
+              loss=custlossSSD)
+        history = self.model.fit(self.trainGen,
                     epochs=1000,
                     # We pass some validation for
                     # monitoring validation loss and metrics
                     # at the end of each epoch
-                    validation_data=(X_test, y_test),callbacks=callbacks_list)
+                    validation_data=self.testGen,callbacks=callbacks_list, steps_per_epoch = self.stepPerEpochTrain,validation_steps = self.stepPerEpochTest )
         print('\nhistory dict:', history.history)
 
 
@@ -118,7 +138,7 @@ class Test(object):
         # self.testset             = data_loader.loadDataObjSSD('test')
         self.checkpoint_name     = cfg.TEST.EVAL_MODEL_PATH+"/eval.ckpt"
         self.model_path          = cfg.TEST.EVAL_MODEL_PATH+"/model/"
-        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_180x320_newarch_resnet_data_qnt.lite"
+        self.eval_tflite         = cfg.TEST.EVAL_MODEL_PATH+"/OD_180x320_HIV.lite"
         self.initial_weight      = cfg.TEST.WEIGHT_FILE
         self.output_node_names   = ["define_loss/reshapedOutput"]
         self.learn_rate_init     = cfg.TRAIN.LEARN_RATE_INIT
@@ -148,7 +168,7 @@ class Test(object):
         print(self.model.summary())
         lite = tf.lite.TFLiteConverter.from_keras_model(self.model)
         lite.optimizations = [tf.lite.Optimize.DEFAULT]
-        lite.representative_dataset = self.representative_dataset_gen
+        # lite.representative_dataset = self.representative_dataset_gen
         tflite_quant_model = lite.convert()
         open(self.eval_tflite, "wb").write(tflite_quant_model)
 
@@ -222,7 +242,7 @@ class Test(object):
         print(predictions.shape)
         resizefactor = int(self.resize_dim[0]/self.number_blocks)
         # for i,img in enumerate(self.testset[0]):
-        predictions = np.reshape(predictions,(predictions.shape[0],15,15,5,7))
+        
         for i,preds in enumerate(predictions):
             img = self.testset[0][i]
             img = img*255
@@ -273,8 +293,8 @@ class Test(object):
 if __name__ == '__main__':
     # mirrored_strategy = tf.distribute.MirroredStrategy()
     # with mirrored_strategy.scope():
-        # Train().train()
-    Test().createTflite()
+    Train().train()
+    # Test().createTflite()
     # Test().runOntest()
 
 
