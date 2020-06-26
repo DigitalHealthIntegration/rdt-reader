@@ -103,7 +103,7 @@ def main():
 
     Model = model.ObjectDetection(True,"Model_KH_EXP/model_HIV_save_rot_180x320_resnet.hdf5").model
     
-    with open(cfg.TRAIN.LABEL_FILE_YOLO) as fin, open("Analysis_2.csv","w") as fout:
+    with open(cfg.TEST.LABEL_FILE_YOLO) as fin, open("Analysis_2.csv","w") as fout:
         # fout.write("Arrow`_prob,Arrow`_cx,Arrow`_cy,Arrow_cx,Arrow_cy,Arrow`_Angle,Arrow_Angle,Cpattern`_prob,Cpattern`_cx,Cpattern`_cy,Cpattern_cx,Cpattern_cy,Cpattern`_Angle,Cpattern_Angle,Inlfuenza`_prob,Inlfuenza`_cx,Inlfuenza`_cy,Inlfuenza_cx,Inlfuenza_cy,Inlfuenza`_Angle,Inlfuenza_Angle\n")
         fout.write("ImageName,Arrow`_prob,Cpattern`_prob,Inlfuenza`_prob,A_ang-A`_ang,C_ang-C`_ang,I_ang-I`_ang-,A_C,C_I,A_I,A-A`,C-C`,I-I`\n")
 
@@ -187,7 +187,7 @@ def main():
                         prob = np.max(sigmoid_preds)
                         # print(preds[ax_1,ax_2,anch_id,0:num_class])
                         # prob=preds[ax_1,ax_2,8+anch_id*num_class+tar_class]
-                        offsets = preds[ax_1,ax_2,anch_id*4:(anch_id+1)*4]
+                        offsets =np.tanh(preds[ax_1,ax_2,anch_id*4:(anch_id+1)*4])  
                         # x1,y1,x2,y2 = label[row,col,anch_id*4:(anch_id+1)*4]
     
                         cx = (ax_2+0.5)*featureMAPWH[1]+offsets[0]*resize_dim[1]
@@ -231,7 +231,7 @@ def main():
                                 final_img[y1:y2,x1:x2,color_ind]=val
                             else:
                                 final_img[y1:y2,x1:x2,i]=0
-                if(b[5]>0.0):
+                if(b[5]>0.98):
                     if color_ind==2:
                         Boxes_Arrow.append([b[5],cxcy[0],cxcy[1],trueArrow[0],trueArrow[1],predicted_orientatation,orientation_angle])
                     elif color_ind==1:

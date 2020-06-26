@@ -293,8 +293,8 @@ class Test(object):
 if __name__ == '__main__':
     # mirrored_strategy = tf.distribute.MirroredStrategy()
     # with mirrored_strategy.scope():
-    Train().train()
-    # Test().createTflite()
+    # Train().train()
+    Test().createTflite()
     # Test().runOntest()
 
 
