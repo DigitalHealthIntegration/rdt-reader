@@ -421,8 +421,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 if (found) {
 
                     p.setColor(Color.rgb(0, 200, 50));
+                    textPaint.setColor(Color.rgb(0, 200, 50));
                 } else {
                     p.setColor(Color.rgb(255,25,25));
+                    textPaint.setColor(Color.rgb(255,25,25));
+
                 }
             }
             p.setStrokeWidth(20);
@@ -582,9 +585,14 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 //                            textTodisp  += "slowly bring camera closer ..";
 //                            timeSinceLastChecked = 0;
 //                        }
-            if (status.mInfo.mBrightness>60 && status.mInfo.mBrightness<200){
-                textTodisp  += "brightness is good.. hold steady";
-            }else if (status.mInfo.mBrightness<60) {
+            if (status.mInfo.mBrightness>60 && status.mInfo.mBrightness<200&& status.mSteady == GOOD){
+                textTodisp  += "brightness is good.. please hold still";
+            }
+            else if(status.mInfo.mBrightness>60 && status.mInfo.mBrightness<200&& status.mSteady != GOOD){
+                textTodisp  += "brightness is good.. but motion detected";
+
+            }
+            else if (status.mInfo.mBrightness<60) {
                 timeSinceLastChecked = 0;
                 textTodisp  += "brightness is low ..";
             }else if (status.mInfo.mBrightness>200) {
