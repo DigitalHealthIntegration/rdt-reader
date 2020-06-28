@@ -13,8 +13,11 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 import sys
 RUNNING_LOCAL=False
+TEST=False
 if RUNNING_LOCAL:
     RDT_GIT_ROOT = "C:/Users/Kashyap/bkp/source/repos/rdt-reader/"    
+elif TEST:
+    RDT_GIT_ROOT = "/home/ubuntu/rdt-reader"
 else:
     RDT_GIT_ROOT = "/home/rdtreader/rdt-reader" 
 
