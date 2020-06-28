@@ -48,7 +48,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     Button mGetResult = null;
 
 
-    static String mHttpURL="http://0.0.0.0:9000/WITS/HIV";
+    static String mHttpURL="http://100.24.50.45:9000/WITS/HIV";
     public void setCtx(Context mCtx) {
         this.mCtx = mCtx;
     }

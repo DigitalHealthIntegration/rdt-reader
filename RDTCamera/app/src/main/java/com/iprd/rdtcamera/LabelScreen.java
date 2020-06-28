@@ -105,7 +105,7 @@ public class LabelScreen extends AppCompatActivity implements AsyncResponse {
     public void rdtResults(byte[] imagebytes,byte [] labelByte ) {
         OutputStream output = null;
         try {
-            String urlString ="http://192.168.0.121:9000/WITS/HIV";// prefs.getString("rdtCheckUrl", mHttpURL);
+            String urlString = prefs.getString("rdtCheckUrl", mHttpURL);
             String guid = String.valueOf(java.util.UUID.randomUUID());
             String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
             try {
