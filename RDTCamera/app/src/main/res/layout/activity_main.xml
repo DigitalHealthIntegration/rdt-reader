@@ -10,6 +10,7 @@
         android:id="@+id/texture"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:layout_constraintDimensionRatio="9:16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -18,6 +19,8 @@
     <SurfaceView
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:layout_constraintDimensionRatio="9:16"
+
         android:id="@+id/surfaceView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -113,6 +116,9 @@
         android:layout_height="wrap_content"
         android:text="@string/next"
         android:visibility="invisible"
+        android:layout_marginBottom="20dp"
+        android:padding="30dp"
+
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toTopOf="@id/torch"
         app:layout_constraintHorizontal_bias="0.06"
@@ -128,7 +134,9 @@
         android:text="@string/flash"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/texture" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
 
     <Button
@@ -138,16 +146,19 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/wthreedots"
+        android:enabled="false"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/rdtDataToBeDisplay"
-        android:layout_width="175dp"
-        android:layout_height="139dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
         android:backgroundTint="#00ffffff"
+        android:textSize="15dp"
         android:text=""
         android:textColor="@color/colorBlue"
         android:visibility="invisible"
@@ -160,7 +171,9 @@
         android:layout_height="wrap_content"
         android:text="@string/get_result"
         android:visibility="visible"
+        android:padding="30dp"
         android:layout_marginStart="8dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toTopOf="@id/torch"
         app:layout_constraintHorizontal_bias="0.06"
         app:layout_constraintStart_toStartOf="parent"
@@ -173,6 +186,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:padding="30dp"
         android:text="@string/retake"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/getResult"

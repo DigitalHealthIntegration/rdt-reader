@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django import forms
-from api.settings import RDT_GIT_ROOT,SERV
+from api.settings import RDT_GIT_ROOT,SERV,BUCKET
 from .forms import RequestForm
 from rest_framework import generics
 from rest_framework import status
@@ -13,8 +13,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import sys
 import logging
-
-
+import numpy as np
+import cv2
 sys.path.append(RDT_GIT_ROOT)
 import flasker
 
@@ -67,6 +67,9 @@ def ViewRdt(request):
                 imagefile=request.FILES['image']
                 img_str=imagefile.read()
                 imagefile.close()
+                nparr = np.fromstring(img_str, np.uint8)
+                img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+                
                 logging.info(img_str)
                 m,retFlag,rc = flasker.processRdtRequest(UUID,include_proof,img_str,SERV)
                 if retFlag==True:
@@ -101,6 +104,82 @@ def ViewRdt(request):
     else:
         logging.error("Unsupported http request")
         return HttpResponse("<h1>Request not supported</h1>",status="405")
+
+@csrf_exempt
+def HIVRdt(request):
+    '''API endpoint to Run the entire service and give appropriate response.
+        Input alias: /WITS/HIV/ (POST)
+                     /alias/  (POST) - may be deprecated.
+        Example:
+                
+            Sample Request::
+                    {"UUID":"a43f9681-a7ff-43f8-a1a6-f777e9362654","RDT_Type":"HIV"}
+        Response codes
+            
+            0=> unsuccesful upload to s3
+            
+            1=> succesful upload s3
+            
+        Example:
+            Sample API response:: 
+                    
+                    {"UUID":"a43f9681-a7ff-43f8-a1a6-f777e9362654",rc":0}
+    '''
+    resp={}
+    if request.method == 'POST':
+        form = RequestForm(request.POST,request.FILES)
+        #form = RequestForm(request.POST)
+        logging.debug("Form content: {0}".format(form))
+        if form.is_valid():
+            try:
+                md=form['metadata'].value()
+                logging.debug(md)
+                UUID=json.loads(md)["UUID"]
+                logging.debug(UUID)
+                include_proof=json.loads(md)["Include_Proof"]
+                rc = 0
+                imagefile=request.FILES['image']
+                img_str=imagefile.read()
+                imagefile.close()
+                nparr = np.fromstring(img_str, np.uint8)
+                labelfile=request.FILES['label']
+                label_str=labelfile.read()
+                labelfile.close()
+                print(label_str)
+
+                label_json= json.loads(label_str)
+                print(label_json)
+                nparr = np.fromstring(img_str, np.uint8)
+                with open("label.json","w") as fout:
+                    fout.write(json.dumps(label_json))
+                img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # cv2.IMREAD_COLOR in OpenCV 3.1
+                cv2.imwrite("image.jpg",img_np)
+                resp["UUID"]=UUID
+                res1 = flasker.upload_file("image.jpg", BUCKET,"WITS_HIV_RDT/images/"+UUID+".jpg")
+                res2 = flasker.upload_file("label.json", BUCKET,"WITS_HIV_RDT/labels/"+UUID+".json")
+                
+                if(res1 and res2):
+                    resp["rc"]=1
+                else:
+                    resp["rc"]=0
+                
+                
+                return HttpResponse(resp, content_type="application/json")
+            except IOError as ioe:
+                    logging.error("IOError raised while processing rdt")
+                    return HttpResponse("<h1>Rdt Post IO error</h1>",status="400")
+            except ValueError:
+                    logging.error("ValError raised while processing rdt")
+                    return HttpResponse("<h1>Rdt internal Post failure</h1>",status="400")
+                            
+        else:
+            logging.error("Invalid http POST form data")
+            return HttpResponse("<h1>Rdt Post failure</h1>",status="400")
+    else:
+        logging.error("Unsupported http request")
+        return HttpResponse("<h1>Request not supported</h1>",status="405")
+
+
 
 @csrf_exempt
 def DoHealthCheck(request):

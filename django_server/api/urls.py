@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from rdtServer.views import ViewRdt
 from rdtServer.views import DoHealthCheck
-
+from rdtServer.views import HIVRdt
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('Quidel/QuickVue',ViewRdt),
     path('Quidel/QuickVue/',ViewRdt),
     path('health-check',DoHealthCheck),
-    path('health-check/',DoHealthCheck)
+    path('health-check/',DoHealthCheck),
+    path('WITS/HIV/',HIVRdt),
+    path('WITS/HIV',HIVRdt)
 ]
 

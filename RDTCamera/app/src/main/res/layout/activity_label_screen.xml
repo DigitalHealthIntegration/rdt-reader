@@ -12,7 +12,9 @@
         android:text="Submit"
         android:visibility="visible"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
+        android:padding="30dp"
+
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.06"
         app:layout_constraintEnd_toEndOf="parent"
@@ -22,9 +24,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Back"
+        android:padding="30dp"
         android:visibility="visible"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_bias="0.06"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,10 +35,12 @@
 
     <ImageView
         android:id="@+id/rdtImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginEnd="8dp"
-
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="150dp"
         app:layout_constraintBottom_toTopOf="@+id/submit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/radioGroup"
@@ -57,6 +62,12 @@
             android:layout_height="wrap_content"
             android:text="RDT positive" />
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <RadioButton
             android:id="@+id/negative"
             android:layout_width="match_parent"
@@ -70,5 +81,20 @@
             android:text="RDT invalid" />
 
     </RadioGroup>
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/notes"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:hint="Notes.."
+        app:layout_constraintBottom_toTopOf="@+id/submit"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/rounded_text_edit"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintStart_toEndOf="@+id/radioGroup"
+        app:layout_constraintTop_toBottomOf="@+id/rdtImage"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

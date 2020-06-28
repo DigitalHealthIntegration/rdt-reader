@@ -38,6 +38,8 @@ public class Httpok extends AsyncTask<String, Void, String> {
     String imgName;
     byte[] img;
     String urlString;
+    String labelName;
+    byte[] labels;
     String metaDataStr;
     ProgressBar mProgressBar=null;
     ImageView mImageView=null;
@@ -46,7 +48,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     Button mGetResult = null;
 
 
-    static String mHttpURL="http://100.24.50.45:9000/Quidel/QuickVue";
+    static String mHttpURL="http://0.0.0.0:9000/WITS/HIV";
     public void setCtx(Context mCtx) {
         this.mCtx = mCtx;
     }
@@ -58,16 +60,18 @@ public class Httpok extends AsyncTask<String, Void, String> {
     }
 
     Bitmap mResult=null;
-    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr, ProgressBar mProgressBar,ImageView view,TextView txtView){
+    public Httpok(String imgName, byte[] img, String urlString, String metaDataStr,String labelName,byte[] labels){
         this.imgName = imgName;
         this.img = img;
+        this.labelName = labelName;
+        this.labels = labels;
         this.urlString = urlString;//"http://3.95.232.90:9000/Quidel/QuickVue/";//urlString;
         this.metaDataStr = metaDataStr;
-        this.mProgressBar= mProgressBar;
-        this.mImageView= view;
+//        this.mProgressBar= mProgressBar;
+//        this.mImageView= view;
         mResult=null;
         mJsonResult=null;
-        mResultView=txtView;
+//        mResultView=txtView;
     }
 
     @Override
@@ -153,6 +157,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
         RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("metadata", metaDataStr)
                 .addFormDataPart("image", imgName, RequestBody.create(MediaType.parse("image/jpeg"), img))
+                .addFormDataPart("label",labelName,RequestBody.create(MediaType.parse("text/json"),labels))
                 .build();
 
         Request request = new Request.Builder()
@@ -182,7 +187,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
                         if(i.length >1){
                             JSONObject obj = new JSONObject(i[1]);
                             Log.i("UUID",obj.getString("UUID"));
-                            Log.i("msg",obj.getString("msg"));
+//                            Log.i("msg",obj.getString("msg"));
                             Log.i("rc",obj.getString("rc"));
                             mJsonResult = obj;
 

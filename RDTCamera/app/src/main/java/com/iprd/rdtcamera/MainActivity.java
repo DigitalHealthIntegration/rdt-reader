@@ -119,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     TextView mResultView,mMotionText,mStatusView;
     Boolean isPreviewOff = false;
     Boolean shouldOffTorch = false;
+    static final int transparency = 0xFF000000;	// opaque bits in ARGB
     Boolean isFlashRequired = false;
     SurfaceView surfaceView;
     private Paint paint;
@@ -284,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 
         // Set Torch button
         torch = (Switch) findViewById(R.id.torch);
+        torch.setVisibility(View.VISIBLE);
         torch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 isFlashRequired = isChecked;
@@ -428,7 +430,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             canvas.drawRect(left, top, right, bottom, p);
             canvas.drawRect(left, top, right, bottom, transparentPaint);
             String[] msgString = msg.split("\\.\\.");
-            float y = top*0.25f;
+            float y = top*0.31f;
             for(String str : msgString){
                 canvas.drawText(str.trim().toUpperCase(), left, y, textPaint);
                 y += textPaint.descent() - textPaint.ascent();
@@ -480,6 +482,19 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 Image image = null;
             try {
                 image = reader.acquireLatestImage();
+
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] bytesYUV = new byte[buffer.capacity()];
+                int[] bytesRGB = new int[buffer.capacity()];
+
+                buffer.get(bytesYUV);
+                decodeYUV420SPGrayscale(bytesRGB,bytesYUV,mVideoSize.getHeight(),mVideoSize.getWidth());
+                Bitmap bitmapImage=Bitmap.createBitmap(mVideoSize.getWidth(),mVideoSize.getHeight(),Bitmap.Config.ARGB_8888);
+
+                bitmapImage.setPixels(bytesRGB, 0, mVideoSize.getWidth(), 0, 0, mVideoSize.getWidth(), mVideoSize.getHeight());
+                Process(bitmapImage);
+
+
             } catch (Exception e) {
                 e.printStackTrace();
 
@@ -490,7 +505,16 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             }
         }
     };
+    public void decodeYUV420SPGrayscale (int[] rgb, byte[] yuv420sp, int height, int width)
+    {	// not used here ?
+        final int frameSize = width * height;
 
+        for (int pix = 0; pix < frameSize; pix++) {
+            int pixVal = (int) yuv420sp[pix] & 0xff;
+            // format for grey scale integer format data is 0xFFRRGGBB where RR = GG = BB
+            rgb[pix] = transparency | (pixVal << 16) | (pixVal << 8) | pixVal;
+        }
+    }
     private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 
         @Override
@@ -518,14 +542,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
             //Log.d(".... ","onSurfaceTextureUpdated");
-            torch.setVisibility(View.VISIBLE);
-                try {
-                    Bitmap capFrame = mTextureView.getBitmap();
-                    Process(capFrame);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
 
         }
 
@@ -690,6 +707,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             }
             configureTransform(width, height);
             manager.openCamera(cameraId, mStateCallback, null);
+
             /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 manager.setTorchMode(cameraId, true);
             }*/
@@ -746,7 +764,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 captureBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
             }
 
-            reader1.setOnImageAvailableListener(mImageAvailable, mBackgroundHandler);
 
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
@@ -1051,6 +1068,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             }
         }
     }
+
 
 
     @Override
