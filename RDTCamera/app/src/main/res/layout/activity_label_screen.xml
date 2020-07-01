@@ -60,25 +60,32 @@
             android:id="@+id/positive"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RDT positive" />
+            android:text="RDT positive"
+            android:padding="10dp"
+            />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
-        </com.google.android.material.textfield.TextInputLayout>
 
         <RadioButton
             android:id="@+id/negative"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RDT negative" />
+            android:text="RDT negative"
+            android:padding="10dp"
+            android:layout_marginTop="25dp"
+
+
+            />
 
         <RadioButton
             android:id="@+id/invalid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="RDT invalid" />
+            android:text="RDT invalid"
+            android:padding="10dp"
+            android:layout_marginTop="25dp"
+
+            />
 
     </RadioGroup>
 
@@ -86,7 +93,10 @@
         android:id="@+id/notes"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:hint="Notes.."
+        android:hint="RDT note identifier"
+        android:textColorHint="#808080"
+        android:gravity="top"
+        android:textColor="#000000"
         app:layout_constraintBottom_toTopOf="@+id/submit"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="10dp"

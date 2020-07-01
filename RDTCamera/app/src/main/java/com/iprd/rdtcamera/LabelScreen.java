@@ -8,7 +8,10 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -26,6 +29,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 
 import static android.os.SystemClock.sleep;
@@ -42,6 +48,8 @@ public class LabelScreen extends AppCompatActivity implements AsyncResponse {
     private Bitmap recievedImage;
     private Context mctx;
     private SharedPreferences prefs;
+    TextView serverConnectionText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +59,8 @@ public class LabelScreen extends AppCompatActivity implements AsyncResponse {
         clickedPicture = (ImageView) findViewById(R.id.rdtImage);
         back = (Button) findViewById(R.id.back);
         submit = (Button) findViewById(R.id.submit);
+        serverConnectionText = findViewById(R.id.serverConnection);
+
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         notes = (TextView) findViewById(R.id.notes);
         prefs = this.getSharedPreferences("MyPrefsFile", MODE_PRIVATE);//PreferenceManager.getDefaultSharedPreferences(c);
@@ -73,35 +83,56 @@ public class LabelScreen extends AppCompatActivity implements AsyncResponse {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String tmpText = notes.getText().toString();
                 try{
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    recievedImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    byte[] byteArray = stream.toByteArray();
-                    recievedImage.recycle();
-                    int selectedId = radioGroup.getCheckedRadioButtonId();
-                    selectedButton = (RadioButton) findViewById(selectedId);
-                    JSONObject labelResult = new JSONObject();
-                    try {
-                        labelResult.put("notes",notes.getText());
-                        labelResult.put("label",selectedButton.getText());
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    if(tmpText.equals("")){
+                        throw  new NullPointerException("Need to add note");
                     }
-                    rdtResults(byteArray,labelResult.toString().getBytes());
-                    Intent nextIntent = new Intent(mctx, MainActivity.class);
-                    nextIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(nextIntent);
-                    finish();
+                    if(isNetworkAvailable()){
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        recievedImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                        byte[] byteArray = stream.toByteArray();
+                        int selectedId = radioGroup.getCheckedRadioButtonId();
+                        selectedButton = (RadioButton) findViewById(selectedId);
+                        JSONObject labelResult = new JSONObject();
+                        try {
+                            labelResult.put("notes",tmpText);
+                            labelResult.put("label",selectedButton.getText());
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        rdtResults(byteArray,labelResult.toString().getBytes());
+                        Intent nextIntent = new Intent(mctx, MainActivity.class);
+                        nextIntent.putExtra("submitToserver",true);
+                        startActivity(nextIntent);
+
+
+                    }
+                    else throw new ConnectException("no internet connection");
+
                 }
-                catch (Exception e){
+                catch (NullPointerException e){
                     e.printStackTrace();
-                    Toast.makeText(LabelScreen.this,"Error occured please make sure one option is selected and try again",Toast.LENGTH_LONG);
+                    Toast.makeText(LabelScreen.this,"Please select an option and write the RDT note before submitting",Toast.LENGTH_LONG).show();
+                }
+                catch(ConnectException e){
+                    e.printStackTrace();
+                    Toast.makeText(LabelScreen.this,"Please check internet connectivity",Toast.LENGTH_LONG).show();
                 }
 
             }
         });
     }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null;
+    }
+
+
+
     public void rdtResults(byte[] imagebytes,byte [] labelByte ) {
         OutputStream output = null;
         try {
@@ -110,6 +141,7 @@ public class LabelScreen extends AppCompatActivity implements AsyncResponse {
             String metaDataStr = "{\"UUID\":" + "\"" + guid + "\",\"Quality_parameters\":{\"brightness\":\"10\"},\"RDT_Type\":\"Flu_Audere\",\"Include_Proof\":\"True\"}";
             try {
                 Httpok mr = new Httpok("img.jpg", imagebytes, urlString, metaDataStr,"label.json",labelByte);
+
                 mr.delegate = this;
                 mr.setCtx(getApplicationContext());
                 mr.execute();
@@ -143,7 +175,8 @@ public class LabelScreen extends AppCompatActivity implements AsyncResponse {
     }
     @Override
     public void processFinish(String output) {
-
+        MainActivity.removeServerUploadMessage();
+        finish();
 
     }
 }

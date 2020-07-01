@@ -116,7 +116,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     Button mGetResult;
     Button nextPage;
     Button startBtn;
-    TextView mResultView,mMotionText,mStatusView;
+    TextView mResultView;
+    static TextView serverConnectionText;
+    TextView mStatusView;
     Boolean isPreviewOff = false;
     Boolean shouldOffTorch = false;
     static final int transparency = 0xFF000000;	// opaque bits in ARGB
@@ -234,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
 //        mRdtView = findViewById(R.id.RdtDetectImage);
         mTrackedView = findViewById(R.id.RdtTrackedImage);
         mRectView = findViewById(R.id.rdtRect);
-        mMotionText = findViewById(R.id.MotionText);
+        serverConnectionText = findViewById(R.id.serverConnection);
 //        mWarpedImage = findViewById(R.id.RdtWarpImage);
 //        mStatusView = findViewById(R.id.Status);
         //mRectView.setImageDrawable(R.drawable.grid);
@@ -265,7 +267,15 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 startActivity(i);
             }
         });
+        if(getIntent().hasExtra("submitToserver")) {
+            if(getIntent().getBooleanExtra("submitToserver",false)){
+                serverConnectionText.setVisibility(View.VISIBLE);
+            }
+            else{
+                serverConnectionText.setVisibility(View.INVISIBLE);
+            }
 
+        }
         byte[] mTfliteB = null;
         MappedByteBuffer mMappedByteBuffer = null;
         try {
@@ -320,8 +330,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         mGetResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
 
 
                 mGetResult.setEnabled(false);
@@ -383,7 +391,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
             public void onClick(View v) {
 
                 Intent nextIntent = new Intent(mctx, LabelScreen.class);
-                nextIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 String path = writeFile("Capture.jpg", finalImage);
                 nextIntent.putExtra("image_path", path);
                 startActivity(nextIntent);
@@ -485,17 +492,19 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
                 Image image = null;
             try {
                 image = reader.acquireLatestImage();
+                if(image!=null){
+                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                    byte[] bytesYUV = new byte[buffer.capacity()];
+                    int[] bytesRGB = new int[buffer.capacity()];
 
-                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                byte[] bytesYUV = new byte[buffer.capacity()];
-                int[] bytesRGB = new int[buffer.capacity()];
+                    buffer.get(bytesYUV);
+                    decodeYUV420SPGrayscale(bytesRGB,bytesYUV,mVideoSize.getHeight(),mVideoSize.getWidth());
+                    Bitmap bitmapImage=Bitmap.createBitmap(mVideoSize.getWidth(),mVideoSize.getHeight(),Bitmap.Config.ARGB_8888);
 
-                buffer.get(bytesYUV);
-                decodeYUV420SPGrayscale(bytesRGB,bytesYUV,mVideoSize.getHeight(),mVideoSize.getWidth());
-                Bitmap bitmapImage=Bitmap.createBitmap(mVideoSize.getWidth(),mVideoSize.getHeight(),Bitmap.Config.ARGB_8888);
+                    bitmapImage.setPixels(bytesRGB, 0, mVideoSize.getWidth(), 0, 0, mVideoSize.getWidth(), mVideoSize.getHeight());
+                    Process(bitmapImage);
+                }
 
-                bitmapImage.setPixels(bytesRGB, 0, mVideoSize.getWidth(), 0, 0, mVideoSize.getWidth(), mVideoSize.getHeight());
-                Process(bitmapImage);
 
 
             } catch (Exception e) {
@@ -1078,10 +1087,15 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
     }
 
 
+    public static void removeServerUploadMessage(){
+        serverConnectionText.setVisibility(View.INVISIBLE);
 
+    }
     @Override
     public void processFinish(String output) {
+
         timeSinceLastChecked=0;
         Continue();
+
     }
 }

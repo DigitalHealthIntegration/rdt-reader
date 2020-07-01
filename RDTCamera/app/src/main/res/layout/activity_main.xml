@@ -53,13 +53,22 @@
     -->
 
     <TextView
-        android:id="@+id/MotionText"
+        android:id="@+id/serverConnection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
-        android:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@+id/RdtTrackedImage"
-        app:layout_constraintEnd_toStartOf="@+id/preferenceSettingBtn" />
+        android:text="Uploading to server please dont close app.."
+        android:visibility="invisible"
+        android:background="@drawable/rounded_text_edit"
+        android:textColor="#000000"
+        android:gravity="top"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/torch"
+        app:layout_constraintStart_toStartOf="@+id/surfaceView"
+        app:layout_constraintEnd_toEndOf="@+id/surfaceView"
+        app:layout_constraintTop_toBottomOf="@+id/getResult"
+
+
+        />
 
     <!--<TextView
         android:id="@+id/RdtText"
@@ -172,11 +181,11 @@
         android:text="@string/get_result"
         android:visibility="visible"
         android:padding="30dp"
-        android:layout_marginStart="8dp"
         android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toTopOf="@id/torch"
-        app:layout_constraintHorizontal_bias="0.06"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+
         />
 
 
@@ -190,7 +199,6 @@
         android:text="@string/retake"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/getResult"
-        app:layout_constraintHorizontal_bias="0.076"
         app:layout_constraintStart_toStartOf="@id/getResult"
         app:layout_constraintEnd_toEndOf="@id/getResult"/>
 

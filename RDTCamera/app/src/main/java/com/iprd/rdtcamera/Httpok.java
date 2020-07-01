@@ -91,6 +91,8 @@ public class Httpok extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
 //        Log.i("HTTPOK","ONPOSTEXECUTE");
+
+
         if (null != mProgressBar) {
             mProgressBar.setVisibility(View.INVISIBLE);
             if (mResult != null) {
@@ -141,6 +143,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
     @Override
     protected void onPreExecute() {
 //        Log.i("HTTPOK","ONPREEXECUTE");
+
         if(null != mProgressBar  && mProgressBar.getVisibility() == View.INVISIBLE){
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.bringToFront();
@@ -195,6 +198,7 @@ public class Httpok extends AsyncTask<String, Void, String> {
                     }
                 }
             } catch (Exception e) {
+                Toast.makeText(mCtx,"Please check internet connectivity..image not uploaded",Toast.LENGTH_LONG).show();
                 Log.e("Error", e.getMessage());
                 e.printStackTrace();
             }
