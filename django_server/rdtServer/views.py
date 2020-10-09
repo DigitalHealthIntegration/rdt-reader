@@ -187,7 +187,7 @@ def DoHealthCheck(request):
        Input alias: /health-check (GET)
     '''
     if request.method == 'GET':
-        return HttpResponse({"status":"OK"},content_type="application/json")
+        return HttpResponse(json.dumps({"status":"OK"}),content_type="application/json")
     else:
         return HttpResponse("<h1>Request not supported</h1>",status="405")
 
